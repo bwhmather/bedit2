@@ -19,11 +19,9 @@ libbricks_private_headers = files([
   'brk-gizmo-private.h',
   'brk-tab-bar-private.h',
   'brk-tab-box-private.h',
-  'brk-tab-button.h',
   'brk-tab-private.h',
   'brk-tab-view-private.h',
   'brk-animation-target-private.h',
-  'brk-indicator-bin-private.h',
   'brk-widget-utils-private.h',
 ])
 
@@ -42,9 +40,7 @@ libbricks_private_sources = files([
   'brk-fading-label.c',
   'brk-gizmo.c',
   'brk-tab-box.c',
-  'brk-tab-button.c',
   'brk-tab.c',
-  'brk-indicator-bin.c',
   'brk-widget-utils.c',
 ])
 
