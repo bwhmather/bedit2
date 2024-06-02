@@ -33,7 +33,7 @@ static GSList *tab_view_list;
  * `BrkTabView` is a container which shows one child at a time. While it
  * provides keyboard shortcuts for switching between pages, it does not provide
  * a visible tab switcher and relies on external widgets for that, such as
- * [class@TabBar], [class@TabOverview] and [class@TabButton].
+ * [class@TabBar] and [class@TabButton].
  *
  * `BrkTabView` maintains a [class@TabPage] object for each page, which holds
  * additional per-page properties. You can obtain the `BrkTabPage` for a page
@@ -195,7 +195,6 @@ struct _BrkTabView
   BrkTabViewShortcuts shortcuts;
 
   int transfer_count;
-  int overview_count;
   gulong unmap_extra_pages_cb;
 
   GtkSelectionModel *pages;
@@ -235,16 +234,6 @@ enum {
 };
 
 static guint signals[SIGNAL_LAST_SIGNAL];
-
-static gboolean
-page_should_be_visible (BrkTabView *view,
-                        BrkTabPage *page)
-{
-  if (!view->overview_count)
-    return FALSE;
-
-  return page->live_thumbnail || page->invalidated;
-}
 
 static void
 set_page_selected (BrkTabPage *self,
@@ -301,33 +290,6 @@ set_page_parent (BrkTabPage *self,
                        self);
 
   g_object_notify_by_pspec (G_OBJECT (self), props[PAGE_PROP_PARENT]);
-}
-
-static void
-map_or_unmap_page (BrkTabPage *self)
-{
-  GtkWidget *parent;
-  BrkTabView *view;
-  gboolean should_be_visible;
-
-  parent = gtk_widget_get_parent (self->bin);
-
-  if (!BRK_IS_TAB_VIEW (parent))
-    return;
-
-  view = BRK_TAB_VIEW (parent);
-
-  if (!view->overview_count || !gtk_widget_get_mapped (GTK_WIDGET (view)))
-    return;
-
-  should_be_visible = self == view->selected_page ||
-                      page_should_be_visible (view, self);
-
-  if (gtk_widget_get_child_visible (self->bin) == should_be_visible)
-    return;
-
-  gtk_widget_set_child_visible (self->bin, should_be_visible);
-  gtk_widget_queue_allocate (parent);
 }
 
 static void
@@ -578,8 +540,8 @@ brk_tab_page_class_init (BrkTabPageClass *klass)
    *
    * The tooltip can be marked up with the Pango text markup language.
    *
-   * If not set, [class@TabBar] and [class@TabOverview] will use
-   * [property@TabPage:title] as a tooltip instead.
+   * If not set, [class@TabBar] will use [property@TabPage:title] as a tooltip
+   *instead.
    */
   page_props[PAGE_PROP_TOOLTIP] =
     g_param_spec_string ("tooltip", NULL, NULL,
@@ -591,8 +553,8 @@ brk_tab_page_class_init (BrkTabPageClass *klass)
    *
    * The icon of the page.
    *
-   * [class@TabBar] and [class@TabOverview] display the icon next to the title,
-   * unless [property@TabPage:loading] is set to `TRUE`.
+   * [class@TabBar] displays the icon next to the title, unless
+   * [property@TabPage:loading] is set to `TRUE`.
    */
   page_props[PAGE_PROP_ICON] =
     g_param_spec_object ("icon", NULL, NULL,
@@ -604,8 +566,8 @@ brk_tab_page_class_init (BrkTabPageClass *klass)
    *
    * Whether the page is loading.
    *
-   * If set to `TRUE`, [class@TabBar] and [class@TabOverview] will display a
-   * spinner in place of icon.
+   * If set to `TRUE`, [class@TabBar] and will display a  spinner in place of
+   * icon.
    */
   page_props[PAGE_PROP_LOADING] =
     g_param_spec_boolean ("loading", NULL, NULL,
@@ -621,8 +583,6 @@ brk_tab_page_class_init (BrkTabPageClass *klass)
    *
    * [class@TabBar] will show it at the beginning of the tab, alongside icon
    * representing [property@TabPage:icon] or loading spinner.
-   *
-   * [class@TabOverview] will show it at the at the top part of the thumbnail.
    *
    * [property@TabPage:indicator-tooltip] can be used to set the tooltip on the
    * indicator icon.
@@ -675,9 +635,6 @@ brk_tab_page_class_init (BrkTabPageClass *klass)
    * set to `TRUE`. If the tab is not visible, the corresponding edge of the tab
    * bar will be highlighted.
    *
-   * [class@TabOverview] will display a dot in the corner of the thumbnail if set
-   * to `TRUE`.
-   *
    * [class@TabButton] will display a dot if any of the pages that aren't
    * selected have this property set to `TRUE`.
    */
@@ -690,9 +647,6 @@ brk_tab_page_class_init (BrkTabPageClass *klass)
    * BrkTabPage:keyword: (attributes org.gtk.Property.get=brk_tab_page_get_keyword org.gtk.Property.set=brk_tab_page_set_keyword)
    *
    * The search keyboard of the page.
-   *
-   * [class@TabOverview] can search pages by their keywords in addition to their
-   * titles and tooltips.
    *
    * Keywords allow to include e.g. page URLs into tab search in a web browser.
    *
@@ -1050,12 +1004,7 @@ invalidate_texture (BrkTabPaintable *self)
     return;
 
   if (self->view) {
-    BrkTabView *view = BRK_TAB_VIEW (self->view);
-
-    if (!view->overview_count) {
-      brk_tab_page_invalidate_thumbnail (self->page);
-      return;
-    }
+    return;
   }
 
   texture = render_contents (self, FALSE);
@@ -1492,8 +1441,7 @@ attach_page (BrkTabView *self,
 
   g_list_store_insert (self->children, position, page);
 
-  gtk_widget_set_child_visible (page->bin,
-                                page_should_be_visible (self, page));
+  gtk_widget_set_child_visible (page->bin, FALSE);
   gtk_widget_set_parent (page->bin, GTK_WIDGET (self));
   page->transfer_binding =
     g_object_bind_property (self, "is-transferring-page",
@@ -1546,8 +1494,7 @@ set_selected_page (BrkTabView *self,
     }
 
     if (self->selected_page->bin && selected_page) {
-      gtk_widget_set_child_visible (self->selected_page->bin,
-                                    page_should_be_visible (self, self->selected_page));
+      gtk_widget_set_child_visible (self->selected_page->bin, FALSE);
     }
 
     set_page_selected (self->selected_page, FALSE);
@@ -2013,9 +1960,6 @@ unmap_extra_pages (BrkTabView *self)
     if (!gtk_widget_get_child_visible (page->bin))
       continue;
 
-    if (page_should_be_visible (self, page))
-      continue;
-
     gtk_widget_set_child_visible (page->bin, FALSE);
   }
 
@@ -2058,37 +2002,6 @@ brk_tab_view_snapshot (GtkWidget   *widget,
       self->unmap_extra_pages_cb =
         g_idle_add_once ((GSourceOnceFunc) unmap_extra_pages, self);
   }
-}
-
-static void
-draw_overview_pages_after_map_cb (BrkTabView *self)
-{
-  int i;
-
-  if (!self->overview_count)
-    return;
-
-  for (i = 0; i < self->n_pages; i++) {
-    BrkTabPage *page = brk_tab_view_get_nth_page (self, i);
-
-    if (page->live_thumbnail || page->invalidated)
-      gtk_widget_set_child_visible (page->bin, TRUE);
-    else if (page == self->selected_page)
-      gtk_widget_queue_draw (GTK_WIDGET (page->bin));
-  }
-
-  gtk_widget_queue_allocate (GTK_WIDGET (self));
-}
-
-static void
-brk_tab_view_map (GtkWidget *widget)
-{
-  BrkTabView *self = BRK_TAB_VIEW (widget);
-
-  GTK_WIDGET_CLASS (brk_tab_view_parent_class)->map (widget);
-
-  if (self->overview_count)
-    g_idle_add_once ((GSourceOnceFunc) draw_overview_pages_after_map_cb, self);
 }
 
 static void
@@ -2206,7 +2119,6 @@ brk_tab_view_class_init (BrkTabViewClass *klass)
   widget_class->measure = brk_tab_view_measure;
   widget_class->size_allocate = brk_tab_view_size_allocate;
   widget_class->snapshot = brk_tab_view_snapshot;
-  widget_class->map = brk_tab_view_map;
   widget_class->get_request_mode = brk_widget_get_request_mode;
   widget_class->compute_expand = brk_widget_compute_expand;
 
@@ -2686,9 +2598,6 @@ brk_tab_page_get_tooltip (BrkTabPage *self)
  * Sets the tooltip of @self.
  *
  * The tooltip can be marked up with the Pango text markup language.
- *
- * If not set, [class@TabBar] and [class@TabOverview] will use
- * [property@TabPage:title] as a tooltip instead.
  */
 void
 brk_tab_page_set_tooltip (BrkTabPage *self,
@@ -2725,8 +2634,8 @@ brk_tab_page_get_icon (BrkTabPage *self)
  *
  * Sets the icon of @self.
  *
- * [class@TabBar] and [class@TabOverview] display the icon next to the title,
- * unless [property@TabPage:loading] is set to `TRUE`.
+ * [class@TabBar] displays the icon next to the title,  unless
+ * [property@TabPage:loading] is set to `TRUE`.
  */
 void
 brk_tab_page_set_icon (BrkTabPage *self,
@@ -2764,8 +2673,7 @@ brk_tab_page_get_loading (BrkTabPage *self)
  *
  * Sets whether @self is loading.
  *
- * If set to `TRUE`, [class@TabBar] and [class@TabOverview] will display a
- * spinner in place of icon.
+ * If set to `TRUE`, [class@TabBar] will display a spinner in place of icon.
  */
 void
 brk_tab_page_set_loading (BrkTabPage *self,
@@ -2810,8 +2718,6 @@ brk_tab_page_get_indicator_icon (BrkTabPage *self)
  *
  * [class@TabBar] will show it at the beginning of the tab, alongside icon
  * representing [property@TabPage:icon] or loading spinner.
- *
- * [class@TabOverview] will show it at the at the top part of the thumbnail.
  *
  * [property@TabPage:indicator-tooltip] can be used to set the tooltip on the
  * indicator icon.
@@ -2948,9 +2854,6 @@ brk_tab_page_get_needs_attention (BrkTabPage *self)
  * set to `TRUE`. If the tab is not visible, the corresponding edge of the tab
  * bar will be highlighted.
  *
- * [class@TabOverview] will display a dot in the corner of the thumbnail if set
- * to `TRUE`.
- *
  * [class@TabButton] will display a dot if any of the pages that aren't
  * selected have [property@TabPage:needs-attention] set to `TRUE`.
  */
@@ -2995,9 +2898,6 @@ brk_tab_page_get_keyword (BrkTabPage *self)
  *
  * Sets the search keyword for @self.
  *
- * [class@TabOverview] can search pages by their keywords in addition to their
- * titles and tooltips.
- *
  * Keywords allow to include e.g. page URLs into tab search in a web browser.
  *
  * Since: 1.3
@@ -3038,10 +2938,6 @@ brk_tab_page_get_thumbnail_xalign (BrkTabPage *self)
  * @xalign: the new value
  *
  * Sets the horizontal alignment of the thumbnail for @self.
- *
- * If the page is so wide that [class@TabOverview] can't display it completely
- * and has to crop it, horizontal alignment will determine which part of the
- * page will be visible.
  *
  * For example, 0.5 means the center of the page will be visible, 0 means the
  * start edge will be visible and 1 means the end edge will be visible.
@@ -3091,10 +2987,6 @@ brk_tab_page_get_thumbnail_yalign (BrkTabPage *self)
  *
  * Sets the vertical alignment of the thumbnail for @self.
  *
- * If the page is so tall that [class@TabOverview] can't display it completely
- * and has to crop it, vertical alignment will determine which part of the page
- * will be visible.
- *
  * For example, 0.5 means the center of the page will be visible, 0 means the
  * top edge will be visible and 1 means the bottom edge will be visible.
  *
@@ -3143,9 +3035,6 @@ brk_tab_page_get_live_thumbnail (BrkTabPage *self)
  *
  * Sets whether to enable live thumbnail for @self.
  *
- * When set to `TRUE`, @self's thumbnail in [class@TabOverview] will update
- * immediately when @self is redrawn or resized.
- *
  * If it's set to `FALSE`, the thumbnail will only be live when the @self is
  * selected, and otherwise it will be static and will only update when
  * [method@TabPage.invalidate_thumbnail] or
@@ -3166,8 +3055,6 @@ brk_tab_page_set_live_thumbnail (BrkTabPage *self,
 
   self->live_thumbnail = live_thumbnail;
 
-  map_or_unmap_page (self);
-
   g_object_notify_by_pspec (G_OBJECT (self), page_props[PAGE_PROP_LIVE_THUMBNAIL]);
 }
 
@@ -3177,9 +3064,6 @@ brk_tab_page_set_live_thumbnail (BrkTabPage *self,
  * @self: a tab page
  *
  * Invalidates thumbnail for @self.
- *
- * If an [class@TabOverview] is open, the thumbnail representing @self will be
- * immediately updated. Otherwise it will be update when opening the overview.
  *
  * Does nothing if [property@TabPage:live-thumbnail] is set to `TRUE`.
  *
@@ -3196,8 +3080,6 @@ brk_tab_page_invalidate_thumbnail (BrkTabPage *self)
     return;
 
   self->invalidated = TRUE;
-
-  map_or_unmap_page (self);
 }
 
 GdkPaintable *
@@ -4168,49 +4050,4 @@ brk_tab_view_create_window (BrkTabView *self)
   new_view->transfer_count = self->transfer_count;
 
   return new_view;
-}
-
-void
-brk_tab_view_open_overview (BrkTabView *self)
-{
-  g_return_if_fail (BRK_IS_TAB_VIEW (self));
-
-  if (self->overview_count == 0 && gtk_widget_get_mapped (GTK_WIDGET (self))) {
-    int i;
-
-    for (i = 0; i < self->n_pages; i++) {
-      BrkTabPage *page = brk_tab_view_get_nth_page (self, i);
-
-      if (page->live_thumbnail || page->invalidated)
-        gtk_widget_set_child_visible (page->bin, TRUE);
-    }
-
-    gtk_widget_queue_allocate (GTK_WIDGET (self));
-  }
-
-  self->overview_count++;
-}
-
-void
-brk_tab_view_close_overview (BrkTabView *self)
-{
-  g_return_if_fail (BRK_IS_TAB_VIEW (self));
-
-  self->overview_count--;
-
-  if (self->overview_count == 0) {
-    int i;
-
-    for (i = 0; i < self->n_pages; i++) {
-      BrkTabPage *page = brk_tab_view_get_nth_page (self, i);
-
-      if (page->live_thumbnail || page->invalidated)
-        gtk_widget_set_child_visible (page->bin,
-                                      page == self->selected_page);
-    }
-
-    gtk_widget_queue_allocate (GTK_WIDGET (self));
-  }
-
-  g_assert (self->overview_count >= 0);
 }

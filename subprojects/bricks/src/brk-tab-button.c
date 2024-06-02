@@ -31,14 +31,9 @@
  * `BrkTabButton` is a button that displays the number of pages in a given
  * `BrkTabView`, as well as whether one of the inactive pages needs attention.
  *
- * It's intended to be used as a visible indicator when there's no visible tab
- * bar, typically opening an [class@TabOverview] on click, e.g. via the
- * `overview.open` action name:
- *
  * ```xml
  * <object class="BrkTabButton">
  *   <property name="view">view</property>
- *   <property name="action-name">overview.open</property>
  * </object>
  * ```
  *

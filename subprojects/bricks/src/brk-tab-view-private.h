@@ -29,7 +29,4 @@ void brk_tab_view_attach_page (BrkTabView *self,
 
 BrkTabView *brk_tab_view_create_window (BrkTabView *self) G_GNUC_WARN_UNUSED_RESULT;
 
-void brk_tab_view_open_overview (BrkTabView *self);
-void brk_tab_view_close_overview (BrkTabView *self);
-
 G_END_DECLS
