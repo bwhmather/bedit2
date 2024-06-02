@@ -31,8 +31,7 @@
  * sides of the tabs.
  *
  * When there's not enough space to show all the tabs, `BrkTabBar` will scroll
- * them. Pinned tabs always stay visible and aren't a part of the scrollable
- * area.
+ * them.
  *
  * ## CSS nodes
  *
@@ -49,9 +48,6 @@ struct _BrkTabBar
 
   BrkTabBox *box;
   GtkScrolledWindow *scrolled_window;
-
-  BrkTabBox *pinned_box;
-  GtkScrolledWindow *pinned_scrolled_window;
 
   BrkTabView *view;
   gboolean autohide;
@@ -107,7 +103,7 @@ set_tabs_revealed (BrkTabBar *self,
 static void
 update_autohide_cb (BrkTabBar *self)
 {
-  int n_tabs = 0, n_pinned_tabs = 0;
+  int n_tabs = 0;
   gboolean is_transferring_page;
 
   if (!self->view) {
@@ -123,10 +119,9 @@ update_autohide_cb (BrkTabBar *self)
   }
 
   n_tabs = brk_tab_view_get_n_pages (self->view);
-  n_pinned_tabs = brk_tab_view_get_n_pinned_pages (self->view);
   is_transferring_page = brk_tab_view_get_is_transferring_page (self->view);
 
-  set_tabs_revealed (self, n_tabs > 1 || n_pinned_tabs >= 1 || is_transferring_page);
+  set_tabs_revealed (self, n_tabs > 1 || is_transferring_page);
 }
 
 static void
@@ -137,56 +132,7 @@ notify_selected_page_cb (BrkTabBar *self)
   if (!page)
     return;
 
-  if (brk_tab_page_get_pinned (page)) {
-    brk_tab_box_select_page (self->pinned_box, page);
-    brk_tab_box_select_page (self->box, page);
-  } else {
-    brk_tab_box_select_page (self->box, page);
-    brk_tab_box_select_page (self->pinned_box, page);
-  }
-}
-
-static void
-notify_pinned_cb (BrkTabPage *page,
-                  GParamSpec *pspec,
-                  BrkTabBar  *self)
-{
-  BrkTabBox *from, *to;
-  gboolean should_focus;
-
-  if (brk_tab_page_get_pinned (page)) {
-    from = self->box;
-    to = self->pinned_box;
-  } else {
-    from = self->pinned_box;
-    to = self->box;
-  }
-
-  should_focus = brk_tab_box_is_page_focused (from, page);
-
-  brk_tab_box_detach_page (from, page);
-  brk_tab_box_attach_page (to, page, brk_tab_view_get_n_pinned_pages (self->view));
-
-  if (should_focus)
-    brk_tab_box_try_focus_selected_tab (to);
-}
-
-static void
-page_attached_cb (BrkTabBar  *self,
-                  BrkTabPage *page,
-                  int         position)
-{
-  g_signal_connect_object (page, "notify::pinned",
-                           G_CALLBACK (notify_pinned_cb), self,
-                           0);
-}
-
-static void
-page_detached_cb (BrkTabBar  *self,
-                  BrkTabPage *page,
-                  int         position)
-{
-  g_signal_handlers_disconnect_by_func (page, notify_pinned_cb, self);
+  brk_tab_box_select_page (self->box, page);
 }
 
 static inline gboolean
@@ -204,8 +150,7 @@ static void
 update_is_overflowing (BrkTabBar *self)
 {
   GtkAdjustment *adj = gtk_scrolled_window_get_hadjustment (self->scrolled_window);
-  GtkAdjustment *pinned_adj = gtk_scrolled_window_get_hadjustment (self->pinned_scrolled_window);
-  gboolean overflowing = is_overflowing (adj) || is_overflowing (pinned_adj);
+  gboolean overflowing = is_overflowing (adj);
 
   if (overflowing == self->is_overflowing)
     return;
@@ -223,12 +168,11 @@ update_is_overflowing (BrkTabBar *self)
 static void
 notify_resize_frozen_cb (BrkTabBar *self)
 {
-  gboolean frozen, pinned_frozen;
+  gboolean frozen;
 
   g_object_get (self->box, "resize-frozen", &frozen, NULL);
-  g_object_get (self->pinned_box, "resize-frozen", &pinned_frozen, NULL);
 
-  self->resize_frozen = frozen || pinned_frozen;
+  self->resize_frozen = frozen;
 
   update_is_overflowing (self);
 }
@@ -303,8 +247,7 @@ brk_tab_bar_focus (GtkWidget        *widget,
     return GDK_EVENT_PROPAGATE;
 
   if (!gtk_widget_get_focus_child (widget))
-    return gtk_widget_child_focus (GTK_WIDGET (self->pinned_box), direction) ||
-           gtk_widget_child_focus (GTK_WIDGET (self->box), direction);
+    return gtk_widget_child_focus (GTK_WIDGET (self->box), direction);
 
   is_rtl = gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL;
   start = is_rtl ? GTK_DIR_RIGHT : GTK_DIR_LEFT;
@@ -484,7 +427,7 @@ brk_tab_bar_class_init (BrkTabBarClass *klass)
    * Whether the tabs automatically hide.
    *
    * If set to `TRUE`, the tab bar disappears when [property@TabBar:view] has 0
-   * or 1 tab, no pinned tabs, and no tab is being transferred.
+   * or 1 tab and no tab is being transferred.
    *
    * See [property@TabBar:tabs-revealed].
    */
@@ -523,8 +466,8 @@ brk_tab_bar_class_init (BrkTabBarClass *klass)
    *
    * Whether tabs use inverted layout.
    *
-   * If set to `TRUE`, non-pinned tabs will have the close button at the
-   * beginning and the indicator at the end rather than the opposite.
+   * If set to `TRUE`, tabs will have the close button at the  beginning and the
+   * indicator at the end rather than the opposite.
    */
   props[PROP_INVERTED] =
     g_param_spec_boolean ("inverted", NULL, NULL,
@@ -638,10 +581,8 @@ brk_tab_bar_class_init (BrkTabBarClass *klass)
   gtk_widget_class_set_template_from_resource (widget_class,
                                                "/com/bwhmather/Bricks/ui/brk-tab-bar.ui");
   gtk_widget_class_bind_template_child (widget_class, BrkTabBar, revealer);
-  gtk_widget_class_bind_template_child (widget_class, BrkTabBar, pinned_box);
   gtk_widget_class_bind_template_child (widget_class, BrkTabBar, box);
   gtk_widget_class_bind_template_child (widget_class, BrkTabBar, scrolled_window);
-  gtk_widget_class_bind_template_child (widget_class, BrkTabBar, pinned_scrolled_window);
   gtk_widget_class_bind_template_child (widget_class, BrkTabBar, start_action_bin);
   gtk_widget_class_bind_template_child (widget_class, BrkTabBar, end_action_bin);
   gtk_widget_class_bind_template_callback (widget_class, notify_resize_frozen_cb);
@@ -668,10 +609,6 @@ brk_tab_bar_init (BrkTabBar *self)
   gtk_widget_init_template (GTK_WIDGET (self));
 
   adj = gtk_scrolled_window_get_hadjustment (self->scrolled_window);
-  g_signal_connect_object (adj, "changed", G_CALLBACK (update_is_overflowing),
-                           self, G_CONNECT_SWAPPED);
-
-  adj = gtk_scrolled_window_get_hadjustment (self->pinned_scrolled_window);
   g_signal_connect_object (adj, "changed", G_CALLBACK (update_is_overflowing),
                            self, G_CONNECT_SWAPPED);
 }
@@ -707,18 +644,9 @@ brk_tab_bar_buildable_init (GtkBuildableIface *iface)
 gboolean
 brk_tab_bar_tabs_have_visible_focus (BrkTabBar *self)
 {
-  GtkWidget *pinned_focus_child, *scroll_focus_child;
+  GtkWidget *scroll_focus_child;
 
   g_return_val_if_fail (BRK_IS_TAB_BAR (self), FALSE);
-
-  pinned_focus_child = gtk_widget_get_focus_child (GTK_WIDGET (self->pinned_box));
-
-  if (pinned_focus_child) {
-    GtkWidget *tab = gtk_widget_get_first_child (pinned_focus_child);
-
-    if (gtk_widget_has_visible_focus (tab))
-      return TRUE;
-  }
 
   scroll_focus_child = gtk_widget_get_focus_child (GTK_WIDGET (self->box));
 
@@ -779,29 +707,16 @@ brk_tab_bar_set_view (BrkTabBar  *self,
     return;
 
   if (self->view) {
-    int i, n;
-
     g_signal_handlers_disconnect_by_func (self->view, update_autohide_cb, self);
     g_signal_handlers_disconnect_by_func (self->view, notify_selected_page_cb, self);
-    g_signal_handlers_disconnect_by_func (self->view, page_attached_cb, self);
-    g_signal_handlers_disconnect_by_func (self->view, page_detached_cb, self);
     g_signal_handlers_disconnect_by_func (self->view, view_destroy_cb, self);
 
-    n = brk_tab_view_get_n_pages (self->view);
-
-    for (i = 0; i < n; i++)
-      page_detached_cb (self, brk_tab_view_get_nth_page (self->view, i), i);
-
-    brk_tab_box_set_view (self->pinned_box, NULL);
     brk_tab_box_set_view (self->box, NULL);
   }
 
   g_set_object (&self->view, view);
 
   if (self->view) {
-    int i, n;
-
-    brk_tab_box_set_view (self->pinned_box, view);
     brk_tab_box_set_view (self->box, view);
 
     g_signal_connect_object (self->view, "notify::is-transferring-page",
@@ -810,26 +725,12 @@ brk_tab_bar_set_view (BrkTabBar  *self,
     g_signal_connect_object (self->view, "notify::n-pages",
                              G_CALLBACK (update_autohide_cb), self,
                              G_CONNECT_SWAPPED);
-    g_signal_connect_object (self->view, "notify::n-pinned-pages",
-                             G_CALLBACK (update_autohide_cb), self,
-                             G_CONNECT_SWAPPED);
     g_signal_connect_object (self->view, "notify::selected-page",
                              G_CALLBACK (notify_selected_page_cb), self,
-                             G_CONNECT_SWAPPED);
-    g_signal_connect_object (self->view, "page-attached",
-                             G_CALLBACK (page_attached_cb), self,
-                             G_CONNECT_SWAPPED);
-    g_signal_connect_object (self->view, "page-detached",
-                             G_CALLBACK (page_detached_cb), self,
                              G_CONNECT_SWAPPED);
     g_signal_connect_object (self->view, "destroy",
                              G_CALLBACK (view_destroy_cb), self,
                              G_CONNECT_SWAPPED);
-
-    n = brk_tab_view_get_n_pages (self->view);
-
-    for (i = 0; i < n; i++)
-      page_attached_cb (self, brk_tab_view_get_nth_page (self->view, i), i);
   }
 
   update_autohide_cb (self);
@@ -947,7 +848,7 @@ brk_tab_bar_get_autohide (BrkTabBar *self)
  * Sets whether the tabs automatically hide.
  *
  * If set to `TRUE`, the tab bar disappears when [property@TabBar:view] has 0
- * or 1 tab, no pinned tabs, and no tab is being transferred.
+ * or 1 tab and no tab is being transferred.
  *
  * See [property@TabBar:tabs-revealed].
  */
@@ -1052,8 +953,8 @@ brk_tab_bar_get_inverted (BrkTabBar *self)
  *
  * Sets whether tabs tabs use inverted layout.
  *
- * If set to `TRUE`, non-pinned tabs will have the close button at the beginning
- * and the indicator at the end rather than the opposite.
+ * If set to `TRUE`, tabs will have the close button at the beginning and the
+ * indicator at the end rather than the opposite.
  */
 void
 brk_tab_bar_set_inverted (BrkTabBar *self,
@@ -1101,7 +1002,6 @@ brk_tab_bar_setup_extra_drop_target (BrkTabBar     *self,
   g_return_if_fail (n_types == 0 || types != NULL);
 
   brk_tab_box_setup_extra_drop_target (self->box, actions, types, n_types);
-  brk_tab_box_setup_extra_drop_target (self->pinned_box, actions, types, n_types);
 }
 
 /**
@@ -1161,7 +1061,6 @@ brk_tab_bar_set_extra_drag_preload (BrkTabBar *self,
     return;
 
   brk_tab_box_set_extra_drag_preload (self->box, preload);
-  brk_tab_box_set_extra_drag_preload (self->pinned_box, preload);
 
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_EXTRA_DRAG_PRELOAD]);
 }
@@ -1190,12 +1089,4 @@ brk_tab_bar_get_tab_box (BrkTabBar *self)
   g_return_val_if_fail (BRK_IS_TAB_BAR (self), NULL);
 
   return self->box;
-}
-
-BrkTabBox *
-brk_tab_bar_get_pinned_tab_box (BrkTabBar *self)
-{
-  g_return_val_if_fail (BRK_IS_TAB_BAR (self), NULL);
-
-  return self->pinned_box;
 }

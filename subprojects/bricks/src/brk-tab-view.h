@@ -51,9 +51,6 @@ BRK_AVAILABLE_IN_ALL
 gboolean brk_tab_page_get_selected (BrkTabPage *self);
 
 BRK_AVAILABLE_IN_ALL
-gboolean brk_tab_page_get_pinned (BrkTabPage *self);
-
-BRK_AVAILABLE_IN_ALL
 const char *brk_tab_page_get_title (BrkTabPage *self);
 BRK_AVAILABLE_IN_ALL
 void        brk_tab_page_set_title (BrkTabPage *self,
@@ -138,8 +135,6 @@ BrkTabView *brk_tab_view_new (void) G_GNUC_WARN_UNUSED_RESULT;
 
 BRK_AVAILABLE_IN_ALL
 int brk_tab_view_get_n_pages        (BrkTabView *self);
-BRK_AVAILABLE_IN_ALL
-int brk_tab_view_get_n_pinned_pages (BrkTabView *self);
 
 BRK_AVAILABLE_IN_ALL
 gboolean brk_tab_view_get_is_transferring_page (BrkTabView *self);
@@ -180,11 +175,6 @@ void                brk_tab_view_remove_shortcuts (BrkTabView          *self,
                                                    BrkTabViewShortcuts  shortcuts);
 
 BRK_AVAILABLE_IN_ALL
-void brk_tab_view_set_page_pinned (BrkTabView *self,
-                                   BrkTabPage *page,
-                                   gboolean    pinned);
-
-BRK_AVAILABLE_IN_ALL
 BrkTabPage *brk_tab_view_get_page (BrkTabView *self,
                                    GtkWidget  *child);
 
@@ -211,17 +201,6 @@ BrkTabPage *brk_tab_view_prepend (BrkTabView *self,
 BRK_AVAILABLE_IN_ALL
 BrkTabPage *brk_tab_view_append  (BrkTabView *self,
                                   GtkWidget  *child);
-
-BRK_AVAILABLE_IN_ALL
-BrkTabPage *brk_tab_view_insert_pinned  (BrkTabView *self,
-                                         GtkWidget  *child,
-                                         int         position);
-BRK_AVAILABLE_IN_ALL
-BrkTabPage *brk_tab_view_prepend_pinned (BrkTabView *self,
-                                         GtkWidget  *child);
-BRK_AVAILABLE_IN_ALL
-BrkTabPage *brk_tab_view_append_pinned  (BrkTabView *self,
-                                         GtkWidget  *child);
 
 BRK_AVAILABLE_IN_ALL
 void brk_tab_view_close_page        (BrkTabView *self,

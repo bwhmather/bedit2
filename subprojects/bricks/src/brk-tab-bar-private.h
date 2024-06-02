@@ -21,6 +21,5 @@ G_BEGIN_DECLS
 gboolean brk_tab_bar_tabs_have_visible_focus (BrkTabBar *self);
 
 BrkTabBox *brk_tab_bar_get_tab_box        (BrkTabBar *self);
-BrkTabBox *brk_tab_bar_get_pinned_tab_box (BrkTabBar *self);
 
 G_END_DECLS

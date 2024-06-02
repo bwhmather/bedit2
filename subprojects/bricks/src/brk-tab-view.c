@@ -132,7 +132,6 @@ struct _BrkTabPage
   GtkWidget *child;
   BrkTabPage *parent;
   gboolean selected;
-  gboolean pinned;
   char *title;
   char *tooltip;
   GIcon *icon;
@@ -168,7 +167,6 @@ enum {
   PAGE_PROP_CHILD,
   PAGE_PROP_PARENT,
   PAGE_PROP_SELECTED,
-  PAGE_PROP_PINNED,
   PAGE_PROP_TITLE,
   PAGE_PROP_TOOLTIP,
   PAGE_PROP_ICON,
@@ -194,7 +192,6 @@ struct _BrkTabView
   GListStore *children;
 
   int n_pages;
-  int n_pinned_pages;
   BrkTabPage *selected_page;
   GIcon *default_icon;
   GMenuModel *menu_model;
@@ -219,7 +216,6 @@ static GtkBuildableIface *parent_buildable_iface;
 enum {
   PROP_0,
   PROP_N_PAGES,
-  PROP_N_PINNED_PAGES,
   PROP_IS_TRANSFERRING_PAGE,
   PROP_SELECTED_PAGE,
   PROP_DEFAULT_ICON,
@@ -268,22 +264,6 @@ set_page_selected (BrkTabPage *self,
   self->selected = selected;
 
   g_object_notify_by_pspec (G_OBJECT (self), page_props[PAGE_PROP_SELECTED]);
-}
-
-static void
-set_page_pinned (BrkTabPage *self,
-                 gboolean    pinned)
-{
-  g_return_if_fail (BRK_IS_TAB_PAGE (self));
-
-  pinned = !!pinned;
-
-  if (self->pinned == pinned)
-    return;
-
-  self->pinned = pinned;
-
-  g_object_notify_by_pspec (G_OBJECT (self), page_props[PAGE_PROP_PINNED]);
 }
 
 static void set_page_parent (BrkTabPage *self,
@@ -407,10 +387,6 @@ brk_tab_page_get_property (GObject    *object,
 
   case PAGE_PROP_SELECTED:
     g_value_set_boolean (value, brk_tab_page_get_selected (self));
-    break;
-
-  case PAGE_PROP_PINNED:
-    g_value_set_boolean (value, brk_tab_page_get_pinned (self));
     break;
 
   case PAGE_PROP_TITLE:
@@ -587,27 +563,11 @@ brk_tab_page_class_init (BrkTabPageClass *klass)
                           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
   /**
-   * BrkTabPage:pinned: (attributes org.gtk.Property.get=brk_tab_page_get_pinned)
-   *
-   * Whether the page is pinned.
-   *
-   * See [method@TabView.set_page_pinned].
-   */
-  page_props[PAGE_PROP_PINNED] =
-    g_param_spec_boolean ("pinned", NULL, NULL,
-                          FALSE,
-                          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
-
-  /**
    * BrkTabPage:title: (attributes org.gtk.Property.get=brk_tab_page_get_title org.gtk.Property.set=brk_tab_page_set_title)
    *
    * The title of the page.
    *
-   * [class@TabBar] will display it in the center of the tab unless it's pinned,
-   * and will use it as a tooltip unless [property@TabPage:tooltip] is set.
-   *
-   * [class@TabOverview] will display it below the thumbnail unless it's pinned,
-   * or inside the card otherwise, and will use it as a tooltip unless
+   * [class@TabBar] will display it in the center of the tab and will use it as a tooltip unless
    * [property@TabPage:tooltip] is set.
    */
   page_props[PAGE_PROP_TITLE] =
@@ -637,9 +597,6 @@ brk_tab_page_class_init (BrkTabPageClass *klass)
    *
    * [class@TabBar] and [class@TabOverview] display the icon next to the title,
    * unless [property@TabPage:loading] is set to `TRUE`.
-   *
-   * `BrkTabBar` also won't show the icon if the page is pinned and
-   * [propertyTabPage:indicator-icon] is set.
    */
   page_props[PAGE_PROP_ICON] =
     g_param_spec_object ("icon", NULL, NULL,
@@ -653,9 +610,6 @@ brk_tab_page_class_init (BrkTabPageClass *klass)
    *
    * If set to `TRUE`, [class@TabBar] and [class@TabOverview] will display a
    * spinner in place of icon.
-   *
-   * If the page is pinned and [property@TabPage:indicator-icon] is set,
-   * loading status will not be visible with `BrkTabBar`.
    */
   page_props[PAGE_PROP_LOADING] =
     g_param_spec_boolean ("loading", NULL, NULL,
@@ -671,9 +625,6 @@ brk_tab_page_class_init (BrkTabPageClass *klass)
    *
    * [class@TabBar] will show it at the beginning of the tab, alongside icon
    * representing [property@TabPage:icon] or loading spinner.
-   *
-   * If the page is pinned, the indicator will be shown instead of icon or
-   * spinner.
    *
    * [class@TabOverview] will show it at the at the top part of the thumbnail.
    *
@@ -1593,18 +1544,6 @@ set_n_pages (BrkTabView *self,
   g_object_notify_by_pspec (G_OBJECT (self), props[PROP_N_PAGES]);
 }
 
-static void
-set_n_pinned_pages (BrkTabView *self,
-                    int         n_pinned_pages)
-{
-  if (n_pinned_pages == self->n_pinned_pages)
-    return;
-
-  self->n_pinned_pages = n_pinned_pages;
-
-  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_N_PINNED_PAGES]);
-}
-
 static inline gboolean
 page_belongs_to_this_view (BrkTabView *self,
                            BrkTabPage *page)
@@ -1664,9 +1603,6 @@ attach_page (BrkTabView *self,
   g_object_freeze_notify (G_OBJECT (self));
 
   set_n_pages (self, self->n_pages + 1);
-
-  if (brk_tab_page_get_pinned (page))
-    set_n_pinned_pages (self, self->n_pinned_pages + 1);
 
   g_object_thaw_notify (G_OBJECT (self));
 
@@ -1776,18 +1712,6 @@ select_previous_page (BrkTabView *self,
 
       return;
     }
-
-    /* Pinned pages are special in that opening a page from a pinned parent
-     * will place it not directly after the parent, but after the last pinned
-     * page. This means that if we're closing the first non-pinned page, we need
-     * to jump to the parent directly instead of the previous page which might
-     * be different. */
-    if (brk_tab_page_get_pinned (prev_page) &&
-        brk_tab_page_get_pinned (parent)) {
-      brk_tab_view_set_selected_page (self, parent);
-
-      return;
-    }
   }
 
   if (brk_tab_view_select_next_page (self))
@@ -1817,9 +1741,6 @@ detach_page (BrkTabView *self,
   g_object_freeze_notify (G_OBJECT (self));
 
   set_n_pages (self, self->n_pages - 1);
-
-  if (brk_tab_page_get_pinned (page))
-    set_n_pinned_pages (self, self->n_pinned_pages - 1);
 
   g_object_thaw_notify (G_OBJECT (self));
 
@@ -1861,16 +1782,13 @@ static BrkTabPage *
 create_and_insert_page (BrkTabView *self,
                         GtkWidget  *child,
                         BrkTabPage *parent,
-                        int         position,
-                        gboolean    pinned)
+                        int         position)
 {
   BrkTabPage *page =
     g_object_new (BRK_TYPE_TAB_PAGE,
                   "child", child,
                   "parent", parent,
                   NULL);
-
-  set_page_pinned (page, pinned);
 
   insert_page (self, page, position);
 
@@ -1883,8 +1801,7 @@ static gboolean
 close_page_cb (BrkTabView *self,
                BrkTabPage *page)
 {
-  brk_tab_view_close_page_finish (self, page,
-                                  !brk_tab_page_get_pinned (page));
+  brk_tab_view_close_page_finish (self, page, TRUE);
 
   return GDK_EVENT_STOP;
 }
@@ -2323,10 +2240,6 @@ brk_tab_view_get_property (GObject    *object,
     g_value_set_int (value, brk_tab_view_get_n_pages (self));
     break;
 
-  case PROP_N_PINNED_PAGES:
-    g_value_set_int (value, brk_tab_view_get_n_pinned_pages (self));
-    break;
-
   case PROP_IS_TRANSFERRING_PAGE:
     g_value_set_boolean (value, brk_tab_view_get_is_transferring_page (self));
     break;
@@ -2411,18 +2324,6 @@ brk_tab_view_class_init (BrkTabViewClass *klass)
    */
   props[PROP_N_PAGES] =
     g_param_spec_int ("n-pages", NULL, NULL,
-                      0, G_MAXINT, 0,
-                      G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
-
-  /**
-   * BrkTabView:n-pinned-pages: (attributes org.gtk.Property.get=brk_tab_view_get_n_pinned_pages)
-   *
-   * The number of pinned pages in the tab view.
-   *
-   * See [method@TabView.set_page_pinned].
-   */
-  props[PROP_N_PINNED_PAGES] =
-    g_param_spec_int ("n-pinned-pages", NULL, NULL,
                       0, G_MAXINT, 0,
                       G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
@@ -2611,8 +2512,8 @@ brk_tab_view_class_init (BrkTabViewClass *klass)
    * The handler is expected to call [method@TabView.close_page_finish] to
    * confirm or reject the closing.
    *
-   * The default handler will immediately confirm closing for non-pinned pages,
-   * or reject it for pinned pages, equivalent to the following example:
+   * The default handler will immediately confirm closing, equivalent to the
+   * following example:
    *
    * ```c
    * static gboolean
@@ -2620,7 +2521,7 @@ brk_tab_view_class_init (BrkTabViewClass *klass)
    *                BrkTabPage *page,
    *                gpointer    user_data)
    * {
-   *   brk_tab_view_close_page_finish (view, page, !brk_tab_page_get_pinned (page));
+   *   brk_tab_view_close_page_finish (view, page, TRUE);
    *
    *   return GDK_EVENT_STOP;
    * }
@@ -2851,24 +2752,6 @@ brk_tab_page_get_selected (BrkTabPage *self)
 }
 
 /**
- * brk_tab_page_get_pinned: (attributes org.gtk.Method.get_property=pinned)
- * @self: a tab page
- *
- * Gets whether @self is pinned.
- *
- * See [method@TabView.set_page_pinned].
- *
- * Returns: whether @self is pinned
- */
-gboolean
-brk_tab_page_get_pinned (BrkTabPage *self)
-{
-  g_return_val_if_fail (BRK_IS_TAB_PAGE (self), FALSE);
-
-  return self->pinned;
-}
-
-/**
  * brk_tab_page_get_title: (attributes org.gtk.Method.get_property=title)
  * @self: a tab page
  *
@@ -2889,12 +2772,8 @@ brk_tab_page_get_title (BrkTabPage *self)
  * @self: a tab page
  * @title: the title of @self
  *
- * [class@TabBar] will display it in the center of the tab unless it's pinned,
- * and will use it as a tooltip unless [property@TabPage:tooltip] is set.
- *
- * [class@TabOverview] will display it below the thumbnail unless it's pinned,
- * or inside the card otherwise, and will use it as a tooltip unless
- * [property@TabPage:tooltip] is set.
+ * [class@TabBar] will display it in the center of the tab and will use it as a
+ * tooltip unless [property@TabPage:tooltip] is set.
  *
  * Sets the title of @self.
  */
@@ -2979,9 +2858,6 @@ brk_tab_page_get_icon (BrkTabPage *self)
  *
  * [class@TabBar] and [class@TabOverview] display the icon next to the title,
  * unless [property@TabPage:loading] is set to `TRUE`.
- *
- * `BrkTabBar` also won't show the icon if the page is pinned and
- * [propertyTabPage:indicator-icon] is set.
  */
 void
 brk_tab_page_set_icon (BrkTabPage *self,
@@ -3021,9 +2897,6 @@ brk_tab_page_get_loading (BrkTabPage *self)
  *
  * If set to `TRUE`, [class@TabBar] and [class@TabOverview] will display a
  * spinner in place of icon.
- *
- * If the page is pinned and [property@TabPage:indicator-icon] is set, loading
- * status will not be visible with `BrkTabBar`.
  */
 void
 brk_tab_page_set_loading (BrkTabPage *self,
@@ -3068,9 +2941,6 @@ brk_tab_page_get_indicator_icon (BrkTabPage *self)
  *
  * [class@TabBar] will show it at the beginning of the tab, alongside icon
  * representing [property@TabPage:icon] or loading spinner.
- *
- * If the page is pinned, the indicator will be shown instead of icon or
- * spinner.
  *
  * [class@TabOverview] will show it at the at the top part of the thumbnail.
  *
@@ -3502,24 +3372,6 @@ brk_tab_view_get_n_pages (BrkTabView *self)
 }
 
 /**
- * brk_tab_view_get_n_pinned_pages: (attributes org.gtk.Method.get_property=n-pinned-pages)
- * @self: a tab view
- *
- * Gets the number of pinned pages in @self.
- *
- * See [method@TabView.set_page_pinned].
- *
- * Returns: the number of pinned pages in @self
- */
-int
-brk_tab_view_get_n_pinned_pages (BrkTabView *self)
-{
-  g_return_val_if_fail (BRK_IS_TAB_VIEW (self), 0);
-
-  return self->n_pinned_pages;
-}
-
-/**
  * brk_tab_view_get_is_transferring_page: (attributes org.gtk.Method.get_property=is-transferring-page)
  * @self: a tab view
  *
@@ -3650,22 +3502,13 @@ gboolean
 brk_tab_view_select_first_page (BrkTabView *self)
 {
   BrkTabPage *page;
-  int pos;
-  gboolean pinned;
 
   g_return_val_if_fail (BRK_IS_TAB_VIEW (self), FALSE);
 
   if (!self->selected_page)
     return FALSE;
 
-  pinned = brk_tab_page_get_pinned (self->selected_page);
-  pos = pinned ? 0 : self->n_pinned_pages;
-
-  page = brk_tab_view_get_nth_page (self, pos);
-
-  /* If we're on the first non-pinned tab, go to the first pinned tab */
-  if (page == self->selected_page && !pinned)
-    page = brk_tab_view_get_nth_page (self, 0);
+  page = brk_tab_view_get_nth_page (self, 0);
 
   if (page == self->selected_page)
     return FALSE;
@@ -3679,22 +3522,13 @@ gboolean
 brk_tab_view_select_last_page (BrkTabView *self)
 {
   BrkTabPage *page;
-  int pos;
-  gboolean pinned;
 
   g_return_val_if_fail (BRK_IS_TAB_VIEW (self), FALSE);
 
   if (!self->selected_page)
     return FALSE;
 
-  pinned = brk_tab_page_get_pinned (self->selected_page);
-  pos = (pinned ? self->n_pinned_pages : self->n_pages) - 1;
-
-  page = brk_tab_view_get_nth_page (self, pos);
-
-  /* If we're on the last pinned tab, go to the last non-pinned tab */
-  if (page == self->selected_page && pinned)
-    page = brk_tab_view_get_nth_page (self, self->n_pages - 1);
+  page = brk_tab_view_get_nth_page (self, 0);
 
   if (page == self->selected_page)
     return FALSE;
@@ -3895,84 +3729,6 @@ brk_tab_view_remove_shortcuts (BrkTabView          *self,
 }
 
 /**
- * brk_tab_view_set_page_pinned:
- * @self: a tab view
- * @page: a page of @self
- * @pinned: whether @page should be pinned
- *
- * Pins or unpins @page.
- *
- * Pinned pages are guaranteed to be placed before all non-pinned pages; at any
- * given moment the first [property@TabView:n-pinned-pages] pages in @self are
- * guaranteed to be pinned.
- *
- * When a page is pinned or unpinned, it's automatically reordered: pinning a
- * page moves it after other pinned pages; unpinning a page moves it before
- * other non-pinned pages.
- *
- * Pinned pages can still be reordered between each other.
- *
- * [class@TabBar] will display pinned pages in a compact form, never showing the
- * title or close button, and only showing a single icon, selected in the
- * following order:
- *
- * 1. [property@TabPage:indicator-icon]
- * 2. A spinner if [property@TabPage:loading] is `TRUE`
- * 3. [property@TabPage:icon]
- * 4. [property@TabView:default-icon]
- *
- * [class@TabOverview] will not show a thumbnail for pinned pages, and replace
- * the close button with an unpin button. Unlike `BrkTabBar`, it will still
- * display the page's title, icon and indicator separately.
- *
- * Pinned pages cannot be closed by default, see [signal@TabView::close-page]
- * for how to override that behavior.
- *
- * Changes the value of the [property@TabPage:pinned] property.
- */
-void
-brk_tab_view_set_page_pinned (BrkTabView *self,
-                              BrkTabPage *page,
-                              gboolean    pinned)
-{
-  int old_pos, new_pos;
-
-  g_return_if_fail (BRK_IS_TAB_VIEW (self));
-  g_return_if_fail (BRK_IS_TAB_PAGE (page));
-  g_return_if_fail (page_belongs_to_this_view (self, page));
-
-  pinned = !!pinned;
-
-  if (brk_tab_page_get_pinned (page) == pinned)
-    return;
-
-  old_pos = brk_tab_view_get_page_position (self, page);
-
-  g_object_ref (page);
-
-  g_list_store_remove (self->children, old_pos);
-
-  new_pos = self->n_pinned_pages;
-
-  if (!pinned)
-    new_pos--;
-
-  g_list_store_insert (self->children, new_pos, page);
-
-  g_object_unref (page);
-
-  set_n_pinned_pages (self, new_pos + (pinned ? 1 : 0));
-  set_page_pinned (page, pinned);
-
-  if (self->pages) {
-    int min = MIN (old_pos, new_pos);
-    int n_changed = MAX (old_pos, new_pos) - min + 1;
-
-    g_list_model_items_changed (G_LIST_MODEL (self->pages), min, n_changed, n_changed);
-  }
-}
-
-/**
  * brk_tab_view_get_page:
  * @self: a tab view
  * @child: a child in @self
@@ -4089,10 +3845,7 @@ brk_tab_view_add_page (BrkTabView *self,
 
     g_return_val_if_fail (page_belongs_to_this_view (self, parent), NULL);
 
-    if (brk_tab_page_get_pinned (parent))
-      position = self->n_pinned_pages - 1;
-    else
-      position = brk_tab_view_get_page_position (self, parent);
+    position = brk_tab_view_get_page_position (self, parent);
 
     do {
       position++;
@@ -4106,7 +3859,7 @@ brk_tab_view_add_page (BrkTabView *self,
     position = self->n_pages;
   }
 
-  return create_and_insert_page (self, child, parent, position, FALSE);
+  return create_and_insert_page (self, child, parent, position);
 }
 
 /**
@@ -4115,10 +3868,7 @@ brk_tab_view_add_page (BrkTabView *self,
  * @child: a widget to add
  * @position: the position to add @child at, starting from 0
  *
- * Inserts a non-pinned page at @position.
- *
- * It's an error to try to insert a page before a pinned page, in that case
- * [method@TabView.insert_pinned] should be used instead.
+ * Inserts a page at @position.
  *
  * Returns: (transfer none): the page object representing @child
  */
@@ -4130,10 +3880,10 @@ brk_tab_view_insert (BrkTabView *self,
   g_return_val_if_fail (BRK_IS_TAB_VIEW (self), NULL);
   g_return_val_if_fail (GTK_IS_WIDGET (child), NULL);
   g_return_val_if_fail (gtk_widget_get_parent (child) == NULL, NULL);
-  g_return_val_if_fail (position >= self->n_pinned_pages, NULL);
+  g_return_val_if_fail (position >= 0, NULL);
   g_return_val_if_fail (position <= self->n_pages, NULL);
 
-  return create_and_insert_page (self, child, NULL, position, FALSE);
+  return create_and_insert_page (self, child, NULL, position);
 }
 
 /**
@@ -4141,7 +3891,7 @@ brk_tab_view_insert (BrkTabView *self,
  * @self: a tab view
  * @child: a widget to add
  *
- * Inserts @child as the first non-pinned page.
+ * Inserts @child as the first page.
  *
  * Returns: (transfer none): the page object representing @child
  */
@@ -4153,7 +3903,7 @@ brk_tab_view_prepend (BrkTabView *self,
   g_return_val_if_fail (GTK_IS_WIDGET (child), NULL);
   g_return_val_if_fail (gtk_widget_get_parent (child) == NULL, NULL);
 
-  return create_and_insert_page (self, child, NULL, self->n_pinned_pages, FALSE);
+  return create_and_insert_page (self, child, NULL, 0);
 }
 
 /**
@@ -4161,7 +3911,7 @@ brk_tab_view_prepend (BrkTabView *self,
  * @self: a tab view
  * @child: a widget to add
  *
- * Inserts @child as the last non-pinned page.
+ * Inserts @child as the last page.
  *
  * Returns: (transfer none): the page object representing @child
  */
@@ -4173,73 +3923,7 @@ brk_tab_view_append (BrkTabView *self,
   g_return_val_if_fail (GTK_IS_WIDGET (child), NULL);
   g_return_val_if_fail (gtk_widget_get_parent (child) == NULL, NULL);
 
-  return create_and_insert_page (self, child, NULL, self->n_pages, FALSE);
-}
-
-/**
- * brk_tab_view_insert_pinned:
- * @self: a tab view
- * @child: a widget to add
- * @position: the position to add @child at, starting from 0
- *
- * Inserts a pinned page at @position.
- *
- * It's an error to try to insert a pinned page after a non-pinned page, in
- * that case [method@TabView.insert] should be used instead.
- *
- * Returns: (transfer none): the page object representing @child
- */
-BrkTabPage *
-brk_tab_view_insert_pinned (BrkTabView *self,
-                            GtkWidget  *child,
-                            int         position)
-{
-  g_return_val_if_fail (BRK_IS_TAB_VIEW (self), NULL);
-  g_return_val_if_fail (GTK_IS_WIDGET (child), NULL);
-  g_return_val_if_fail (position >= 0, NULL);
-  g_return_val_if_fail (position <= self->n_pinned_pages, NULL);
-
-  return create_and_insert_page (self, child, NULL, position, TRUE);
-}
-
-/**
- * brk_tab_view_prepend_pinned:
- * @self: a tab view
- * @child: a widget to add
- *
- * Inserts @child as the first pinned page.
- *
- * Returns: (transfer none): the page object representing @child
- */
-BrkTabPage *
-brk_tab_view_prepend_pinned (BrkTabView *self,
-                             GtkWidget  *child)
-{
-  g_return_val_if_fail (BRK_IS_TAB_VIEW (self), NULL);
-  g_return_val_if_fail (GTK_IS_WIDGET (child), NULL);
-  g_return_val_if_fail (gtk_widget_get_parent (child) == NULL, NULL);
-
-  return create_and_insert_page (self, child, NULL, 0, TRUE);
-}
-
-/**
- * brk_tab_view_append_pinned:
- * @self: a tab view
- * @child: a widget to add
- *
- * Inserts @child as the last pinned page.
- *
- * Returns: (transfer none): the page object representing @child
- */
-BrkTabPage *
-brk_tab_view_append_pinned (BrkTabView *self,
-                            GtkWidget  *child)
-{
-  g_return_val_if_fail (BRK_IS_TAB_VIEW (self), NULL);
-  g_return_val_if_fail (GTK_IS_WIDGET (child), NULL);
-  g_return_val_if_fail (gtk_widget_get_parent (child) == NULL, NULL);
-
-  return create_and_insert_page (self, child, NULL, self->n_pinned_pages, TRUE);
+  return create_and_insert_page (self, child, NULL, self->n_pages);
 }
 
 /**
@@ -4257,8 +3941,8 @@ brk_tab_view_append_pinned (BrkTabView *self,
  * function will do nothing.
  *
  * The default handler for [signal@TabView::close-page] will immediately confirm
- * closing the page if it's non-pinned, or reject it if it's pinned. This
- * behavior can be changed by registering your own handler for that signal.
+ * closing the page. This behavior can be changed by registering your own
+ * handler for that signal.
  *
  * If @page was selected, another page will be selected instead:
  *
@@ -4267,8 +3951,7 @@ brk_tab_view_append_pinned (BrkTabView *self,
  * will be selected instead.
  *
  * If it's not `NULL`, the previous page will be selected if it's a descendant
- * (possibly indirect) of the parent. If both the previous page and the parent
- * are pinned, the parent will be selected instead.
+ * (possibly indirect) of the parent.
  */
 void
 brk_tab_view_close_page (BrkTabView *self,
@@ -4410,9 +4093,6 @@ brk_tab_view_close_pages_after (BrkTabView *self,
  *
  * Reorders @page to @position.
  *
- * It's a programmer error to try to reorder a pinned page after a non-pinned
- * one, or a non-pinned page before a pinned one.
- *
  * Returns: whether @page was moved
  */
 gboolean
@@ -4425,14 +4105,8 @@ brk_tab_view_reorder_page (BrkTabView *self,
   g_return_val_if_fail (BRK_IS_TAB_VIEW (self), FALSE);
   g_return_val_if_fail (BRK_IS_TAB_PAGE (page), FALSE);
   g_return_val_if_fail (page_belongs_to_this_view (self, page), FALSE);
-
-  if (brk_tab_page_get_pinned (page)) {
-    g_return_val_if_fail (position >= 0, FALSE);
-    g_return_val_if_fail (position < self->n_pinned_pages, FALSE);
-  } else {
-    g_return_val_if_fail (position >= self->n_pinned_pages, FALSE);
-    g_return_val_if_fail (position < self->n_pages, FALSE);
-  }
+  g_return_val_if_fail (position >= 0, FALSE);
+  g_return_val_if_fail (position < self->n_pages, FALSE);
 
   original_pos = brk_tab_view_get_page_position (self, page);
 
@@ -4471,8 +4145,7 @@ gboolean
 brk_tab_view_reorder_backward (BrkTabView *self,
                                BrkTabPage *page)
 {
-  gboolean pinned;
-  int pos, first;
+  int pos;
 
   g_return_val_if_fail (BRK_IS_TAB_VIEW (self), FALSE);
   g_return_val_if_fail (BRK_IS_TAB_PAGE (page), FALSE);
@@ -4480,10 +4153,7 @@ brk_tab_view_reorder_backward (BrkTabView *self,
 
   pos = brk_tab_view_get_page_position (self, page);
 
-  pinned = brk_tab_page_get_pinned (page);
-  first = pinned ? 0 : self->n_pinned_pages;
-
-  if (pos <= first)
+  if (pos <= 0)
     return FALSE;
 
   return brk_tab_view_reorder_page (self, page, pos - 1);
@@ -4502,8 +4172,7 @@ gboolean
 brk_tab_view_reorder_forward (BrkTabView *self,
                               BrkTabPage *page)
 {
-  gboolean pinned;
-  int pos, last;
+  int pos;
 
   g_return_val_if_fail (BRK_IS_TAB_VIEW (self), FALSE);
   g_return_val_if_fail (BRK_IS_TAB_PAGE (page), FALSE);
@@ -4511,10 +4180,7 @@ brk_tab_view_reorder_forward (BrkTabView *self,
 
   pos = brk_tab_view_get_page_position (self, page);
 
-  pinned = brk_tab_page_get_pinned (page);
-  last = (pinned ? self->n_pinned_pages : self->n_pages) - 1;
-
-  if (pos >= last)
+  if (pos >= self->n_pages - 1)
     return FALSE;
 
   return brk_tab_view_reorder_page (self, page, pos + 1);
@@ -4533,17 +4199,11 @@ gboolean
 brk_tab_view_reorder_first (BrkTabView *self,
                             BrkTabPage *page)
 {
-  gboolean pinned;
-  int pos;
-
   g_return_val_if_fail (BRK_IS_TAB_VIEW (self), FALSE);
   g_return_val_if_fail (BRK_IS_TAB_PAGE (page), FALSE);
   g_return_val_if_fail (page_belongs_to_this_view (self, page), FALSE);
 
-  pinned = brk_tab_page_get_pinned (page);
-  pos = pinned ? 0 : self->n_pinned_pages;
-
-  return brk_tab_view_reorder_page (self, page, pos);
+  return brk_tab_view_reorder_page (self, page, 0);
 }
 
 /**
@@ -4559,17 +4219,11 @@ gboolean
 brk_tab_view_reorder_last (BrkTabView *self,
                            BrkTabPage *page)
 {
-  gboolean pinned;
-  int pos;
-
   g_return_val_if_fail (BRK_IS_TAB_VIEW (self), FALSE);
   g_return_val_if_fail (BRK_IS_TAB_PAGE (page), FALSE);
   g_return_val_if_fail (page_belongs_to_this_view (self, page), FALSE);
 
-  pinned = brk_tab_page_get_pinned (page);
-  pos = (pinned ? self->n_pinned_pages : self->n_pages) - 1;
-
-  return brk_tab_view_reorder_page (self, page, pos);
+  return brk_tab_view_reorder_page (self, page, self->n_pages - 1);
 }
 
 void
@@ -4620,9 +4274,6 @@ brk_tab_view_attach_page (BrkTabView *self,
  * Transfers @page from @self to @other_view.
  *
  * The @page object will be reused.
- *
- * It's a programmer error to try to insert a pinned page after a non-pinned
- * one, or a non-pinned page before a pinned one.
  */
 void
 brk_tab_view_transfer_page (BrkTabView *self,
@@ -4630,19 +4281,12 @@ brk_tab_view_transfer_page (BrkTabView *self,
                             BrkTabView *other_view,
                             int         position)
 {
-  gboolean pinned;
-
   g_return_if_fail (BRK_IS_TAB_VIEW (self));
   g_return_if_fail (BRK_IS_TAB_PAGE (page));
   g_return_if_fail (BRK_IS_TAB_VIEW (other_view));
   g_return_if_fail (page_belongs_to_this_view (self, page));
   g_return_if_fail (position >= 0);
   g_return_if_fail (position <= other_view->n_pages);
-
-  pinned = brk_tab_page_get_pinned (page);
-
-  g_return_if_fail (!pinned || position <= other_view->n_pinned_pages);
-  g_return_if_fail (pinned || position >= other_view->n_pinned_pages);
 
   brk_tab_view_detach_page (self, page);
   brk_tab_view_attach_page (other_view, page, position);

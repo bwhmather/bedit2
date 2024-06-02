@@ -90,7 +90,6 @@ struct _BrkTabBox
 {
   GtkWidget parent_instance;
 
-  gboolean pinned;
   BrkTabBar *tab_bar;
   BrkTabView *view;
   GtkAdjustment *adjustment;
@@ -170,7 +169,6 @@ G_DEFINE_FINAL_TYPE_WITH_CODE (BrkTabBox, brk_tab_box, GTK_TYPE_WIDGET,
 
 enum {
   PROP_0,
-  PROP_PINNED,
   PROP_TAB_BAR,
   PROP_VIEW,
   PROP_RESIZE_FROZEN,
@@ -340,10 +338,7 @@ predict_tab_width (BrkTabBox *self,
   int width = self->allocated_width;
   int min;
 
-  if (self->pinned)
-    n = brk_tab_view_get_n_pinned_pages (self->view);
-  else
-    n = brk_tab_view_get_n_pages (self->view) - brk_tab_view_get_n_pinned_pages (self->view);
+  n = brk_tab_view_get_n_pages (self->view);
 
   if (assume_placeholder)
       n++;
@@ -394,13 +389,6 @@ get_visible_range (BrkTabBox *self,
     max = MIN (max, (int) ceil (value + page_size) - SPACING);
   }
 
-  if (self->pinned) {
-    if (gtk_widget_get_direction (GTK_WIDGET (self)) == GTK_TEXT_DIR_RTL)
-      min -= SPACING;
-    else
-      max += SPACING;
-  }
-
   if (lower)
     *lower = min;
 
@@ -425,28 +413,6 @@ update_separators (BrkTabBox *self)
   GtkStateFlags mask = GTK_STATE_FLAG_PRELIGHT |
                        GTK_STATE_FLAG_ACTIVE |
                        GTK_STATE_FLAG_SELECTED;
-  TabInfo *last_pinned_tab = NULL;
-
-  /* We have a separator between pinned and non-pinned tabs, and we need to
-   * sync it same as the ones within each tab box */
-  if (!self->pinned) {
-    BrkTabBox *box = brk_tab_bar_get_pinned_tab_box (self->tab_bar);
-
-    l = g_list_last (box->tabs);
-
-    if (l) {
-      last_pinned_tab = l->data;
-
-      if (last_pinned_tab->end_reorder_offset < 0) {
-        last_pinned_tab = box->reordered_tab;
-      } else if (l->prev && last_pinned_tab == box->reordered_tab) {
-        TabInfo *prev = l->prev->data;
-
-        if (prev->end_reorder_offset > 0)
-          last_pinned_tab = prev;
-      }
-    }
-  }
 
   for (l = self->tabs; l; l = l->next) {
     TabInfo *info = l->data;
@@ -457,13 +423,9 @@ update_separators (BrkTabBox *self)
 
     if (l->prev)
       prev = l->prev->data;
-    else if (!self->pinned)
-      prev = last_pinned_tab;
 
     if (l->prev && l->prev->prev)
       prev_prev = l->prev->prev->data;
-    else if (!self->pinned)
-      prev_prev = last_pinned_tab;
 
     if (prev && prev_prev) {
       /* Since the reordered tab has been moved away, the 2 tabs around it are
@@ -495,14 +457,6 @@ update_separators (BrkTabBox *self)
     else
       gtk_widget_remove_css_class (info->separator, "hidden");
   }
-
-  /* Since the first non-pinned separator depends on pinned tabs, we need to
-   * notify the non-pinned box. We don't need to do the opposite though. */
-  if (self->pinned) {
-    BrkTabBox *box = brk_tab_bar_get_tab_box (self->tab_bar);
-
-    update_separators (box);
-  }
 }
 
 /* Single tab style */
@@ -510,12 +464,8 @@ update_separators (BrkTabBox *self)
 static void
 update_single_tab_style (BrkTabBox *self)
 {
-  if (self->pinned)
-    return;
-
   if (self->view &&
       brk_tab_view_get_n_pages (self->view) <= 1 &&
-      brk_tab_view_get_n_pinned_pages (self->view) == 0 &&
       self->expand_tabs &&
       self->tab_resize_mode == TAB_RESIZE_NORMAL)
     gtk_widget_add_css_class (GTK_WIDGET (self), "single-tab");
@@ -1258,9 +1208,6 @@ page_reordered_cb (BrkTabBox  *self,
   TabInfo *info, *dest_tab;
   gboolean is_rtl;
 
-  if (brk_tab_page_get_pinned (page) != self->pinned)
-    return;
-
   self->continue_reorder = self->reordered_tab && page == self->reordered_tab->page;
 
   if (self->continue_reorder)
@@ -1281,9 +1228,6 @@ page_reordered_cb (BrkTabBox  *self,
     self->reorder_x = info->pos;
 
   self->reorder_index = index;
-
-  if (!self->pinned)
-    self->reorder_index -= brk_tab_view_get_n_pinned_pages (self->view);
 
   dest_tab = g_list_nth_data (self->tabs, self->reorder_index);
 
@@ -1535,9 +1479,6 @@ end_drag_reodering (BrkTabBox *self)
   if (!self->indirect_reordering) {
     int index = self->reorder_index;
 
-    if (!self->pinned)
-      index += brk_tab_view_get_n_pinned_pages (self->view);
-
     /* We've already reordered the tab here, no need to do it again */
     g_signal_handlers_block_by_func (self->view, page_reordered_cb, self);
 
@@ -1656,8 +1597,7 @@ reorder_update_cb (BrkTabBox  *self,
 
   device = gtk_event_controller_get_current_event_device (GTK_EVENT_CONTROLLER (gesture));
 
-  if (!self->pinned &&
-      self->pressed_tab &&
+  if (self->pressed_tab &&
       self->pressed_tab != self->reorder_placeholder &&
       self->pressed_tab->page &&
       !is_touchscreen (gesture) &&
@@ -1832,7 +1772,7 @@ create_tab_info (BrkTabBox  *self,
                                              NULL, NULL,
                                              (BrkGizmoFocusFunc) brk_widget_focus_child,
                                              (BrkGizmoGrabFocusFunc) brk_widget_grab_focus_child);
-  info->tab = brk_tab_new (self->view, self->pinned);
+  info->tab = brk_tab_new (self->view);
 
   g_object_set_data (G_OBJECT (info->container), "info", info);
   gtk_widget_set_overflow (info->container, GTK_OVERFLOW_HIDDEN);
@@ -1868,12 +1808,6 @@ page_attached_cb (BrkTabBox  *self,
   BrkAnimationTarget *target;
   TabInfo *info;
   GList *l;
-
-  if (brk_tab_page_get_pinned (page) != self->pinned)
-    return;
-
-  if (!self->pinned)
-    position -= brk_tab_view_get_n_pinned_pages (self->view);
 
   set_tab_resize_mode (self, TAB_RESIZE_NORMAL);
   force_end_reordering (self);
@@ -1960,7 +1894,7 @@ page_detached_cb (BrkTabBox  *self,
 
   force_end_reordering (self);
 
-  if (self->hovering && !self->pinned) {
+  if (self->hovering) {
     gboolean is_last = TRUE;
 
     while (page_link) {
@@ -2353,7 +2287,6 @@ do_drag_drop (BrkTabBox *self,
               BrkTabBox *source_tab_box)
 {
   BrkTabPage *page = source_tab_box->detached_page;
-  int offset = (self->pinned ? 0 : brk_tab_view_get_n_pinned_pages (self->view));
 
   if (self->reorder_placeholder) {
     replace_placeholder (self, page);
@@ -2361,11 +2294,11 @@ do_drag_drop (BrkTabBox *self,
 
     g_signal_handlers_block_by_func (self->view, page_attached_cb, self);
 
-    brk_tab_view_attach_page (self->view, page, self->reorder_index + offset);
+    brk_tab_view_attach_page (self->view, page, self->reorder_index);
 
     g_signal_handlers_unblock_by_func (self->view, page_attached_cb, self);
   } else {
-    brk_tab_view_attach_page (self->view, page, self->reorder_index + offset);
+    brk_tab_view_attach_page (self->view, page, self->reorder_index);
   }
 
   source_tab_box->should_detach_into_new_window = FALSE;
@@ -2495,7 +2428,7 @@ create_drag_icon (BrkTabBox *self,
   icon->width = predict_tab_width (self, self->reordered_tab, FALSE);
   icon->target_width = icon->width;
 
-  icon->tab = brk_tab_new (self->view, FALSE);
+  icon->tab = brk_tab_new (self->view);
   brk_tab_set_page (icon->tab, self->reordered_tab->page);
   brk_tab_set_dragging (icon->tab, TRUE);
   brk_tab_set_inverted (icon->tab, self->inverted);
@@ -2609,9 +2542,6 @@ tab_drag_enter_motion_cb (BrkTabBox     *self,
 {
   BrkTabBox *source_tab_box;
 
-  if (self->pinned)
-    return 0;
-
   source_tab_box = get_source_tab_box (target);
 
   if (!source_tab_box)
@@ -2661,9 +2591,6 @@ tab_drag_leave_cb (BrkTabBox     *self,
   if (!self->indirect_reordering)
     return;
 
-  if (self->pinned)
-    return;
-
   source_tab_box = get_source_tab_box (target);
 
   if (!source_tab_box)
@@ -2689,9 +2616,6 @@ tab_drag_drop_cb (BrkTabBox     *self,
 {
   BrkTabBox *source_tab_box;
 
-  if (self->pinned)
-    return GDK_EVENT_PROPAGATE;
-
   source_tab_box = get_source_tab_box (target);
 
   if (!source_tab_box)
@@ -2714,9 +2638,6 @@ view_drag_drop_cb (BrkTabBox      *self,
 {
   BrkTabBox *source_tab_box;
 
-  if (self->pinned)
-    return GDK_EVENT_PROPAGATE;
-
   source_tab_box = get_source_tab_box (target);
 
   if (!source_tab_box)
@@ -2725,8 +2646,7 @@ view_drag_drop_cb (BrkTabBox      *self,
   if (!self->view || !is_view_in_the_same_group (self, source_tab_box->view))
     return GDK_EVENT_PROPAGATE;
 
-  self->reorder_index = brk_tab_view_get_n_pages (self->view) -
-                        brk_tab_view_get_n_pinned_pages (self->view);
+  self->reorder_index = brk_tab_view_get_n_pages (self->view);
 
   do_drag_drop (self, source_tab_box);
 
@@ -3066,8 +2986,7 @@ measure_tab_box (BrkTabBox      *self,
         width += child_width + SPACING;
     }
 
-    if (!self->pinned)
-     width += SPACING;
+    width += SPACING;
 
     width = MAX (self->last_width, width);
 
@@ -3158,18 +3077,7 @@ brk_tab_box_size_allocate (GtkWidget *widget,
 
   is_rtl = gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL;
 
-  if (self->pinned) {
-    for (l = self->tabs; l; l = l->next) {
-      TabInfo *info = l->data;
-      int child_width;
-
-      gtk_widget_measure (info->container, GTK_ORIENTATION_HORIZONTAL, -1,
-                          NULL, &child_width, NULL, NULL);
-
-      info->width = calculate_tab_width (info, child_width);
-      info->final_width = child_width;
-    }
-  } else if (self->tab_resize_mode == TAB_RESIZE_FIXED_TAB_WIDTH) {
+  if (self->tab_resize_mode == TAB_RESIZE_FIXED_TAB_WIDTH) {
     self->end_padding = self->allocated_width - SPACING;
     self->final_end_padding = self->end_padding;
 
@@ -3539,9 +3447,6 @@ brk_tab_box_get_property (GObject    *object,
   BrkTabBox *self = BRK_TAB_BOX (object);
 
   switch (prop_id) {
-  case PROP_PINNED:
-    g_value_set_boolean (value, self->pinned);
-    break;
 
   case PROP_TAB_BAR:
     g_value_set_object (value, self->tab_bar);
@@ -3578,9 +3483,6 @@ brk_tab_box_set_property (GObject      *object,
   BrkTabBox *self = BRK_TAB_BOX (object);
 
   switch (prop_id) {
-  case PROP_PINNED:
-    self->pinned = g_value_get_boolean (value);
-    break;
 
   case PROP_TAB_BAR:
     self->tab_bar = g_value_get_object (value);
@@ -3621,11 +3523,6 @@ brk_tab_box_class_init (BrkTabBoxClass *klass)
   widget_class->focus = brk_tab_box_focus;
   widget_class->unmap = brk_tab_box_unmap;
   widget_class->direction_changed = brk_tab_box_direction_changed;
-
-  props[PROP_PINNED] =
-    g_param_spec_boolean ("pinned", NULL, NULL,
-                          FALSE,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
 
   props[PROP_TAB_BAR] =
     g_param_spec_object ("tab-bar", NULL, NULL,
@@ -3830,10 +3727,8 @@ brk_tab_box_set_view (BrkTabBox  *self,
     g_signal_handlers_disconnect_by_func (self->view, page_reordered_cb, self);
     g_signal_handlers_disconnect_by_func (self->view, update_single_tab_style, self);
 
-    if (!self->pinned) {
-      gtk_widget_remove_controller (GTK_WIDGET (self->view), self->view_drop_target);
-      self->view_drop_target = NULL;
-    }
+    gtk_widget_remove_controller (GTK_WIDGET (self->view), self->view_drop_target);
+    self->view_drop_target = NULL;
 
     g_clear_list (&self->tabs, (GDestroyNotify) remove_and_free_tab_info);
     self->n_tabs = 0;
@@ -3851,18 +3746,15 @@ brk_tab_box_set_view (BrkTabBox  *self,
     g_signal_connect_object (self->view, "page-detached", G_CALLBACK (page_detached_cb), self, G_CONNECT_SWAPPED);
     g_signal_connect_object (self->view, "page-reordered", G_CALLBACK (page_reordered_cb), self, G_CONNECT_SWAPPED);
 
-    if (!self->pinned) {
-      g_signal_connect_object (self->view, "notify::n-pages", G_CALLBACK (update_single_tab_style), self, G_CONNECT_SWAPPED);
-      g_signal_connect_object (self->view, "notify::n-pinned-pages", G_CALLBACK (update_single_tab_style), self, G_CONNECT_SWAPPED);
+    g_signal_connect_object (self->view, "notify::n-pages", G_CALLBACK (update_single_tab_style), self, G_CONNECT_SWAPPED);
 
-      update_single_tab_style (self);
+    update_single_tab_style (self);
 
-      self->view_drop_target = GTK_EVENT_CONTROLLER (gtk_drop_target_new (BRK_TYPE_TAB_PAGE, GDK_ACTION_MOVE));
+    self->view_drop_target = GTK_EVENT_CONTROLLER (gtk_drop_target_new (BRK_TYPE_TAB_PAGE, GDK_ACTION_MOVE));
 
-      g_signal_connect_object (self->view_drop_target, "drop", G_CALLBACK (view_drag_drop_cb), self, G_CONNECT_SWAPPED);
+    g_signal_connect_object (self->view_drop_target, "drop", G_CALLBACK (view_drag_drop_cb), self, G_CONNECT_SWAPPED);
 
-      gtk_widget_add_controller (GTK_WIDGET (self->view), self->view_drop_target);
-    }
+    gtk_widget_add_controller (GTK_WIDGET (self->view), self->view_drop_target);
   }
 
   gtk_widget_queue_allocate (GTK_WIDGET (self));

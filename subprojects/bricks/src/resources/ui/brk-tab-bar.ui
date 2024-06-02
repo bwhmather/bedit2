@@ -20,28 +20,6 @@
               </object>
             </child>
             <child>
-              <object class="GtkScrolledWindow" id="pinned_scrolled_window">
-                <property name="hscrollbar-policy">external</property>
-                <property name="vscrollbar-policy">never</property>
-                <property name="overlay-scrolling">False</property>
-                <property name="propagate-natural-width">True</property>
-                <property name="hexpand">False</property>
-                <style>
-                  <class name="pinned"/>
-                </style>
-                <property name="child">
-                  <object class="BrkTabBox" id="pinned_box">
-                    <property name="pinned">True</property>
-                    <property name="tab-bar">BrkTabBar</property>
-                    <signal name="notify::resize-frozen" handler="notify_resize_frozen_cb" swapped="true"/>
-                    <signal name="stop-kinetic-scrolling" handler="stop_kinetic_scrolling_cb" object="pinned_scrolled_window" swapped="true"/>
-                    <signal name="extra-drag-drop" handler="extra_drag_drop_cb" swapped="true"/>
-                    <signal name="extra-drag-value" handler="extra_drag_value_cb" swapped="true"/>
-                  </object>
-                </property>
-              </object>
-            </child>
-            <child>
               <object class="GtkScrolledWindow" id="scrolled_window">
                 <property name="hscrollbar-policy">external</property>
                 <property name="vscrollbar-policy">never</property>

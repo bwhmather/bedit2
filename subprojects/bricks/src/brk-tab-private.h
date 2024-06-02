@@ -21,8 +21,7 @@ G_BEGIN_DECLS
 
 G_DECLARE_FINAL_TYPE (BrkTab, brk_tab, BRK, TAB, GtkWidget)
 
-BrkTab *brk_tab_new (BrkTabView *view,
-                     gboolean    pinned) G_GNUC_WARN_UNUSED_RESULT;
+BrkTab *brk_tab_new (BrkTabView *view) G_GNUC_WARN_UNUSED_RESULT;
 
 BrkTabPage *brk_tab_get_page (BrkTab     *self);
 void        brk_tab_set_page (BrkTab     *self,

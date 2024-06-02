@@ -18,9 +18,7 @@
 #define CLOSE_BTN_ANIMATION_DURATION 150
 
 #define BASE_WIDTH 118
-#define BASE_WIDTH_PINNED 26
 
-#define ATTENTION_INDICATOR_PINNED_WIDTH 14
 #define ATTENTION_INDICATOR_WIDTH_MULTIPLIER 0.6
 #define ATTENTION_INDICATOR_MIN_WIDTH 20
 #define ATTENTION_INDICATOR_MAX_WIDTH 180
@@ -43,7 +41,6 @@ struct _BrkTab
 
   BrkTabView *view;
   BrkTabPage *page;
-  gboolean pinned;
   gboolean dragging;
 
   gboolean hovering;
@@ -63,7 +60,6 @@ G_DEFINE_FINAL_TYPE (BrkTab, brk_tab, GTK_TYPE_WIDGET)
 enum {
   PROP_0,
   PROP_VIEW,
-  PROP_PINNED,
   PROP_DRAGGING,
   PROP_PAGE,
   PROP_INVERTED,
@@ -187,13 +183,8 @@ update_icons (BrkTab *self)
   GIcon *indicator = brk_tab_page_get_indicator_icon (self->page);
   const char *name = loading ? "spinner" : "icon";
 
-  if (self->pinned && !gicon)
-    gicon = brk_tab_view_get_default_icon (self->view);
-
   gtk_image_set_from_gicon (self->icon, gicon);
-  gtk_widget_set_visible (self->icon_stack,
-                          (gicon != NULL || loading) &&
-                          (!self->pinned || indicator == NULL));
+  gtk_widget_set_visible (self->icon_stack, gicon != NULL || loading);
   gtk_stack_set_visible_child_name (GTK_STACK (self->icon_stack), name);
 
   gtk_widget_set_visible (self->indicator_btn, indicator != NULL);
@@ -203,7 +194,7 @@ static void
 update_indicator (BrkTab *self)
 {
   gboolean activatable = self->page && brk_tab_page_get_indicator_activatable (self->page);
-  gboolean clickable = activatable && (self->selected || (!self->pinned && self->fully_visible));
+  gboolean clickable = activatable && (self->selected || self->fully_visible);
 
   gtk_widget_set_can_target (self->indicator_btn, clickable);
 }
@@ -393,7 +384,7 @@ brk_tab_measure (GtkWidget      *widget,
   int min = 0, nat = 0;
 
   if (orientation == GTK_ORIENTATION_HORIZONTAL) {
-    nat = self->pinned ? BASE_WIDTH_PINNED : BASE_WIDTH;
+    nat = BASE_WIDTH;
   } else {
     int child_min, child_nat;
 
@@ -472,12 +463,8 @@ get_attention_indicator_width (BrkTab *self,
 {
   double base_width;
 
-  if (self->pinned) {
-    base_width = ATTENTION_INDICATOR_PINNED_WIDTH;
-  } else {
-    base_width = center_width * ATTENTION_INDICATOR_WIDTH_MULTIPLIER;
-    base_width = CLAMP (base_width, ATTENTION_INDICATOR_MIN_WIDTH, ATTENTION_INDICATOR_MAX_WIDTH);
-  }
+  base_width = center_width * ATTENTION_INDICATOR_WIDTH_MULTIPLIER;
+  base_width = CLAMP (base_width, ATTENTION_INDICATOR_MIN_WIDTH, ATTENTION_INDICATOR_MAX_WIDTH);
 
   return base_width * brk_animation_get_value (self->needs_attention_animation);
 }
@@ -501,12 +488,7 @@ brk_tab_size_allocate (GtkWidget *widget,
   measure_child (self->needs_attention_indicator, height, &needs_attention_width);
 
   if (gtk_widget_get_visible (self->indicator_btn)) {
-    if (self->pinned) {
-      /* Center it in a pinned tab */
-      allocate_child (self->indicator_btn, width, height,
-                      (width - indicator_width) / 2, indicator_width,
-                      baseline);
-    } else if (self->inverted) {
+    if (self->inverted) {
       allocate_child (self->indicator_btn, width, height,
                       width - indicator_width, indicator_width,
                       baseline);
@@ -652,14 +634,6 @@ brk_tab_constructed (GObject *object)
 
   G_OBJECT_CLASS (brk_tab_parent_class)->constructed (object);
 
-  if (self->pinned) {
-    gtk_widget_add_css_class (GTK_WIDGET (self), "pinned");
-    gtk_widget_set_visible (self->title, FALSE);
-    gtk_widget_set_visible (self->close_btn, FALSE);
-    gtk_widget_set_margin_start (self->icon_stack, 0);
-    gtk_widget_set_margin_end (self->icon_stack, 0);
-  }
-
   g_signal_connect_object (self->view, "notify::default-icon",
                            G_CALLBACK (update_icons), self,
                            G_CONNECT_SWAPPED);
@@ -680,10 +654,6 @@ brk_tab_get_property (GObject    *object,
 
   case PROP_PAGE:
     g_value_set_object (value, brk_tab_get_page (self));
-    break;
-
-  case PROP_PINNED:
-    g_value_set_boolean (value, self->pinned);
     break;
 
   case PROP_DRAGGING:
@@ -714,10 +684,6 @@ brk_tab_set_property (GObject      *object,
 
   case PROP_PAGE:
     brk_tab_set_page (self, g_value_get_object (value));
-    break;
-
-  case PROP_PINNED:
-    self->pinned = g_value_get_boolean (value);
     break;
 
   case PROP_DRAGGING:
@@ -770,11 +736,6 @@ brk_tab_class_init (BrkTabClass *klass)
     g_param_spec_object ("view", NULL, NULL,
                          BRK_TYPE_TAB_VIEW,
                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
-
-  props[PROP_PINNED] =
-    g_param_spec_boolean ("pinned", NULL, NULL,
-                          FALSE,
-                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
 
   props[PROP_DRAGGING] =
     g_param_spec_boolean ("dragging", NULL, NULL,
@@ -879,14 +840,12 @@ brk_tab_init (BrkTab *self)
 }
 
 BrkTab *
-brk_tab_new (BrkTabView *view,
-             gboolean    pinned)
+brk_tab_new (BrkTabView *view)
 {
   g_return_val_if_fail (BRK_IS_TAB_VIEW (view), NULL);
 
   return g_object_new (BRK_TYPE_TAB,
                        "view", view,
-                       "pinned", pinned,
                        NULL);
 }
 
