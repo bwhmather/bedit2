@@ -555,14 +555,6 @@ brk_widget_get_request_mode (GtkWidget *widget)
         GTK_SIZE_REQUEST_HEIGHT_FOR_WIDTH;
 }
 
-gboolean
-brk_widget_contains_passthrough (GtkWidget *widget,
-                                 double     x,
-                                 double     y)
-{
-  return FALSE;
-}
-
 /* FIXME: Replace this with public color API and make public */
 gboolean
 brk_widget_lookup_color (GtkWidget  *widget,

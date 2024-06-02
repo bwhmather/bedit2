@@ -25,16 +25,6 @@
 
 G_BEGIN_DECLS
 
-#define BRK_CRITICAL_CANNOT_REMOVE_CHILD(parent, child) \
-G_STMT_START { \
-  g_critical ("%s:%d: tried to remove non-child %p of type '%s' from %p of type '%s'", \
-              __FILE__, __LINE__, \
-              (child), \
-              G_OBJECT_TYPE_NAME ((GObject*) (child)), \
-              (parent), \
-              G_OBJECT_TYPE_NAME ((GObject*) (parent))); \
-} G_STMT_END
-
 gboolean brk_widget_focus_child (GtkWidget        *widget,
                                  GtkDirectionType  direction);
 
@@ -51,10 +41,6 @@ void brk_widget_compute_expand_horizontal_only (GtkWidget *widget,
                                                 gboolean  *vexpand_p);
 
 GtkSizeRequestMode brk_widget_get_request_mode (GtkWidget *widget);
-
-gboolean brk_widget_contains_passthrough (GtkWidget *widget,
-                                          double     x,
-                                          double     y);
 
 gboolean brk_widget_lookup_color (GtkWidget  *widget,
                                   const char *name,
