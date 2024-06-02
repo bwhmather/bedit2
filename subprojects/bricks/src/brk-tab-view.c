@@ -20,8 +20,6 @@ static GSList *tab_view_list;
 
 #define MIN_ASPECT_RATIO 0.8
 #define MAX_ASPECT_RATIO 2.7
-#define DEFAULT_ICON_ALPHA_HC 0.3
-#define DEFAULT_ICON_ALPHA 0.15
 #define MIN_THUMBNAIL_BITMAP_WIDTH 250
 #define MAX_THUMBNAIL_BITMAP_WIDTH 500
 #define MIN_THUMBNAIL_BITMAP_HEIGHT 200
@@ -193,7 +191,6 @@ struct _BrkTabView
 
   int n_pages;
   BrkTabPage *selected_page;
-  GIcon *default_icon;
   GMenuModel *menu_model;
   BrkTabViewShortcuts shortcuts;
 
@@ -218,7 +215,6 @@ enum {
   PROP_N_PAGES,
   PROP_IS_TRANSFERRING_PAGE,
   PROP_SELECTED_PAGE,
-  PROP_DEFAULT_ICON,
   PROP_MENU_MODEL,
   PROP_SHORTCUTS,
   PROP_PAGES,
@@ -931,21 +927,6 @@ get_background_color (BrkTabPaintable *self,
 }
 
 static void
-get_empty_color (BrkTabPaintable *self,
-                 GdkRGBA         *rgba)
-{
-  GtkWidget *child = brk_tab_page_get_child (self->page);
-
-  if (brk_widget_lookup_color (child, "thumbnail_bg_color", rgba))
-    return;
-
-  rgba->red = 1;
-  rgba->green = 1;
-  rgba->blue = 1;
-  rgba->alpha = 1;
-}
-
-static void
 transform_thumbnail (GtkSnapshot *snapshot,
                      double       width,
                      double       height,
@@ -988,82 +969,6 @@ get_unclamped_aspect_ratio (BrkTabPaintable *self)
   return gdk_paintable_get_intrinsic_aspect_ratio (self->view_paintable);
 }
 
-static void
-snapshot_default_icon (BrkTabPaintable *self,
-                       GtkSnapshot     *snapshot,
-                       double           width,
-                       double           height)
-{
-  GdkDisplay *display;
-  GtkIconTheme *icon_theme;
-  GIcon *default_icon;
-  GtkIconPaintable *icon;
-  GdkRGBA colors[4];
-  GdkRGBA bg;
-  double x, y;
-  double view_width, view_height;
-  double view_ratio, snapshot_ratio;
-  double icon_size;
-
-  get_empty_color (self, &bg);
-  gtk_snapshot_append_color (snapshot, &bg,
-                             &GRAPHENE_RECT_INIT (0, 0, width, height));
-
-  view_width = gtk_widget_get_width (self->view);
-  view_height = gtk_widget_get_height (self->view);
-
-  view_ratio = view_width / view_height;
-  snapshot_ratio = width / height;
-
-  if (view_ratio > snapshot_ratio) {
-    double new_width = height * view_ratio;
-
-    gtk_snapshot_translate (snapshot,
-                            &GRAPHENE_POINT_INIT ((float) (width - new_width) / 2, 0));
-
-    width = new_width;
-  } else if (view_ratio < snapshot_ratio) {
-    double new_height = width / view_ratio;
-
-    gtk_snapshot_translate (snapshot,
-                            &GRAPHENE_POINT_INIT (0, (float) (height - new_height) / 2));
-
-    height = new_height;
-  }
-
-  icon_size = MIN (view_width / 4, view_height / 4);
-
-  display = gtk_widget_get_display (self->view);
-  icon_theme = gtk_icon_theme_get_for_display (display);
-  default_icon = brk_tab_view_get_default_icon (BRK_TAB_VIEW (self->view));
-  icon = gtk_icon_theme_lookup_by_gicon (icon_theme, default_icon, icon_size,
-                                         gtk_widget_get_scale_factor (self->view),
-                                         gtk_widget_get_direction (self->view),
-                                         GTK_ICON_LOOKUP_FORCE_SYMBOLIC);
-
-  gtk_widget_get_color (self->view, &colors[GTK_SYMBOLIC_COLOR_FOREGROUND]);
-  brk_widget_lookup_color (self->view, "error-color", &colors[GTK_SYMBOLIC_COLOR_ERROR]);
-  brk_widget_lookup_color (self->view, "warning-color", &colors[GTK_SYMBOLIC_COLOR_WARNING]);
-  brk_widget_lookup_color (self->view, "success-color", &colors[GTK_SYMBOLIC_COLOR_SUCCESS]);
-
-  gtk_snapshot_push_opacity (snapshot, DEFAULT_ICON_ALPHA);
-
-  gtk_snapshot_scale (snapshot, width / view_width, height / view_height);
-
-  x = (view_width - icon_size) / 2;
-  y = (view_height - icon_size) / 2;
-  gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT (x, y));
-
-  gtk_symbolic_paintable_snapshot_symbolic (GTK_SYMBOLIC_PAINTABLE (icon),
-                                            snapshot,
-                                            icon_size,
-                                            icon_size,
-                                            colors,
-                                            4);
-
-  gtk_snapshot_pop (snapshot);
-}
-
 static GdkTexture *
 render_contents (BrkTabPaintable *self,
                  gboolean         empty)
@@ -1104,9 +1009,7 @@ render_contents (BrkTabPaintable *self,
     height = ceil (MIN_THUMBNAIL_BITMAP_WIDTH / aspect_ratio) * scale_factor;
   }
 
-  if (empty) {
-    snapshot_default_icon (self, snapshot, width, height);
-  } else {
+  if (!empty) {
     GdkPaintable *current_paintable;
     GdkRGBA background;
 
@@ -1265,7 +1168,6 @@ brk_tab_paintable_snapshot (GdkPaintable *paintable,
   }
 
   if (!self->cached_paintable) {
-    snapshot_default_icon (self, snapshot, width, height);
     return;
   }
 
@@ -2219,7 +2121,6 @@ brk_tab_view_finalize (GObject *object)
   BrkTabView *self = (BrkTabView *) object;
 
   g_clear_weak_pointer (&self->pages);
-  g_clear_object (&self->default_icon);
   g_clear_object (&self->menu_model);
 
   tab_view_list = g_slist_remove (tab_view_list, self);
@@ -2246,10 +2147,6 @@ brk_tab_view_get_property (GObject    *object,
 
   case PROP_SELECTED_PAGE:
     g_value_set_object (value, brk_tab_view_get_selected_page (self));
-    break;
-
-  case PROP_DEFAULT_ICON:
-    g_value_set_object (value, brk_tab_view_get_default_icon (self));
     break;
 
   case PROP_MENU_MODEL:
@@ -2280,10 +2177,6 @@ brk_tab_view_set_property (GObject      *object,
   switch (prop_id) {
   case PROP_SELECTED_PAGE:
     brk_tab_view_set_selected_page (self, g_value_get_object (value));
-    break;
-
-  case PROP_DEFAULT_ICON:
-    brk_tab_view_set_default_icon (self, g_value_get_object (value));
     break;
 
   case PROP_MENU_MODEL:
@@ -2351,29 +2244,6 @@ brk_tab_view_class_init (BrkTabViewClass *klass)
   props[PROP_SELECTED_PAGE] =
     g_param_spec_object ("selected-page", NULL, NULL,
                          BRK_TYPE_TAB_PAGE,
-                         G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
-
-  /**
-   * BrkTabView:default-icon: (attributes org.gtk.Property.get=brk_tab_view_get_default_icon org.gtk.Property.set=brk_tab_view_set_default_icon)
-   *
-   * Default page icon.
-   *
-   * If a page doesn't provide its own icon via [property@TabPage:icon], a
-   * default icon may be used instead for contexts where having an icon is
-   * necessary.
-   *
-   * [class@TabBar] will use default icon for pinned tabs in case the page is
-   * not loading, doesn't have an icon and an indicator. Default icon is never
-   * used for tabs that aren't pinned.
-   *
-   * [class@TabOverview] will use default icon for pages with missing
-   * thumbnails.
-   *
-   * By default, the `brk-tab-icon-missing-symbolic` icon is used.
-   */
-  props[PROP_DEFAULT_ICON] =
-    g_param_spec_object ("default-icon", NULL, NULL,
-                         G_TYPE_ICON,
                          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
   /**
@@ -2645,7 +2515,6 @@ brk_tab_view_init (BrkTabView *self)
   GtkEventController *controller;
 
   self->children = g_list_store_new (BRK_TYPE_TAB_PAGE);
-  self->default_icon = G_ICON (g_themed_icon_new ("brk-tab-icon-missing-symbolic"));
   self->shortcuts = BRK_TAB_VIEW_SHORTCUT_ALL_SHORTCUTS;
 
   tab_view_list = g_slist_prepend (tab_view_list, self);
@@ -3536,64 +3405,6 @@ brk_tab_view_select_last_page (BrkTabView *self)
   brk_tab_view_set_selected_page (self, page);
 
   return TRUE;
-}
-
-/**
- * brk_tab_view_get_default_icon: (attributes org.gtk.Method.get_property=default-icon)
- * @self: a tab view
- *
- * Gets the default icon of @self.
- *
- * Returns: (transfer none): the default icon of @self.
- */
-GIcon *
-brk_tab_view_get_default_icon (BrkTabView *self)
-{
-  g_return_val_if_fail (BRK_IS_TAB_VIEW (self), NULL);
-
-  return self->default_icon;
-}
-
-/**
- * brk_tab_view_set_default_icon: (attributes org.gtk.Method.set_property=default-icon)
- * @self: a tab view
- * @default_icon: the default icon
- *
- * Sets the default page icon for @self.
- *
- * If a page doesn't provide its own icon via [property@TabPage:icon], a default
- * icon may be used instead for contexts where having an icon is necessary.
- *
- * [class@TabBar] will use default icon for pinned tabs in case the page is not
- * loading, doesn't have an icon and an indicator. Default icon is never used
- * for tabs that aren't pinned.
- *
- * [class@TabOverview] will use default icon for pages with missing thumbnails.
- *
- * By default, the `brk-tab-icon-missing-symbolic` icon is used.
- */
-void
-brk_tab_view_set_default_icon (BrkTabView *self,
-                               GIcon      *default_icon)
-{
-  int i;
-
-  g_return_if_fail (BRK_IS_TAB_VIEW (self));
-  g_return_if_fail (G_IS_ICON (default_icon));
-
-  if (self->default_icon == default_icon)
-    return;
-
-  g_set_object (&self->default_icon, default_icon);
-
-  for (i = 0; i < self->n_pages; i++) {
-    BrkTabPage *page = brk_tab_view_get_nth_page (self, i);
-
-    if (page->paintable)
-      gdk_paintable_invalidate_contents (page->paintable);
-  }
-
-  g_object_notify_by_pspec (G_OBJECT (self), props[PROP_DEFAULT_ICON]);
 }
 
 /**
