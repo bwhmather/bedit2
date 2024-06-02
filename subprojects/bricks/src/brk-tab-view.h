@@ -104,27 +104,6 @@ BRK_AVAILABLE_IN_1_3
 void        brk_tab_page_set_keyword (BrkTabPage *self,
                                       const char *keyword);
 
-BRK_AVAILABLE_IN_1_3
-float brk_tab_page_get_thumbnail_xalign (BrkTabPage *self);
-BRK_AVAILABLE_IN_1_3
-void  brk_tab_page_set_thumbnail_xalign (BrkTabPage *self,
-                                         float       xalign);
-
-BRK_AVAILABLE_IN_1_3
-float brk_tab_page_get_thumbnail_yalign (BrkTabPage *self);
-BRK_AVAILABLE_IN_1_3
-void  brk_tab_page_set_thumbnail_yalign (BrkTabPage *self,
-                                         float       yalign);
-
-BRK_AVAILABLE_IN_1_3
-gboolean brk_tab_page_get_live_thumbnail (BrkTabPage *self);
-BRK_AVAILABLE_IN_1_3
-void     brk_tab_page_set_live_thumbnail (BrkTabPage *self,
-                                          gboolean    live_thumbnail);
-
-BRK_AVAILABLE_IN_1_3
-void brk_tab_page_invalidate_thumbnail (BrkTabPage *self);
-
 #define BRK_TYPE_TAB_VIEW (brk_tab_view_get_type())
 
 BRK_AVAILABLE_IN_ALL
@@ -245,8 +224,5 @@ void brk_tab_view_transfer_page (BrkTabView *self,
 
 BRK_AVAILABLE_IN_ALL
 GtkSelectionModel *brk_tab_view_get_pages (BrkTabView *self) G_GNUC_WARN_UNUSED_RESULT;
-
-BRK_AVAILABLE_IN_1_3
-void brk_tab_view_invalidate_thumbnails (BrkTabView *self);
 
 G_END_DECLS

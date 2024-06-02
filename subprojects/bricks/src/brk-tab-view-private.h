@@ -16,8 +16,6 @@
 
 G_BEGIN_DECLS
 
-GdkPaintable *brk_tab_page_get_paintable (BrkTabPage *self);
-
 gboolean brk_tab_view_select_first_page (BrkTabView *self);
 gboolean brk_tab_view_select_last_page  (BrkTabView *self);
 

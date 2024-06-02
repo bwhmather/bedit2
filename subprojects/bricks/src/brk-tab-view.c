@@ -20,10 +20,6 @@ static GSList *tab_view_list;
 
 #define MIN_ASPECT_RATIO 0.8
 #define MAX_ASPECT_RATIO 2.7
-#define MIN_THUMBNAIL_BITMAP_WIDTH 250
-#define MAX_THUMBNAIL_BITMAP_WIDTH 500
-#define MIN_THUMBNAIL_BITMAP_HEIGHT 200
-#define MAX_THUMBNAIL_BITMAP_HEIGHT 600
 
 /**
  * BrkTabView:
@@ -139,8 +135,6 @@ struct _BrkTabPage
   gboolean indicator_activatable;
   gboolean needs_attention;
   char *keyword;
-  float thumbnail_xalign;
-  float thumbnail_yalign;
 
   GtkWidget *last_focus;
   GBinding *transfer_binding;
@@ -148,10 +142,7 @@ struct _BrkTabPage
   GtkATContext *at_context;
 
   gboolean closing;
-  GdkPaintable *paintable;
 
-  gboolean live_thumbnail;
-  gboolean invalidated;
   gboolean in_destruction;
 };
 
@@ -174,9 +165,6 @@ enum {
   PAGE_PROP_INDICATOR_ACTIVATABLE,
   PAGE_PROP_NEEDS_ATTENTION,
   PAGE_PROP_KEYWORD,
-  PAGE_PROP_THUMBNAIL_XALIGN,
-  PAGE_PROP_THUMBNAIL_YALIGN,
-  PAGE_PROP_LIVE_THUMBNAIL,
   LAST_PAGE_PROP,
   PAGE_PROP_ACCESSIBLE_ROLE
 };
@@ -304,7 +292,6 @@ brk_tab_page_dispose (GObject *object)
   g_clear_object (&self->at_context);
 
   g_clear_object (&self->bin);
-  g_clear_object (&self->paintable);
 
   G_OBJECT_CLASS (brk_tab_page_parent_class)->dispose (object);
 }
@@ -383,18 +370,6 @@ brk_tab_page_get_property (GObject    *object,
     g_value_set_string (value, brk_tab_page_get_keyword (self));
     break;
 
-  case PAGE_PROP_THUMBNAIL_XALIGN:
-    g_value_set_float (value, brk_tab_page_get_thumbnail_xalign (self));
-    break;
-
-  case PAGE_PROP_THUMBNAIL_YALIGN:
-    g_value_set_float (value, brk_tab_page_get_thumbnail_yalign (self));
-    break;
-
-  case PAGE_PROP_LIVE_THUMBNAIL:
-    g_value_set_boolean (value, brk_tab_page_get_live_thumbnail (self));
-    break;
-
   case PAGE_PROP_ACCESSIBLE_ROLE:
     g_value_set_enum (value, GTK_ACCESSIBLE_ROLE_TAB_PANEL);
     break;
@@ -456,18 +431,6 @@ brk_tab_page_set_property (GObject      *object,
 
   case PAGE_PROP_KEYWORD:
     brk_tab_page_set_keyword (self, g_value_get_string (value));
-    break;
-
-  case PAGE_PROP_THUMBNAIL_XALIGN:
-    brk_tab_page_set_thumbnail_xalign (self, g_value_get_float (value));
-    break;
-
-  case PAGE_PROP_THUMBNAIL_YALIGN:
-    brk_tab_page_set_thumbnail_yalign (self, g_value_get_float (value));
-    break;
-
-  case PAGE_PROP_LIVE_THUMBNAIL:
-    brk_tab_page_set_live_thumbnail (self, g_value_get_boolean (value));
     break;
 
   case PAGE_PROP_ACCESSIBLE_ROLE:
@@ -657,70 +620,6 @@ brk_tab_page_class_init (BrkTabPageClass *klass)
                          "",
                          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
-  /**
-   * BrkTabPage:thumbnail-xalign: (attributes org.gtk.Property.get=brk_tab_page_get_thumbnail_xalign org.gtk.Property.set=brk_tab_page_set_thumbnail_xalign)
-   *
-   * The horizontal alignment of the page thumbnail.
-   *
-   * If the page is so wide that [class@TabOverview] can't display it completely
-   * and has to crop it, horizontal alignment will determine which part of the
-   * page will be visible.
-   *
-   * For example, 0.5 means the center of the page will be visible, 0 means the
-   * start edge will be visible and 1 means the end edge will be visible.
-   *
-   * The default horizontal alignment is 0.
-   *
-   * Since: 1.3
-   */
-  page_props[PAGE_PROP_THUMBNAIL_XALIGN] =
-    g_param_spec_float ("thumbnail-xalign", NULL, NULL,
-                        0.0, 1.0,
-                        0.0,
-                        G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
-
-  /**
-   * BrkTabPage:thumbnail-yalign: (attributes org.gtk.Property.get=brk_tab_page_get_thumbnail_yalign org.gtk.Property.set=brk_tab_page_set_thumbnail_yalign)
-   *
-   * The vertical alignment of the page thumbnail.
-   *
-   * If the page is so tall that [class@TabOverview] can't display it completely
-   * and has to crop it, vertical alignment will determine which part of the
-   * page will be visible.
-   *
-   * For example, 0.5 means the center of the page will be visible, 0 means the
-   * top edge will be visible and 1 means the bottom edge will be visible.
-   *
-   * The default vertical alignment is 0.
-   *
-   * Since: 1.3
-   */
-  page_props[PAGE_PROP_THUMBNAIL_YALIGN] =
-    g_param_spec_float ("thumbnail-yalign", NULL, NULL,
-                        0.0, 1.0,
-                        0.0,
-                        G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
-
-  /**
-   * BrkTabPage:live-thumbnail: (attributes org.gtk.Property.get=brk_tab_page_get_live_thumbnail org.gtk.Property.set=brk_tab_page_set_live_thumbnail)
-   *
-   * Whether to enable live thumbnail for this page.
-   *
-   * When set to `TRUE`, the page's thumbnail in [class@TabOverview] will update
-   * immediately when the page is redrawn or resized.
-   *
-   * If it's set to `FALSE`, the thumbnail will only be live when the page is
-   * selected, and otherwise it will be static and will only update when
-   * [method@TabPage.invalidate_thumbnail] or
-   * [method@TabView.invalidate_thumbnails] is called.
-   *
-   * Since: 1.3
-   */
-  page_props[PAGE_PROP_LIVE_THUMBNAIL] =
-    g_param_spec_boolean ("live-thumbnail", NULL, NULL,
-                          FALSE,
-                          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
-
   g_object_class_install_properties (object_class, LAST_PAGE_PROP, page_props);
 
   g_object_class_override_property (object_class, PAGE_PROP_ACCESSIBLE_ROLE, "accessible-role");
@@ -732,8 +631,6 @@ brk_tab_page_init (BrkTabPage *self)
   self->title = g_strdup ("");
   self->tooltip = g_strdup ("");
   self->indicator_tooltip = g_strdup ("");
-  self->thumbnail_xalign = 0;
-  self->thumbnail_yalign = 0;
   self->bin = g_object_ref_sink (brk_bin_new ());
 }
 
@@ -840,372 +737,6 @@ brk_tab_page_accessible_init (GtkAccessibleInterface *iface)
   iface->get_first_accessible_child = brk_tab_page_accessible_get_first_accessible_child;
   iface->get_next_accessible_sibling = brk_tab_page_accessible_get_next_accessible_sibling;
   iface->get_bounds = brk_tab_page_accessible_get_bounds;
-}
-
-#define BRK_TYPE_TAB_PAINTABLE (brk_tab_paintable_get_type ())
-
-G_DECLARE_FINAL_TYPE (BrkTabPaintable, brk_tab_paintable, BRK, TAB_PAINTABLE, GObject)
-
-struct _BrkTabPaintable
-{
-  GObject parent_instance;
-
-  GtkWidget *view;
-  BrkTabPage *page;
-
-  GdkPaintable *view_paintable;
-  GdkPaintable *child_paintable;
-
-  GdkPaintable *cached_paintable;
-  double cached_aspect_ratio;
-
-  gboolean frozen;
-
-  double last_xalign;
-  double last_yalign;
-};
-
-static void
-get_background_color (BrkTabPaintable *self,
-                      GdkRGBA         *rgba)
-{
-  GtkWidget *child = brk_tab_page_get_child (self->page);
-
-  if (brk_widget_lookup_color (child, "window_bg_color", rgba))
-    return;
-
-  rgba->red = 1;
-  rgba->green = 1;
-  rgba->blue = 1;
-  rgba->alpha = 1;
-}
-
-static void
-transform_thumbnail (GtkSnapshot *snapshot,
-                     double       width,
-                     double       height,
-                     double       child_ratio,
-                     double       xalign,
-                     double       yalign,
-                     double      *adjusted_width,
-                     double      *adjusted_height)
-{
-  double snapshot_ratio = width / height;
-  double new_width, new_height;
-
-  new_width = width;
-  new_height = height;
-
-  if (child_ratio > snapshot_ratio) {
-    new_width = height * child_ratio;
-
-    gtk_snapshot_translate (snapshot,
-                            &GRAPHENE_POINT_INIT ((float) (width - new_width) * xalign, 0));
-  } else if (child_ratio < snapshot_ratio) {
-    new_height = width / child_ratio;
-
-    gtk_snapshot_translate (snapshot,
-                            &GRAPHENE_POINT_INIT (0, (float) (height - new_height) * yalign));
-  }
-
-  if (adjusted_width)
-    *adjusted_width = new_width;
-  if (adjusted_height)
-    *adjusted_height = new_height;
-}
-
-static double
-get_unclamped_aspect_ratio (BrkTabPaintable *self)
-{
-  if (!self->view_paintable)
-    return self->cached_aspect_ratio;
-
-  return gdk_paintable_get_intrinsic_aspect_ratio (self->view_paintable);
-}
-
-static GdkTexture *
-render_contents (BrkTabPaintable *self,
-                 gboolean         empty)
-{
-  GtkSnapshot *snapshot;
-  GskRenderNode *node;
-  double aspect_ratio;
-  int scale_factor, width, height;
-  GtkNative *native;
-  GskRenderer *renderer;
-  graphene_rect_t bounds;
-  GdkTexture *ret;
-
-  if (self->frozen)
-    return NULL;
-
-  aspect_ratio = get_unclamped_aspect_ratio (self);
-
-  if (G_APPROX_VALUE (aspect_ratio, 0, DBL_EPSILON))
-    return NULL;
-
-  scale_factor = gtk_widget_get_scale_factor (self->view);
-  snapshot = gtk_snapshot_new ();
-
-  if (MAX_THUMBNAIL_BITMAP_WIDTH / aspect_ratio < MIN_THUMBNAIL_BITMAP_HEIGHT) {
-    height = MIN_THUMBNAIL_BITMAP_HEIGHT * scale_factor;
-    width = ceil (height * aspect_ratio) * scale_factor;
-  } else if (MAX_THUMBNAIL_BITMAP_WIDTH / aspect_ratio > MAX_THUMBNAIL_BITMAP_HEIGHT) {
-    height = MAX_THUMBNAIL_BITMAP_HEIGHT * scale_factor;
-    width = ceil (height * aspect_ratio) * scale_factor;
-  } else {
-    width = MAX_THUMBNAIL_BITMAP_WIDTH * scale_factor;
-    height = ceil (MAX_THUMBNAIL_BITMAP_WIDTH / aspect_ratio) * scale_factor;
-  }
-
-  if (width < MIN_THUMBNAIL_BITMAP_WIDTH * scale_factor) {
-    width = MIN_THUMBNAIL_BITMAP_WIDTH * scale_factor;
-    height = ceil (MIN_THUMBNAIL_BITMAP_WIDTH / aspect_ratio) * scale_factor;
-  }
-
-  if (!empty) {
-    GdkPaintable *current_paintable;
-    GdkRGBA background;
-
-    get_background_color (self, &background);
-
-    gtk_snapshot_append_color (snapshot, &background,
-                               &GRAPHENE_RECT_INIT (0, 0, width, height));
-
-    current_paintable = gdk_paintable_get_current_image (self->child_paintable);
-    gdk_paintable_snapshot (current_paintable, snapshot, width, height);
-
-    g_object_unref (current_paintable);
-  }
-
-  node = gtk_snapshot_free_to_node (snapshot);
-
-  if (!node)
-    return NULL;
-
-  native = gtk_widget_get_native (self->view);
-  renderer = gtk_native_get_renderer (native);
-
-  graphene_rect_init (&bounds, 0, 0, width, height);
-  ret = gsk_renderer_render_texture (renderer, node, &bounds);
-
-  gsk_render_node_unref (node);
-
-  return ret;
-}
-
-static void
-invalidate_texture (BrkTabPaintable *self)
-{
-  GdkTexture *texture;
-  double old_aspect_ratio;
-
-  if (!self->page->bin || !gtk_widget_get_mapped (self->page->bin))
-    return;
-
-  if (self->view) {
-    return;
-  }
-
-  texture = render_contents (self, FALSE);
-
-  if (!texture)
-    return;
-
-  g_clear_object (&self->cached_paintable);
-  self->cached_paintable = GDK_PAINTABLE (texture);
-
-  old_aspect_ratio = self->cached_aspect_ratio;
-  self->cached_aspect_ratio = get_unclamped_aspect_ratio (self);
-
-  if (G_APPROX_VALUE (old_aspect_ratio, self->cached_aspect_ratio, DBL_EPSILON))
-    gdk_paintable_invalidate_contents (GDK_PAINTABLE (self));
-  else
-    gdk_paintable_invalidate_size (GDK_PAINTABLE (self));
-}
-
-static void
-invalidate_size_cb (BrkTabPaintable *self)
-{
-  if (!self->cached_paintable)
-    self->cached_aspect_ratio = get_unclamped_aspect_ratio (self);
-
-  gdk_paintable_invalidate_size (GDK_PAINTABLE (self));
-}
-
-static void
-connect_to_view (BrkTabPaintable *self)
-{
-  if (self->view || !gtk_widget_get_parent (self->page->bin))
-    return;
-
-  self->view = gtk_widget_get_parent (self->page->bin);
-  self->view_paintable = gtk_widget_paintable_new (self->view);
-
-  g_signal_connect_swapped (self->view_paintable, "invalidate-size",
-                            G_CALLBACK (invalidate_size_cb), self);
-}
-
-static void
-disconnect_from_view (BrkTabPaintable *self)
-{
-  g_clear_object (&self->view_paintable);
-  self->view = NULL;
-}
-
-static void
-child_parent_changed (BrkTabPaintable *self)
-{
-  disconnect_from_view (self);
-  connect_to_view (self);
-}
-
-static double
-brk_tab_paintable_get_intrinsic_aspect_ratio (GdkPaintable *paintable)
-{
-  BrkTabPaintable *self = BRK_TAB_PAINTABLE (paintable);
-  double ratio;
-
-  if (self->view_paintable)
-    ratio = gdk_paintable_get_intrinsic_aspect_ratio (self->view_paintable);
-  else
-    ratio = self->cached_aspect_ratio;
-
-  return CLAMP (ratio, MIN_ASPECT_RATIO, MAX_ASPECT_RATIO);
-}
-
-static GdkPaintable *
-brk_tab_paintable_get_current_image (GdkPaintable *paintable)
-{
-  BrkTabPaintable *self = BRK_TAB_PAINTABLE (paintable);
-  GtkSnapshot *snapshot = gtk_snapshot_new ();
-  int width, height;
-
-  if (!self->view)
-    return NULL;
-
-  width = gtk_widget_get_width (self->view);
-  height = gtk_widget_get_height (self->view);
-
-  gdk_paintable_snapshot (paintable, GDK_SNAPSHOT (snapshot), width, height);
-
-  return gtk_snapshot_free_to_paintable (snapshot,
-                                         &GRAPHENE_SIZE_INIT (width, height));
-}
-
-static void
-brk_tab_paintable_snapshot (GdkPaintable *paintable,
-                            GdkSnapshot  *snapshot,
-                            double        width,
-                            double        height)
-{
-  BrkTabPaintable *self = BRK_TAB_PAINTABLE (paintable);
-  GtkWidget *child;
-  double xalign, yalign;
-
-  if (self->frozen) {
-    xalign = self->last_xalign;
-    yalign = self->last_yalign;
-    child = NULL;
-  } else {
-    xalign = brk_tab_page_get_thumbnail_xalign (self->page);
-    yalign = brk_tab_page_get_thumbnail_yalign (self->page);
-    child = self->page->bin;
-
-    if (gtk_widget_get_direction (child) == GTK_TEXT_DIR_RTL)
-      xalign = 1 - xalign;
-  }
-
-  if (!self->cached_paintable) {
-    return;
-  }
-
-  transform_thumbnail (snapshot, width, height, self->cached_aspect_ratio,
-                       xalign, yalign, &width, &height);
-
-  gdk_paintable_snapshot (self->cached_paintable, snapshot, width, height);
-}
-
-static void
-brk_tab_paintable_iface_init (GdkPaintableInterface *iface)
-{
-  iface->get_intrinsic_aspect_ratio = brk_tab_paintable_get_intrinsic_aspect_ratio;
-  iface->get_current_image = brk_tab_paintable_get_current_image;
-  iface->snapshot = brk_tab_paintable_snapshot;
-}
-
-G_DEFINE_FINAL_TYPE_WITH_CODE (BrkTabPaintable, brk_tab_paintable, G_TYPE_OBJECT,
-                               G_IMPLEMENT_INTERFACE (GDK_TYPE_PAINTABLE, brk_tab_paintable_iface_init))
-
-static void
-brk_tab_paintable_dispose (GObject *object)
-{
-  BrkTabPaintable *self = BRK_TAB_PAINTABLE (object);
-
-  disconnect_from_view (self);
-
-  g_clear_object (&self->child_paintable);
-  g_clear_object (&self->cached_paintable);
-
-  G_OBJECT_CLASS (brk_tab_paintable_parent_class)->dispose (object);
-}
-
-static void
-brk_tab_paintable_class_init (BrkTabPaintableClass *klass)
-{
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-  object_class->dispose = brk_tab_paintable_dispose;
-}
-
-static void
-brk_tab_paintable_init (BrkTabPaintable *self)
-{
-}
-
-static GdkPaintable *
-brk_tab_paintable_new (BrkTabPage *page)
-{
-  BrkTabPaintable *self = g_object_new (BRK_TYPE_TAB_PAINTABLE, NULL);
-
-  self->page = page;
-
-  connect_to_view (self);
-
-  self->child_paintable = gtk_widget_paintable_new (page->bin);
-
-  g_signal_connect_swapped (self->child_paintable, "invalidate-contents",
-                            G_CALLBACK (invalidate_texture), self);
-
-  g_signal_connect_object (self->page, "notify::thumbnail-xalign",
-                           G_CALLBACK (gdk_paintable_invalidate_contents), self,
-                           G_CONNECT_SWAPPED);
-  g_signal_connect_object (self->page, "notify::thumbnail-yalign",
-                           G_CALLBACK (gdk_paintable_invalidate_contents), self,
-                           G_CONNECT_SWAPPED);
-
-  g_signal_connect_object (page->bin, "notify::parent",
-                           G_CALLBACK (child_parent_changed), self,
-                           G_CONNECT_SWAPPED);
-
-  return GDK_PAINTABLE (self);
-}
-
-static void
-brk_tab_paintable_freeze (BrkTabPaintable *self)
-{
-  self->last_xalign = brk_tab_page_get_thumbnail_xalign (self->page);
-  self->last_yalign = brk_tab_page_get_thumbnail_yalign (self->page);
-
-  if (!self->cached_paintable)
-    self->cached_paintable = GDK_PAINTABLE (render_contents (self, TRUE));
-
-  if (gtk_widget_get_direction (self->page->bin) == GTK_TEXT_DIR_RTL)
-    self->last_xalign = 1 - self->last_xalign;
-
-  self->frozen = TRUE;
-
-  g_clear_object (&self->child_paintable);
 }
 
 #define BRK_TYPE_TAB_PAGES (brk_tab_pages_get_type ())
@@ -1971,7 +1502,6 @@ brk_tab_view_snapshot (GtkWidget   *widget,
                        GtkSnapshot *snapshot)
 {
   BrkTabView *self = BRK_TAB_VIEW (widget);
-  GtkSnapshot *child_snapshot;
   int i;
 
   if (self->selected_page)
@@ -1982,21 +1512,6 @@ brk_tab_view_snapshot (GtkWidget   *widget,
 
     if (!gtk_widget_get_child_visible (page->bin))
       continue;
-
-    if (page->paintable) {
-      if (page == self->selected_page && page->invalidated)
-        gtk_widget_queue_draw (page->bin);
-
-      /* We don't want to actually draw the child, but we do need it
-       * to redraw so that it can be displayed by its paintable */
-      child_snapshot = gtk_snapshot_new ();
-
-      gtk_widget_snapshot_child (widget, page->bin, child_snapshot);
-
-      g_object_unref (child_snapshot);
-    }
-
-    page->invalidated = FALSE;
 
     if (!self->unmap_extra_pages_cb)
       self->unmap_extra_pages_cb =
@@ -2915,185 +2430,6 @@ brk_tab_page_set_keyword (BrkTabPage *self,
 }
 
 /**
- * brk_tab_page_get_thumbnail_xalign: (attributes org.gtk.Method.get_property=thumbnail-xalign)
- * @self: a tab page
- *
- * Gets the horizontal alignment of the thumbnail for @self.
- *
- * Returns: the horizontal alignment
- *
- * Since: 1.3
- */
-float
-brk_tab_page_get_thumbnail_xalign (BrkTabPage *self)
-{
-  g_return_val_if_fail (BRK_IS_TAB_PAGE (self), 0.0f);
-
-  return self->thumbnail_xalign;
-}
-
-/**
- * brk_tab_page_set_thumbnail_xalign: (attributes org.gtk.Method.set_property=thumbnail-xalign)
- * @self: a tab page
- * @xalign: the new value
- *
- * Sets the horizontal alignment of the thumbnail for @self.
- *
- * For example, 0.5 means the center of the page will be visible, 0 means the
- * start edge will be visible and 1 means the end edge will be visible.
- *
- * The default horizontal alignment is 0.
- *
- * Since: 1.3
- */
-void
-brk_tab_page_set_thumbnail_xalign (BrkTabPage *self,
-                                   float       xalign)
-{
-  g_return_if_fail (BRK_IS_TAB_PAGE (self));
-
-  xalign = CLAMP (xalign, 0.0, 1.0);
-
-  if (G_APPROX_VALUE (self->thumbnail_xalign, xalign, FLT_EPSILON))
-    return;
-
-  self->thumbnail_xalign = xalign;
-
-  g_object_notify_by_pspec (G_OBJECT (self), page_props[PAGE_PROP_THUMBNAIL_XALIGN]);
-}
-
-/**
- * brk_tab_page_get_thumbnail_yalign: (attributes org.gtk.Method.get_property=thumbnail-yalign)
- * @self: a tab overview
- *
- * Gets the vertical alignment of the thumbnail for @self.
- *
- * Returns: the vertical alignment
- *
- * Since: 1.3
- */
-float
-brk_tab_page_get_thumbnail_yalign (BrkTabPage *self)
-{
-  g_return_val_if_fail (BRK_IS_TAB_PAGE (self), 0.0f);
-
-  return self->thumbnail_yalign;
-}
-
-/**
- * brk_tab_page_set_thumbnail_yalign: (attributes org.gtk.Method.set_property=thumbnail-yalign)
- * @self: a tab page
- * @yalign: the new value
- *
- * Sets the vertical alignment of the thumbnail for @self.
- *
- * For example, 0.5 means the center of the page will be visible, 0 means the
- * top edge will be visible and 1 means the bottom edge will be visible.
- *
- * The default vertical alignment is 0.
- *
- * Since: 1.3
- */
-void
-brk_tab_page_set_thumbnail_yalign (BrkTabPage *self,
-                                   float       yalign)
-{
-  g_return_if_fail (BRK_IS_TAB_PAGE (self));
-
-  yalign = CLAMP (yalign, 0.0, 1.0);
-
-  if (G_APPROX_VALUE (self->thumbnail_yalign, yalign, FLT_EPSILON))
-    return;
-
-  self->thumbnail_yalign = yalign;
-
-  g_object_notify_by_pspec (G_OBJECT (self), page_props[PAGE_PROP_THUMBNAIL_YALIGN]);
-}
-
-/**
- * brk_tab_page_get_live_thumbnail: (attributes org.gtk.Method.get_property=live-thumbnail)
- * @self: a tab overview
- *
- * Gets whether to live thumbnail is enabled @self.
- *
- * Returns: whether live thumbnail is enabled
- *
- * Since: 1.3
- */
-gboolean
-brk_tab_page_get_live_thumbnail (BrkTabPage *self)
-{
-  g_return_val_if_fail (BRK_IS_TAB_PAGE (self), FALSE);
-
-  return self->live_thumbnail;
-}
-
-/**
- * brk_tab_page_set_live_thumbnail: (attributes org.gtk.Method.set_property=live-thumbnail)
- * @self: a tab page
- * @live_thumbnail: whether to enable live thumbnail
- *
- * Sets whether to enable live thumbnail for @self.
- *
- * If it's set to `FALSE`, the thumbnail will only be live when the @self is
- * selected, and otherwise it will be static and will only update when
- * [method@TabPage.invalidate_thumbnail] or
- * [method@TabView.invalidate_thumbnails] is called.
- *
- * Since: 1.3
- */
-void
-brk_tab_page_set_live_thumbnail (BrkTabPage *self,
-                                 gboolean    live_thumbnail)
-{
-  g_return_if_fail (BRK_IS_TAB_PAGE (self));
-
-  live_thumbnail = !!live_thumbnail;
-
-  if (self->live_thumbnail == live_thumbnail)
-    return;
-
-  self->live_thumbnail = live_thumbnail;
-
-  g_object_notify_by_pspec (G_OBJECT (self), page_props[PAGE_PROP_LIVE_THUMBNAIL]);
-}
-
-
-/**
- * brk_tab_page_invalidate_thumbnail:
- * @self: a tab page
- *
- * Invalidates thumbnail for @self.
- *
- * Does nothing if [property@TabPage:live-thumbnail] is set to `TRUE`.
- *
- * See also [method@TabView.invalidate_thumbnails].
- *
- * Since: 1.3
- */
-void
-brk_tab_page_invalidate_thumbnail (BrkTabPage *self)
-{
-  g_return_if_fail (BRK_IS_TAB_PAGE (self));
-
-  if (self->invalidated)
-    return;
-
-  self->invalidated = TRUE;
-}
-
-GdkPaintable *
-brk_tab_page_get_paintable (BrkTabPage *self)
-{
-  g_return_val_if_fail (BRK_IS_TAB_PAGE (self), NULL);
-
-  if (!self->paintable)
-    self->paintable = brk_tab_paintable_new (self);
-
-  return self->paintable;
-}
-
-/**
  * brk_tab_view_new:
  *
  * Creates a new `BrkTabView`.
@@ -3693,9 +3029,6 @@ brk_tab_view_close_page_finish (BrkTabView *self,
   if (!confirm)
     return;
 
-  if (page->paintable)
-    brk_tab_paintable_freeze (BRK_TAB_PAINTABLE (page->paintable));
-
   detach_page (self, page, FALSE);
 }
 
@@ -4008,30 +3341,6 @@ brk_tab_view_get_pages (BrkTabView *self)
   g_set_weak_pointer (&self->pages, brk_tab_pages_new (self));
 
   return self->pages;
-}
-
-/**
- * brk_tab_view_invalidate_thumbnails:
- * @self: a tab view
- *
- * Invalidates thumbnails for all pages in @self.
- *
- * This is a convenience method, equivalent to calling
- * [method@TabPage.invalidate_thumbnail] on each page.
- *
- * Since: 1.3
- */
-void
-brk_tab_view_invalidate_thumbnails (BrkTabView *self)
-{
-  int i;
-  g_return_if_fail (BRK_IS_TAB_VIEW (self));
-
-  for (i = 0; i < self->n_pages; i++) {
-    BrkTabPage *page = brk_tab_view_get_nth_page (self, i);
-
-    brk_tab_page_invalidate_thumbnail (page);
-  }
 }
 
 BrkTabView *
