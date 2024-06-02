@@ -1,0 +1,18 @@
+[Desktop Entry]
+Name=Text Editor
+Comment=Edit text files
+Type=Application
+StartupNotify=true
+Categories=GTK;Utility;TextEditor;
+Keywords=Text;Editor;Plaintext;Write;bedit;
+Terminal=false
+SingleMainWindow=false
+Exec=@bindir@/bedit
+
+[Desktop Action new-window]
+Name=New Window
+Exec=@bindir@/bedit --new-window
+
+[Desktop Action new-document]
+Name=New Document
+Exec=@bindir@/bedit --new-document

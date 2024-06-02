@@ -1,0 +1,283 @@
+/*
+ * Copyright (C) 2017-2022 Purism SPC
+ *
+ * SPDX-License-Identifier: LGPL-2.1-or-later
+ */
+
+#pragma once
+
+#if !defined(_BRICKS_INSIDE) && !defined(BRICKS_COMPILATION)
+#error "Only <bricks.h> can be included directly."
+#endif
+
+#include <glib.h>
+
+G_BEGIN_DECLS
+
+/**
+ * BRK_MAJOR_VERSION:
+ *
+ * Bricks major version component (e.g. 1 if the version is 1.2.3).
+ */
+#define BRK_MAJOR_VERSION              (@BRK_MAJOR_VERSION@)
+
+/**
+ * BRK_MINOR_VERSION:
+ *
+ * Bricks minor version component (e.g. 2 if the version is 1.2.3).
+ */
+#define BRK_MINOR_VERSION              (@BRK_MINOR_VERSION@)
+
+/**
+ * BRK_MICRO_VERSION:
+ *
+ * Bricks micro version component (e.g. 3 if the version is 1.2.3).
+ */
+#define BRK_MICRO_VERSION              (@BRK_MICRO_VERSION@)
+
+/**
+ * BRK_VERSION:
+ *
+ * Bricks version (e.g. 1.2.3).
+ */
+#define BRK_VERSION                    (@BRK_VERSION@)
+
+/**
+ * BRK_VERSION_S:
+ *
+ * Bricks version, encoded as a string, useful for printing and
+ * concatenation.
+ */
+#define BRK_VERSION_S                  "@BRK_VERSION@"
+
+#define BRK_ENCODE_VERSION(major,minor,micro) \
+        ((major) << 24 | (minor) << 16 | (micro) << 8)
+
+/**
+ * BRK_VERSION_HEX:
+ *
+ * Bricks version, encoded as an hexadecimal number, useful for
+ * integer comparisons.
+ */
+#define BRK_VERSION_HEX \
+        (BRK_ENCODE_VERSION (BRK_MAJOR_VERSION, BRK_MINOR_VERSION, BRK_MICRO_VERSION))
+
+/**
+ * BRK_CHECK_VERSION:
+ * @major: required major version
+ * @minor: required minor version
+ * @micro: required micro version
+ *
+ * Compile-time version checking. Evaluates to `TRUE` if the version
+ * of Bricks is greater than the required one.
+ */
+#define BRK_CHECK_VERSION(major,minor,micro)   \
+        (BRK_MAJOR_VERSION > (major) || \
+         (BRK_MAJOR_VERSION == (major) && BRK_MINOR_VERSION > (minor)) || \
+         (BRK_MAJOR_VERSION == (major) && BRK_MINOR_VERSION == (minor) && \
+          BRK_MICRO_VERSION >= (micro)))
+
+/**
+ * BRK_VERSION_1_1:
+ *
+ * A macro that evaluates to the 1.2 version of Bricks, in a format
+ * that can be used by the C pre-processor.
+ *
+ * Since: 1.1
+ */
+#define BRK_VERSION_1_1 (BRK_ENCODE_VERSION (1, 1, 0))
+
+/**
+ * BRK_VERSION_1_2:
+ *
+ * A macro that evaluates to the 1.2 version of Bricks, in a format
+ * that can be used by the C pre-processor.
+ *
+ * Since: 1.2
+ */
+#define BRK_VERSION_1_2 (BRK_ENCODE_VERSION (1, 2, 0))
+
+/**
+ * BRK_VERSION_1_3:
+ *
+ * A macro that evaluates to the 1.3 version of Bricks, in a format
+ * that can be used by the C pre-processor.
+ *
+ * Since: 1.3
+ */
+#define BRK_VERSION_1_3 (BRK_ENCODE_VERSION (1, 3, 0))
+
+/**
+ * BRK_VERSION_1_4:
+ *
+ * A macro that evaluates to the 1.4 version of Bricks, in a format
+ * that can be used by the C pre-processor.
+ *
+ * Since: 1.4
+ */
+#define BRK_VERSION_1_4 (BRK_ENCODE_VERSION (1, 4, 0))
+
+/**
+ * BRK_VERSION_1_5:
+ *
+ * A macro that evaluates to the 1.5 version of Bricks, in a format
+ * that can be used by the C pre-processor.
+ *
+ * Since: 1.5
+ */
+#define BRK_VERSION_1_5 (BRK_ENCODE_VERSION (1, 5, 0))
+
+/**
+ * BRK_VERSION_1_6:
+ *
+ * A macro that evaluates to the 1.6 version of Bricks, in a format
+ * that can be used by the C pre-processor.
+ *
+ * Since: 1.6
+ */
+#define BRK_VERSION_1_6 (BRK_ENCODE_VERSION (1, 6, 0))
+
+#ifndef _BRK_EXTERN
+#define _BRK_EXTERN extern
+#endif
+
+#if defined(BRK_DISABLE_DEPRECATION_WARNINGS) || defined(BRICKS_COMPILATION)
+#  define _BRK_DEPRECATED             _BRK_EXTERN
+#  define _BRK_DEPRECATED_FOR(f)      _BRK_EXTERN
+#  define _BRK_DEPRECATED_TYPE
+#  define _BRK_DEPRECATED_TYPE_FOR(f)
+#else
+#  define _BRK_DEPRECATED             G_DEPRECATED        _BRK_EXTERN
+#  define _BRK_DEPRECATED_FOR(f)      G_DEPRECATED_FOR(f) _BRK_EXTERN
+#  define _BRK_DEPRECATED_TYPE        G_DEPRECATED
+#  define _BRK_DEPRECATED_TYPE_FOR(f) G_DEPRECATED_FOR(f)
+#endif
+
+#ifndef BRK_VERSION_MAX_ALLOWED
+# define BRK_VERSION_MAX_ALLOWED BRK_VERSION_1_6
+#endif
+
+#ifndef BRK_VERSION_MIN_REQUIRED
+# define BRK_VERSION_MIN_REQUIRED BRK_VERSION_1_6
+#endif
+
+#if BRK_VERSION_MAX_ALLOWED < BRK_VERSION_1_1
+# define BRK_AVAILABLE_IN_1_1 BRK_UNAVAILABLE(1, 1)
+#else
+# define BRK_AVAILABLE_IN_1_1 _BRK_EXTERN
+#endif
+
+#if BRK_VERSION_MIN_REQUIRED >= BRK_VERSION_1_1
+# define BRK_DEPRECATED_IN_1_1             _BRK_DEPRECATED
+# define BRK_DEPRECATED_IN_1_1_FOR(f)      _BRK_DEPRECATED_FOR(f)
+# define BRK_DEPRECATED_TYPE_IN_1_1        _BRK_DEPRECATED_TYPE
+# define BRK_DEPRECATED_TYPE_IN_1_1_FOR(f) _BRK_DEPRECATED_TYPE_FOR(f)
+#else
+# define BRK_DEPRECATED_IN_1_1             _BRK_EXTERN
+# define BRK_DEPRECATED_IN_1_1_FOR(f)      _BRK_EXTERN
+# define BRK_DEPRECATED_TYPE_IN_1_1
+# define BRK_DEPRECATED_TYPE_IN_1_1_FOR(f)
+#endif
+
+#if BRK_VERSION_MAX_ALLOWED < BRK_VERSION_1_2
+# define BRK_AVAILABLE_IN_1_2 BRK_UNAVAILABLE(1, 2)
+#else
+# define BRK_AVAILABLE_IN_1_2 _BRK_EXTERN
+#endif
+
+#if BRK_VERSION_MIN_REQUIRED >= BRK_VERSION_1_2
+# define BRK_DEPRECATED_IN_1_2             _BRK_DEPRECATED
+# define BRK_DEPRECATED_IN_1_2_FOR(f)      _BRK_DEPRECATED_FOR(f)
+# define BRK_DEPRECATED_TYPE_IN_1_2        _BRK_DEPRECATED_TYPE
+# define BRK_DEPRECATED_TYPE_IN_1_2_FOR(f) _BRK_DEPRECATED_TYPE_FOR(f)
+#else
+# define BRK_DEPRECATED_IN_1_2             _BRK_EXTERN
+# define BRK_DEPRECATED_IN_1_2_FOR(f)      _BRK_EXTERN
+# define BRK_DEPRECATED_TYPE_IN_1_2
+# define BRK_DEPRECATED_TYPE_IN_1_2_FOR(f)
+#endif
+
+#if BRK_VERSION_MAX_ALLOWED < BRK_VERSION_1_3
+# define BRK_AVAILABLE_IN_1_3 BRK_UNAVAILABLE(1, 3)
+#else
+# define BRK_AVAILABLE_IN_1_3 _BRK_EXTERN
+#endif
+
+#if BRK_VERSION_MIN_REQUIRED >= BRK_VERSION_1_3
+# define BRK_DEPRECATED_IN_1_3             _BRK_DEPRECATED
+# define BRK_DEPRECATED_IN_1_3_FOR(f)      _BRK_DEPRECATED_FOR(f)
+# define BRK_DEPRECATED_TYPE_IN_1_3        _BRK_DEPRECATED_TYPE
+# define BRK_DEPRECATED_TYPE_IN_1_3_FOR(f) _BRK_DEPRECATED_TYPE_FOR(f)
+#else
+# define BRK_DEPRECATED_IN_1_3             _BRK_EXTERN
+# define BRK_DEPRECATED_IN_1_3_FOR(f)      _BRK_EXTERN
+# define BRK_DEPRECATED_TYPE_IN_1_3
+# define BRK_DEPRECATED_TYPE_IN_1_3_FOR(f)
+#endif
+
+#if BRK_VERSION_MAX_ALLOWED < BRK_VERSION_1_4
+# define BRK_AVAILABLE_IN_1_4 BRK_UNAVAILABLE(1, 4)
+#else
+# define BRK_AVAILABLE_IN_1_4 _BRK_EXTERN
+#endif
+
+#if BRK_VERSION_MIN_REQUIRED >= BRK_VERSION_1_4
+# define BRK_DEPRECATED_IN_1_4             _BRK_DEPRECATED
+# define BRK_DEPRECATED_IN_1_4_FOR(f)      _BRK_DEPRECATED_FOR(f)
+# define BRK_DEPRECATED_TYPE_IN_1_4        _BRK_DEPRECATED_TYPE
+# define BRK_DEPRECATED_TYPE_IN_1_4_FOR(f) _BRK_DEPRECATED_TYPE_FOR(f)
+#else
+# define BRK_DEPRECATED_IN_1_4             _BRK_EXTERN
+# define BRK_DEPRECATED_IN_1_4_FOR(f)      _BRK_EXTERN
+# define BRK_DEPRECATED_TYPE_IN_1_4
+# define BRK_DEPRECATED_TYPE_IN_1_4_FOR(f)
+#endif
+
+#if BRK_VERSION_MAX_ALLOWED < BRK_VERSION_1_5
+# define BRK_AVAILABLE_IN_1_5 BRK_UNAVAILABLE(1, 5)
+#else
+# define BRK_AVAILABLE_IN_1_5 _BRK_EXTERN
+#endif
+
+#if BRK_VERSION_MIN_REQUIRED >= BRK_VERSION_1_5
+# define BRK_DEPRECATED_IN_1_5             _BRK_DEPRECATED
+# define BRK_DEPRECATED_IN_1_5_FOR(f)      _BRK_DEPRECATED_FOR(f)
+# define BRK_DEPRECATED_TYPE_IN_1_5        _BRK_DEPRECATED_TYPE
+# define BRK_DEPRECATED_TYPE_IN_1_5_FOR(f) _BRK_DEPRECATED_TYPE_FOR(f)
+#else
+# define BRK_DEPRECATED_IN_1_5             _BRK_EXTERN
+# define BRK_DEPRECATED_IN_1_5_FOR(f)      _BRK_EXTERN
+# define BRK_DEPRECATED_TYPE_IN_1_5
+# define BRK_DEPRECATED_TYPE_IN_1_5_FOR(f)
+#endif
+
+#if BRK_VERSION_MAX_ALLOWED < BRK_VERSION_1_6
+# define BRK_AVAILABLE_IN_1_6 BRK_UNAVAILABLE(1, 6)
+#else
+# define BRK_AVAILABLE_IN_1_6 _BRK_EXTERN
+#endif
+
+#if BRK_VERSION_MIN_REQUIRED >= BRK_VERSION_1_6
+# define BRK_DEPRECATED_IN_1_6             _BRK_DEPRECATED
+# define BRK_DEPRECATED_IN_1_6_FOR(f)      _BRK_DEPRECATED_FOR(f)
+# define BRK_DEPRECATED_TYPE_IN_1_6        _BRK_DEPRECATED_TYPE
+# define BRK_DEPRECATED_TYPE_IN_1_6_FOR(f) _BRK_DEPRECATED_TYPE_FOR(f)
+#else
+# define BRK_DEPRECATED_IN_1_6             _BRK_EXTERN
+# define BRK_DEPRECATED_IN_1_6_FOR(f)      _BRK_EXTERN
+# define BRK_DEPRECATED_TYPE_IN_1_6
+# define BRK_DEPRECATED_TYPE_IN_1_6_FOR(f)
+#endif
+
+#define BRK_UNAVAILABLE(major, minor) G_UNAVAILABLE(major, minor) _BRK_EXTERN
+
+#define BRK_AVAILABLE_IN_ALL _BRK_EXTERN
+
+BRK_AVAILABLE_IN_ALL
+guint brk_get_major_version (void) G_GNUC_CONST;
+BRK_AVAILABLE_IN_ALL
+guint brk_get_minor_version (void) G_GNUC_CONST;
+BRK_AVAILABLE_IN_ALL
+guint brk_get_micro_version (void) G_GNUC_CONST;
+
+G_END_DECLS

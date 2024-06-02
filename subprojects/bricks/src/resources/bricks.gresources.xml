@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/com/bwhmather/Bricks">
+    <file preprocess="xml-stripblanks">ui/brk-tab.ui</file>
+    <file preprocess="xml-stripblanks">ui/brk-tab-bar.ui</file>
+    <file preprocess="xml-stripblanks">ui/brk-tab-button.ui</file>
+  </gresource>
+</gresources>
