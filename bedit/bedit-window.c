@@ -17,17 +17,10 @@ G_DEFINE_TYPE(BeditWindow, bedit_window, GTK_TYPE_APPLICATION_WINDOW)
 static void
 bedit_window_constructed(GObject *gobject) {
     BeditWindow *self = BEDIT_WINDOW(gobject);
-    GtkWidget *label;
 
     g_assert(BEDIT_IS_WINDOW(self));
 
     G_OBJECT_CLASS(bedit_window_parent_class)->constructed(gobject);
-
-    label = gtk_label_new("First Tab");
-    brk_tab_view_append(self->tab_view, label);
-
-    label = gtk_label_new("Second Tab");
-    brk_tab_view_append(self->tab_view, label);
 }
 
 static void
