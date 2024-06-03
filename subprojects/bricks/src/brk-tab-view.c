@@ -146,10 +146,14 @@ struct _BrkTabPage
   gboolean in_destruction;
 };
 
+static void brk_tab_page_buildable_init (GtkBuildableIface *iface);
 static void brk_tab_page_accessible_init (GtkAccessibleInterface *iface);
 
 G_DEFINE_FINAL_TYPE_WITH_CODE (BrkTabPage, brk_tab_page, G_TYPE_OBJECT,
+                               G_IMPLEMENT_INTERFACE (GTK_TYPE_BUILDABLE, brk_tab_page_buildable_init)
                                G_IMPLEMENT_INTERFACE (GTK_TYPE_ACCESSIBLE, brk_tab_page_accessible_init))
+
+static GtkBuildableIface *tab_page_parent_buildable_iface;
 
 enum {
   PAGE_PROP_0,
@@ -195,7 +199,7 @@ G_DEFINE_FINAL_TYPE_WITH_CODE (BrkTabView, brk_tab_view, GTK_TYPE_WIDGET,
                                G_IMPLEMENT_INTERFACE (GTK_TYPE_BUILDABLE, brk_tab_view_buildable_init)
                                G_IMPLEMENT_INTERFACE (GTK_TYPE_ACCESSIBLE, brk_tab_view_accessible_init))
 
-static GtkBuildableIface *parent_buildable_iface;
+static GtkBuildableIface *tab_view_parent_buildable_iface;
 
 enum {
   PROP_0,
@@ -632,6 +636,26 @@ brk_tab_page_init (BrkTabPage *self)
   self->tooltip = g_strdup ("");
   self->indicator_tooltip = g_strdup ("");
   self->bin = g_object_ref_sink (brk_bin_new ());
+}
+
+static void
+brk_tab_page_buildable_add_child (GtkBuildable *buildable,
+                             GtkBuilder   *builder,
+                             GObject      *child,
+                             const char   *type)
+{
+  if (GTK_IS_WIDGET (child))
+    brk_bin_set_child (BRK_BIN (BRK_TAB_PAGE (buildable)->bin), GTK_WIDGET (child));
+  else
+    tab_page_parent_buildable_iface->add_child (buildable, builder, child, type);
+}
+
+static void
+brk_tab_page_buildable_init (GtkBuildableIface *iface)
+{
+  tab_page_parent_buildable_iface = g_type_interface_peek_parent (iface);
+
+  iface->add_child = brk_tab_page_buildable_add_child;
 }
 
 static GtkATContext *
@@ -1969,13 +1993,13 @@ brk_tab_view_buildable_add_child (GtkBuildable *buildable,
   else if (!type && BRK_IS_TAB_PAGE (child))
     insert_page (self, BRK_TAB_PAGE (child), self->n_pages);
   else
-    parent_buildable_iface->add_child (buildable, builder, child, type);
+    tab_view_parent_buildable_iface->add_child (buildable, builder, child, type);
 }
 
 static void
 brk_tab_view_buildable_init (GtkBuildableIface *iface)
 {
-  parent_buildable_iface = g_type_interface_peek_parent (iface);
+  tab_view_parent_buildable_iface = g_type_interface_peek_parent (iface);
 
   iface->add_child = brk_tab_view_buildable_add_child;
 }
