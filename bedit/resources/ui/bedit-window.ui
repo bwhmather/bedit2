@@ -15,16 +15,19 @@
             <child>
               <object class="GtkButton">
                 <property name="icon-name">document-new</property>
+                <property name="tooltip-text">New (Ctrl+T)</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">document-open</property>
+                <property name="tooltip-text">Open (Ctrl+O)</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">document-save</property>
+                <property name="tooltip-text">Save as (Ctrl+S)</property>
               </object>
             </child>
 
@@ -33,6 +36,7 @@
             <child>
               <object class="GtkButton">
                 <property name="icon-name">document-print</property>
+                <property name="tooltip-text">Print (Ctrl+P)</property>
               </object>
             </child>
 
@@ -41,11 +45,13 @@
             <child>
               <object class="GtkButton">
                 <property name="icon-name">edit-undo</property>
+                <property name="tooltip-text">Undo (Ctrl+Z)</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">edit-redo</property>
+                <property name="tooltip-text">Redo (Ctrl+Shift+Z)</property>
               </object>
             </child>
 
@@ -54,16 +60,19 @@
             <child>
               <object class="GtkButton">
                 <property name="icon-name">edit-cut</property>
+                <property name="tooltip-text">Cut (Ctrl+X)</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">edit-copy</property>
+                <property name="tooltip-text">Copy (Ctrl+C)</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">edit-paste</property>
+                <property name="tooltip-text">Paste (Ctrl+V)</property>
               </object>
             </child>
 
@@ -72,11 +81,13 @@
             <child>
               <object class="GtkButton">
                 <property name="icon-name">edit-find</property>
+                <property name="tooltip-text">Find (Ctrl+F)</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">edit-find-replace</property>
+                <property name="tooltip-text">Find and Replace (Ctrl+H)</property>
               </object>
             </child>
           </object>
