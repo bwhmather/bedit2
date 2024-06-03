@@ -30,6 +30,12 @@
                 <property name="tooltip-text">Save as (Ctrl+S)</property>
               </object>
             </child>
+            <child>
+              <object class="GtkButton">
+                <property name="icon-name">document-save-as</property>
+                <property name="tooltip-text">Save as (Ctrl+Shift+S)</property>
+              </object>
+            </child>
 
             <child><object class="GtkSeparator"></object></child>
 
