@@ -283,7 +283,7 @@
             <child>
               <object class="GtkButton">
                 <property name="icon-name">document-save</property>
-                <property name="tooltip-text">Save as (Ctrl+S)</property>
+                <property name="tooltip-text">Save (Ctrl+S)</property>
               </object>
             </child>
             <child>
