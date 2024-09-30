@@ -9,38 +9,42 @@
           <attribute name="action">app.new</attribute>
         </item>
         <item>
-          <attribute name="label" translatable="yes">Open</attribute>
-          <attribute name="action">app.about</attribute>
+          <attribute name="label" translatable="yes">Open…</attribute>
+          <attribute name="action">win.open</attribute>
         </item>
       </section>
       <section>
         <item>
           <attribute name="label" translatable="yes">_Save</attribute>
-          <attribute name="action">app.save</attribute>
+          <attribute name="action">win.save</attribute>
         </item>
         <item>
-          <attribute name="label" translatable="yes">Save As</attribute>
-          <attribute name="action">app.save-as</attribute>
+          <attribute name="label" translatable="yes">Save As…</attribute>
+          <attribute name="action">win.save-as</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Revert</attribute>
-          <attribute name="action">app.revert</attribute>
+          <attribute name="action">win.revert</attribute>
         </item>
       </section>
       <section>
         <item>
-          <attribute name="label" translatable="yes">Print Preview</attribute>
-          <attribute name="action">app.print-preview</attribute>
+          <attribute name="label" translatable="yes">Print Preview…</attribute>
+          <attribute name="action">win.print-preview</attribute>
         </item>
         <item>
-          <attribute name="label" translatable="yes">Print</attribute>
-          <attribute name="action">app.print</attribute>
+          <attribute name="label" translatable="yes">Print…</attribute>
+          <attribute name="action">win.print</attribute>
         </item>
       </section>
       <section>
         <item>
           <attribute name="label" translatable="yes">Close Tab</attribute>
-          <attribute name="action">app.close-tab</attribute>
+          <attribute name="action">win.close-tab</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Close Window</attribute>
+          <attribute name="action">win.close</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Quit</attribute>
@@ -54,72 +58,72 @@
       <section>
         <item>
           <attribute name="label" translatable="yes">Undo</attribute>
-          <attribute name="action">app.undo</attribute>
+          <attribute name="action">win.undo</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Redo</attribute>
-          <attribute name="action">app.redo</attribute>
+          <attribute name="action">win.redo</attribute>
         </item>
       </section>
       <section>
         <item>
           <attribute name="label" translatable="yes">Cut</attribute>
-          <attribute name="action">app.cut</attribute>
+          <attribute name="action">win.cut</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Copy</attribute>
-          <attribute name="action">app.copy</attribute>
+          <attribute name="action">win.copy</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Paste</attribute>
-          <attribute name="action">app.paste</attribute>
+          <attribute name="action">win.paste</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Delete</attribute>
-          <attribute name="action">app.delete</attribute>
+          <attribute name="action">win.delete</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Duplicate</attribute>
-          <attribute name="action">app.duplicate</attribute>
+          <attribute name="action">win.duplicate</attribute>
         </item>
       </section>
       <section>
         <item>
           <attribute name="label" translatable="yes">Select All</attribute>
-          <attribute name="action">app.select-all</attribute>
+          <attribute name="action">win.select-all</attribute>
         </item>
       </section>
       <section>
         <item>
           <attribute name="label" translatable="yes">Comment</attribute>
-          <attribute name="action">app.comment</attribute>
+          <attribute name="action">win.comment</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Uncomment</attribute>
-          <attribute name="action">app.uncomment</attribute>
+          <attribute name="action">win.uncomment</attribute>
         </item>
       </section>
       <section>
         <item>
-          <attribute name="label" translatable="yes">Insert Date and Time...</attribute>
-          <attribute name="action">app.insert-date-and-time</attribute>
+          <attribute name="label" translatable="yes">Insert Date and Time…</attribute>
+          <attribute name="action">win.insert-date-and-time</attribute>
         </item>
       </section>
       <section>
         <item>
-          <attribute name="label" translatable="yes">Sort Lines</attribute>
-          <attribute name="action">app.sort-lines</attribute>
+          <attribute name="label" translatable="yes">Sort Lines…</attribute>
+          <attribute name="action">win.sort-lines</attribute>
         </item>
       </section>
       <section>
         <item>
           <attribute name="label" translatable="yes">Join Lines</attribute>
-          <attribute name="action">app.join-lines</attribute>
+          <attribute name="action">win.join-lines</attribute>
         </item>
       </section>
       <section>
         <item>
-          <attribute name="label" translatable="yes">Preferences</attribute>
+          <attribute name="label" translatable="yes">Preferences…</attribute>
           <attribute name="action">app.preferences</attribute>
         </item>
       </section>
@@ -148,13 +152,13 @@
       <section>
         <item>
           <attribute name="label" translatable="yes">Fullscreen</attribute>
-          <attribute name="action">app.fullscreen</attribute>
+          <attribute name="action">win.fullscreen</attribute>
         </item>
       </section>
       <section>
         <item>
           <attribute name="label" translatable="yes">Word Wrap</attribute>
-          <attribute name="action">app.select-all</attribute>
+          <attribute name="action">app.word-wrap</attribute>
         </item>
       </section>
       <section>
@@ -184,31 +188,31 @@
       <section>
         <item>
           <attribute name="label" translatable="yes">Find</attribute>
-          <attribute name="action">app.find</attribute>
+          <attribute name="action">win.find</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Find Next</attribute>
-          <attribute name="action">app.find-next</attribute>
+          <attribute name="action">win.find-next</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Find Previous</attribute>
-          <attribute name="action">app.find-previous</attribute>
+          <attribute name="action">win.find-previous</attribute>
         </item>
       </section>
       <section>
         <item>
           <attribute name="label" translatable="yes">Replace</attribute>
-          <attribute name="action">app.replace</attribute>
+          <attribute name="action">win.replace</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Replace All</attribute>
-          <attribute name="action">app.replace-all</attribute>
+          <attribute name="action">win.replace-all</attribute>
         </item>
       </section>
       <section>
         <item>
           <attribute name="label" translatable="yes">Go to Line</attribute>
-          <attribute name="action">app.go-to-line</attribute>
+          <attribute name="action">win.go-to-line</attribute>
         </item>
       </section>
     </submenu>
@@ -217,7 +221,7 @@
       <attribute name="label" translatable="yes">Tools</attribute>
       <section>
         <item>
-          <attribute name="label" translatable="yes">Check Spelling...</attribute>
+          <attribute name="label" translatable="yes">Check Spelling…</attribute>
           <attribute name="action">app.open-check-spelling</attribute>
         </item>
         <item>
@@ -225,13 +229,13 @@
           <attribute name="action">app.auto-check-spelling</attribute>
         </item>
         <item>
-          <attribute name="label" translatable="yes">Set Language...</attribute>
+          <attribute name="label" translatable="yes">Set Language…</attribute>
           <attribute name="action">app.open-set-language</attribute>
         </item>
       </section>
       <section>
         <item>
-          <attribute name="label" translatable="yes">Document Statistics...</attribute>
+          <attribute name="label" translatable="yes">Document Statistics…</attribute>
           <attribute name="action">app.open-document-statistics</attribute>
         </item>
       </section>
@@ -241,16 +245,16 @@
       <attribute name="label" translatable="yes">Help</attribute>
       <section>
         <item>
-          <attribute name="label" translatable="yes">Contents</attribute>
-          <attribute name="action">app.open-help</attribute>
+          <attribute name="label" translatable="yes">Contents…</attribute>
+          <attribute name="action">app.help</attribute>
         </item>
         <item>
-          <attribute name="label" translatable="yes">Keyboard Shortcuts</attribute>
-          <attribute name="action">app.open-keyboard-shortcuts</attribute>
+          <attribute name="label" translatable="yes">Keyboard Shortcuts…</attribute>
+          <attribute name="action">app.keyboard-shortcuts</attribute>
         </item>
         <item>
-          <attribute name="label" translatable="yes">About</attribute>
-          <attribute name="action">app.open-about</attribute>
+          <attribute name="label" translatable="yes">About…</attribute>
+          <attribute name="action">app.about</attribute>
         </item>
       </section>
     </submenu>
@@ -272,24 +276,28 @@
               <object class="GtkButton">
                 <property name="icon-name">document-new</property>
                 <property name="tooltip-text">New (Ctrl+T)</property>
+                <property name="action-name">app.new</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">document-open</property>
                 <property name="tooltip-text">Open (Ctrl+O)</property>
+                <property name="action-name">win.open</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">document-save</property>
                 <property name="tooltip-text">Save (Ctrl+S)</property>
+                <property name="action-name">win.save</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">document-save-as</property>
                 <property name="tooltip-text">Save as (Ctrl+Shift+S)</property>
+                <property name="action-name">win.save-as</property>
               </object>
             </child>
 
@@ -299,6 +307,7 @@
               <object class="GtkButton">
                 <property name="icon-name">document-print</property>
                 <property name="tooltip-text">Print (Ctrl+P)</property>
+                <property name="action-name">win.print</property>
               </object>
             </child>
 
@@ -308,12 +317,14 @@
               <object class="GtkButton">
                 <property name="icon-name">edit-undo</property>
                 <property name="tooltip-text">Undo (Ctrl+Z)</property>
+                <property name="action-name">win.undo</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">edit-redo</property>
                 <property name="tooltip-text">Redo (Ctrl+Shift+Z)</property>
+                <property name="action-name">win.redo</property>
               </object>
             </child>
 
@@ -323,18 +334,21 @@
               <object class="GtkButton">
                 <property name="icon-name">edit-cut</property>
                 <property name="tooltip-text">Cut (Ctrl+X)</property>
+                <property name="action-name">win.cut</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">edit-copy</property>
                 <property name="tooltip-text">Copy (Ctrl+C)</property>
+                <property name="action-name">win.copy</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">edit-paste</property>
                 <property name="tooltip-text">Paste (Ctrl+V)</property>
+                <property name="action-name">win.paste</property>
               </object>
             </child>
 
@@ -344,12 +358,14 @@
               <object class="GtkButton">
                 <property name="icon-name">edit-find</property>
                 <property name="tooltip-text">Find (Ctrl+F)</property>
+                <property name="action-name">win.find</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">edit-find-replace</property>
                 <property name="tooltip-text">Find and Replace (Ctrl+H)</property>
+                <property name="action-name">win.open-replace</property>
               </object>
             </child>
           </object>
