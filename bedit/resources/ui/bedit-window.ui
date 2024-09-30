@@ -2,16 +2,10 @@
 <interface>
   <template class="BeditWindow" parent="GtkApplicationWindow">
     <child>
-      <object class="GtkBox">
-        <property name="orientation">vertical</property>
-        <property name="vexpand">true</property>
-        <property name="valign">fill</property>
-        <child>
-          <object class="GtkBox">
-            <property name="orientation">horizontal</property>
-            <style>
-              <class name="toolbar"/>
-            </style>
+      <object class="BrkToolbarView">
+        <property name="top-bar-style">raised-border</property>
+        <child type="top">
+          <object class="BrkToolbar">
             <child>
               <object class="GtkButton">
                 <property name="icon-name">document-new</property>
@@ -98,48 +92,56 @@
             </child>
           </object>
         </child>
-        <child>
-          <object class="BrkTabBar">
-            <property name="view">tab_view</property>
-          </object>
-        </child>
-        <child>
-          <object class="BrkTabView" id="tab_view">
+        <property name="content">
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
             <property name="vexpand">true</property>
+            <property name="valign">fill</property>
             <child>
-              <object class="BrkTabPage">
-                <property name="title">Page Zero</property>
-                <child>
-                  <object class="GtkSourceView"></object>
-                </child>
+              <object class="BrkTabBar">
+                <property name="view">tab_view</property>
+                <property name="expand-tabs">false</property>
               </object>
             </child>
             <child>
-              <object class="BrkTabPage">
-                <property name="title">Page One</property>
+              <object class="BrkTabView" id="tab_view">
+                <property name="vexpand">true</property>
                 <child>
-                  <object class="GtkSourceView"></object>
+                  <object class="BrkTabPage">
+                    <property name="title">Page Zero</property>
+                    <child>
+                      <object class="GtkSourceView"></object>
+                    </child>
+                  </object>
                 </child>
-              </object>
-            </child>
-            <child>
-              <object class="BrkTabPage">
-                <property name="title">Page Two</property>
                 <child>
-                  <object class="GtkSourceView"></object>
+                  <object class="BrkTabPage">
+                    <property name="title">Page One</property>
+                    <child>
+                      <object class="GtkSourceView"></object>
+                    </child>
+                  </object>
                 </child>
-              </object>
-            </child>
-            <child>
-              <object class="BrkTabPage">
-                <property name="title">Page Three</property>
                 <child>
-                  <object class="GtkSourceView"></object>
+                  <object class="BrkTabPage">
+                    <property name="title">Page Two</property>
+                    <child>
+                      <object class="GtkSourceView"></object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="BrkTabPage">
+                    <property name="title">Page Three</property>
+                    <child>
+                      <object class="GtkSourceView"></object>
+                    </child>
+                  </object>
                 </child>
               </object>
             </child>
           </object>
-        </child>
+        </property>
       </object>
     </child>
   </template>

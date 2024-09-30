@@ -30,6 +30,8 @@ bedit_window_class_init(BeditWindowClass *class) {
 
     g_type_ensure(BRK_TYPE_TAB_BAR);
     g_type_ensure(BRK_TYPE_TAB_VIEW);
+    g_type_ensure(BRK_TYPE_TOOLBAR_VIEW);
+    g_type_ensure(BRK_TYPE_TOOLBAR);
 
     gobject_class->constructed = bedit_window_constructed;
 
