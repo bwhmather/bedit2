@@ -19,7 +19,7 @@ prefix = get_option('prefix')
 bindir = get_option('bindir')
 datadir = get_option('datadir')
 
-bricks_proj = subproject('bricks')
+bricks_proj = subproject('libbricks')
 
 bricks_dep = bricks_proj.get_variable('libbricks_dep')
 gtk_dep = dependency('gtk4', include_type: 'system')
