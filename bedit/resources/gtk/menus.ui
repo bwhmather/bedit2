@@ -16,31 +16,31 @@
       <section>
         <item>
           <attribute name="label" translatable="yes">_Save</attribute>
-          <attribute name="action">win.save</attribute>
+          <attribute name="action">doc.save</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Save As…</attribute>
-          <attribute name="action">win.save-as</attribute>
+          <attribute name="action">doc.save-as</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Revert</attribute>
-          <attribute name="action">win.revert</attribute>
+          <attribute name="action">doc.revert</attribute>
         </item>
       </section>
       <section>
         <item>
           <attribute name="label" translatable="yes">Print Preview…</attribute>
-          <attribute name="action">win.print-preview</attribute>
+          <attribute name="action">doc.print-preview</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Print…</attribute>
-          <attribute name="action">win.print</attribute>
+          <attribute name="action">doc.print</attribute>
         </item>
       </section>
       <section>
         <item>
           <attribute name="label" translatable="yes">Close Tab</attribute>
-          <attribute name="action">win.close-tab</attribute>
+          <attribute name="action">doc.close</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Close Window</attribute>
@@ -58,67 +58,67 @@
       <section>
         <item>
           <attribute name="label" translatable="yes">Undo</attribute>
-          <attribute name="action">win.undo</attribute>
+          <attribute name="action">doc.undo</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Redo</attribute>
-          <attribute name="action">win.redo</attribute>
+          <attribute name="action">doc.redo</attribute>
         </item>
       </section>
       <section>
         <item>
           <attribute name="label" translatable="yes">Cut</attribute>
-          <attribute name="action">win.cut</attribute>
+          <attribute name="action">doc.cut</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Copy</attribute>
-          <attribute name="action">win.copy</attribute>
+          <attribute name="action">doc.copy</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Paste</attribute>
-          <attribute name="action">win.paste</attribute>
+          <attribute name="action">doc.paste</attribute>
         </item>
         <item>
-          <attribute name="label" translatable="yes">Delete</attribute>
-          <attribute name="action">win.delete</attribute>
+          <attribute name="label" translatable="yes">Delete Line</attribute>
+          <attribute name="action">doc.delete</attribute>
         </item>
         <item>
-          <attribute name="label" translatable="yes">Duplicate</attribute>
-          <attribute name="action">win.duplicate</attribute>
+          <attribute name="label" translatable="yes">Duplicate Line</attribute>
+          <attribute name="action">doc.duplicate</attribute>
         </item>
       </section>
       <section>
         <item>
           <attribute name="label" translatable="yes">Select All</attribute>
-          <attribute name="action">win.select-all</attribute>
+          <attribute name="action">doc.select-all</attribute>
         </item>
       </section>
       <section>
         <item>
           <attribute name="label" translatable="yes">Comment</attribute>
-          <attribute name="action">win.comment</attribute>
+          <attribute name="action">doc.comment</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Uncomment</attribute>
-          <attribute name="action">win.uncomment</attribute>
+          <attribute name="action">doc.uncomment</attribute>
         </item>
       </section>
       <section>
         <item>
           <attribute name="label" translatable="yes">Insert Date and Time…</attribute>
-          <attribute name="action">win.insert-date-and-time</attribute>
+          <attribute name="action">doc.insert-date-and-time</attribute>
         </item>
       </section>
       <section>
         <item>
           <attribute name="label" translatable="yes">Sort Lines…</attribute>
-          <attribute name="action">win.sort-lines</attribute>
+          <attribute name="action">doc.sort-lines</attribute>
         </item>
       </section>
       <section>
         <item>
           <attribute name="label" translatable="yes">Join Lines</attribute>
-          <attribute name="action">win.join-lines</attribute>
+          <attribute name="action">doc.join-lines</attribute>
         </item>
       </section>
       <section>
