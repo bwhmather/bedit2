@@ -139,6 +139,7 @@ bedit_application_new(void) {
     return g_object_new(
         BEDIT_TYPE_APPLICATION,
         "application-id", "com.bwhmather.Bedit",
+        "resource-base-path", "/com/bwhmather/Bedit",
         NULL
     );
 }
