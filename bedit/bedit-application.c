@@ -2,11 +2,12 @@
 
 #include "bedit-application.h"
 
-#include <bricks.h>
 #include <gio/gio.h>
 #include <glib-object.h>
+#include <glib.h>
 #include <glib/gprintf.h>
 #include <gtk/gtk.h>
+#include <stdio.h>
 
 #include "bedit-window.h"
 

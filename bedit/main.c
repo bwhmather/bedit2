@@ -6,7 +6,8 @@
 
 #include "bedit-application.h"
 
-int main(int argc, char **argv) {
+int
+main(int argc, char **argv) {
     BeditApplication *app;
     int status;
 

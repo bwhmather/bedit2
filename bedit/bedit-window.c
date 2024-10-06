@@ -3,6 +3,9 @@
 #include "bedit-window.h"
 
 #include <bricks.h>
+#include <glib-object.h>
+#include <gtk/gtk.h>
+#include <glib.h>
 
 #include "bedit-window-actions.h"
 
@@ -39,9 +42,7 @@ bedit_window_class_init(BeditWindowClass *class) {
 
     bedit_window_actions_init_class(class);
 
-    gtk_widget_class_set_template_from_resource(
-        widget_class, "/com/bwhmather/Bedit/ui/bedit-window.ui"
-    );
+    gtk_widget_class_set_template_from_resource(widget_class, "/com/bwhmather/Bedit/ui/bedit-window.ui");
     gtk_widget_class_bind_template_child(widget_class, BeditWindow, tab_view);
 }
 

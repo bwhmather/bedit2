@@ -152,3 +152,37 @@ install_data(
 )
 gnome.compile_schemas()  # Only for testing.
 gnome.post_install(glib_compile_schemas: true, update_desktop_database: true)
+
+test_suites = {
+  'lint': [
+    'exact-includes',
+    'include-guards',
+    'no-circular-includes',
+    'source-and-header-contents-match',
+    'source-and-header-orders-match',
+    'source-heading',
+    'unused-symbols',
+  ],
+}
+
+pymod = import('python')
+python = pymod.find_installation('python3')
+
+foreach suite, tests : test_suites
+  foreach test_name : tests
+    test(
+      suite + '-' + test_name,
+      python,
+      args: [
+        meson.current_source_dir() +
+        '/tests/' + suite +
+        '/test_' + test_name.replace('-', '_') + '.py',
+      ],
+      env: {
+        'MESON_BUILD_ROOT': meson.project_build_root(),
+        'MESON_SOURCE_ROOT': meson.project_source_root(),
+      },
+      timeout: 1000,
+    )
+  endforeach
+endforeach

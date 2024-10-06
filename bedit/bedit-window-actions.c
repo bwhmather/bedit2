@@ -2,9 +2,9 @@
 
 #include "bedit-window-actions.h"
 
-#include <bricks.h>
+#include <glib-object.h>
+#include <glib.h>
 #include <gtk/gtk.h>
-#include <gtksourceview/gtksource.h>
 
 #include "bedit-window.h"
 

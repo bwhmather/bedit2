@@ -1,8 +1,6 @@
 #pragma once
 
-#include <glib-object.h>
 #include <glib.h>
-#include <gtk/gtk.h>
 
 #include "bedit-window.h"
 
