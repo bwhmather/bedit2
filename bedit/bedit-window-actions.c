@@ -14,7 +14,7 @@ static void
 bedit_window_actions_do_open(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -24,7 +24,7 @@ static void
 bedit_window_actions_do_save(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -34,7 +34,7 @@ static void
 bedit_window_actions_do_save_as(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -44,7 +44,7 @@ static void
 bedit_window_actions_do_revert(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -54,7 +54,7 @@ static void
 bedit_window_actions_do_print_preview(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -64,7 +64,7 @@ static void
 bedit_window_actions_do_print(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -74,7 +74,7 @@ static void
 bedit_window_actions_do_close_tab(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -84,7 +84,7 @@ static void
 bedit_window_actions_do_close_window(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -96,7 +96,7 @@ static void
 bedit_window_actions_do_undo(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -106,7 +106,7 @@ static void
 bedit_window_actions_do_redo(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -116,7 +116,7 @@ static void
 bedit_window_actions_do_cut(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -126,7 +126,7 @@ static void
 bedit_window_actions_do_copy(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -136,7 +136,7 @@ static void
 bedit_window_actions_do_paste(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -146,7 +146,7 @@ static void
 bedit_window_actions_do_delete(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -156,7 +156,7 @@ static void
 bedit_window_actions_do_duplicate(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -166,7 +166,7 @@ static void
 bedit_window_actions_do_select_all(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -176,7 +176,7 @@ static void
 bedit_window_actions_do_comment(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -186,7 +186,7 @@ static void
 bedit_window_actions_do_uncomment(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -196,12 +196,12 @@ static void
 bedit_window_actions_do_insert_date_time(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -211,7 +211,7 @@ static void
 bedit_window_actions_do_sort_lines(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -221,7 +221,7 @@ static void
 bedit_window_actions_do_join_lines(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -233,7 +233,7 @@ static void
 bedit_window_actions_do_find(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -243,7 +243,7 @@ static void
 bedit_window_actions_do_find_next(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -253,7 +253,7 @@ static void
 bedit_window_actions_do_find_previous(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -263,7 +263,7 @@ static void
 bedit_window_actions_do_replace(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -273,7 +273,7 @@ static void
 bedit_window_actions_do_replace_all(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
@@ -283,7 +283,7 @@ static void
 bedit_window_actions_do_go_to_line(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
 
-    (void)action_name;
+    (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);

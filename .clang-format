@@ -1,0 +1,45 @@
+---
+BasedOnStyle: LLVM
+IndentWidth: 4
+UseTab: Never
+TabWidth: 4
+---
+Language: Cpp
+ColumnLimit: 0
+AlignAfterOpenBracket: BlockIndent
+AlignOperands: DontAlign
+AlignTrailingComments: false
+AllowShortEnumsOnASingleLine: false
+BreakBeforeTernaryOperators: true
+AlwaysBreakAfterReturnType: All
+AlwaysBreakBeforeMultilineStrings: true
+ExperimentalAutoDetectBinPacking: true
+ReflowComments: false
+SpaceAfterCStyleCast: true
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '<config.h>'
+    Priority: -1
+  - Regex: '<.+>'
+    Priority: 1
+  - Regex: '<glib*>'
+    Priority: 2
+  - Regex: '<gio*>'
+    Priority: 2
+  - Regex: '<gdk*>'
+    Priority: 2
+  - Regex: '<gsk*>'
+    Priority: 2
+  - Regex: '<gtk*>'
+    Priority: 2
+  - Regex: '<pango*>'
+    Priority: 2
+  - Regex: '<fribidi*>'
+    Priority: 2
+  - Regex: '<bricks.h>'
+    Priority: 2
+  - Regex: '<gtksourceview/gtksource.h>'
+    Priority: 2
+  - Regex: '".*"'
+    Priority: 3
+

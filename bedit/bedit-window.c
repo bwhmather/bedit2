@@ -4,8 +4,8 @@
 
 #include <bricks.h>
 #include <glib-object.h>
-#include <gtk/gtk.h>
 #include <glib.h>
+#include <gtk/gtk.h>
 
 #include "bedit-window-actions.h"
 
