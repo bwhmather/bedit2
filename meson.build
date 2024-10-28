@@ -125,6 +125,7 @@ bedit_enums = gnome.mkenums_simple(
 bedit_sources = [
   'bedit/main.c',
   'bedit/bedit-application.c',
+  'bedit/bedit-document.c',
   'bedit/bedit-window-actions.c',
   'bedit/bedit-window.c',
   bedit_enums,

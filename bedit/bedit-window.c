@@ -7,6 +7,7 @@
 #include <glib.h>
 #include <gtk/gtk.h>
 
+#include "bedit-document.h"
 #include "bedit-window-actions.h"
 
 struct _BeditWindow {
@@ -37,6 +38,8 @@ bedit_window_class_init(BeditWindowClass *class) {
     g_type_ensure(BRK_TYPE_TAB_VIEW);
     g_type_ensure(BRK_TYPE_TOOLBAR_VIEW);
     g_type_ensure(BRK_TYPE_TOOLBAR);
+
+    g_type_ensure(BEDIT_TYPE_DOCUMENT);
 
     gobject_class->constructed = bedit_window_constructed;
 

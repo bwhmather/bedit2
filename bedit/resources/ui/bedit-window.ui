@@ -123,7 +123,7 @@
                   <object class="BrkTabPage">
                     <property name="title">Page Zero</property>
                     <child>
-                      <object class="GtkSourceView"></object>
+                      <object class="BeditDocument"></object>
                     </child>
                   </object>
                 </child>
@@ -131,7 +131,7 @@
                   <object class="BrkTabPage">
                     <property name="title">Page One</property>
                     <child>
-                      <object class="GtkSourceView"></object>
+                      <object class="BeditDocument"></object>
                     </child>
                   </object>
                 </child>
@@ -139,7 +139,7 @@
                   <object class="BrkTabPage">
                     <property name="title">Page Two</property>
                     <child>
-                      <object class="GtkSourceView"></object>
+                      <object class="BeditDocument"></object>
                     </child>
                   </object>
                 </child>
@@ -147,7 +147,7 @@
                   <object class="BrkTabPage">
                     <property name="title">Page Three</property>
                     <child>
-                      <object class="GtkSourceView"></object>
+                      <object class="BeditDocument"></object>
                     </child>
                   </object>
                 </child>
