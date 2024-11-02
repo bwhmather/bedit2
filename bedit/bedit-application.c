@@ -2,6 +2,7 @@
 
 #include "bedit-application.h"
 
+#include <bricks.h>
 #include <gio/gio.h>
 #include <glib-object.h>
 #include <glib.h>
@@ -18,6 +19,13 @@ struct _BeditApplication {
 G_DEFINE_TYPE(BeditApplication, bedit_application, GTK_TYPE_APPLICATION)
 
 /* === Lifecycle ========================================================================================== */
+
+static void
+bedit_application_startup(GApplication *application) {
+    G_APPLICATION_CLASS(bedit_application_parent_class)->startup(application);
+
+    brk_init();
+}
 
 static int
 bedit_application_handle_local_options(GApplication *application, GVariantDict *options) {
@@ -124,6 +132,7 @@ bedit_application_class_init(BeditApplicationClass *class) {
     object_class->dispose = bedit_application_dispose;
     object_class->finalize = bedit_application_finalize;
 
+    application_class->startup = bedit_application_startup;
     application_class->handle_local_options = bedit_application_handle_local_options;
     application_class->command_line = bedit_application_command_line;
     application_class->activate = bedit_application_activate;
