@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="BeditSearchbar" parent="GtkWidget">
+    <child>
+      <object class="GtkGrid">
+        <child>
+          <object class="GtkEntry">
+            <property name="hexpand">true</property>
+            <property name="primary-icon-name">edit-find</property>
+            <property name="secondary-icon-name">edit-clear</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkEntry">
+            <property name="primary-icon-name">edit-find-replace</property>
+            <property name="secondary-icon-name">edit-clear</property>
+            <layout>
+              <property name="column">0</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="BrkButtonGroup">
+            <property name="halign">fill</property>
+            <child>
+              <object class="GtkButton">
+                <property name="hexpand">true</property>
+                <property name="icon-name">go-up</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="hexpand">true</property>
+                <property name="icon-name">go-down</property>
+              </object>
+            </child>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="BrkButtonGroup">
+            <property name="halign">fill</property>
+            <child>
+              <object class="GtkButton">
+                <property name="hexpand">true</property>
+                <property name="label">Aa</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkButton">
+                <property name="hexpand">true</property>
+                <property name="label">.*</property>
+              </object>
+            </child>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">0</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton">
+            <property name="halign">fill</property>
+            <property name="label">Replace</property>
+            <layout>
+              <property name="column">1</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton">
+            <property name="halign">fill</property>
+            <property name="label">Replace All</property>
+            <layout>
+              <property name="column">2</property>
+              <property name="row">1</property>
+            </layout>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>
+

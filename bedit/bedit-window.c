@@ -9,6 +9,7 @@
 
 #include "bedit-document.h"
 #include "bedit-window-actions.h"
+#include "bedit-searchbar.h"
 
 struct _BeditWindow {
     GtkApplicationWindow parent_instance;
@@ -40,6 +41,7 @@ bedit_window_class_init(BeditWindowClass *class) {
     g_type_ensure(BRK_TYPE_TOOLBAR);
 
     g_type_ensure(BEDIT_TYPE_DOCUMENT);
+    g_type_ensure(BEDIT_TYPE_SEARCHBAR);
 
     gobject_class->constructed = bedit_window_constructed;
 
