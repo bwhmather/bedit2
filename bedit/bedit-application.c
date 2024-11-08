@@ -10,6 +10,7 @@
 #include <gtk/gtk.h>
 #include <stdio.h>
 
+#include "bedit-application-actions.h"
 #include "bedit-window.h"
 
 struct _BeditApplication {
@@ -136,10 +137,14 @@ bedit_application_class_init(BeditApplicationClass *class) {
     application_class->handle_local_options = bedit_application_handle_local_options;
     application_class->command_line = bedit_application_command_line;
     application_class->activate = bedit_application_activate;
+
+    bedit_application_actions_init_class(class);
 }
 
 static void
-bedit_application_init(BeditApplication *self) {}
+bedit_application_init(BeditApplication *self) {
+    bedit_application_actions_init_instance(self);
+}
 
 /* === Public API ========================================================================================= */
 

@@ -124,6 +124,7 @@ bedit_enums = gnome.mkenums_simple(
 
 bedit_sources = [
   'bedit/main.c',
+  'bedit/bedit-application-actions.c',
   'bedit/bedit-application.c',
   'bedit/bedit-document.c',
   'bedit/bedit-searchbar.c',
@@ -149,7 +150,7 @@ configure_file(
 )
 
 install_data(
-  'com.bwhmather.Bedit.gschema.xml',
+  'com.bwhmather.Bedit2.gschema.xml',
   install_dir: join_paths(datadir, 'glib-2.0/schemas'),
 )
 gnome.compile_schemas()  # Only for testing.

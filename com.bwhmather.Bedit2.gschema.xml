@@ -1,0 +1,39 @@
+<schemalist>
+  <schema id="com.bwhmather.Bedit2" path="/com/bwhmather/Bedit2/" gettext-domain="bedit2">
+    <key name="show-toolbar" type="b">
+      <default>true</default>
+      <summary>Show Toolbar</summary>
+      <description>Whether Bedit should display the toolbar (containing shortcut buttons) at the top of the screen.</description>
+    </key>
+    <key name="show-menubar" type="b">
+      <default>true</default>
+      <summary>Show Menubar</summary>
+      <description>Whether Bedit should display the menubar at the very top of the screen.</description>
+    </key>
+    <key name="show-statusbar" type="b">
+      <default>true</default>
+      <summary>Show Statusbar</summary>
+      <description>Whether Bedit should display the statusbar at the bottom of the screen.</description>
+    </key>
+    <key name="show-overview-map" type="b">
+      <default>true</default>
+      <summary>Show Overview Map</summary>
+      <description>Whether Bedit should display a mini map of the document at the side of the screen.</description>
+    </key>
+    <key name="word-wrap" type="b">
+      <default>true</default>
+      <summary>Word Wrap</summary>
+      <description>Whether Bedit should soft-wrap lines that go beyond the edge of the visible area.</description>
+    </key>
+    <key name="highlight-mode" type="b">
+      <default>true</default>
+      <summary>Highlight Mode</summary>
+      <description>Whether Bedit should highlight areas that match the current selection.</description>
+    </key>
+    <key name="auto-check-spelling" type="b">
+      <default>true</default>
+      <summary>Auto-check Spelling</summary>
+      <description>Whether Bedit should check files for spelling errors in real time.</description>
+    </key>
+  </schema>
+</schemalist>
