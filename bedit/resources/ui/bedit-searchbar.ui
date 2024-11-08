@@ -6,8 +6,11 @@
         <child>
           <object class="GtkEntry">
             <property name="hexpand">true</property>
+            <property name="tooltip-text">Search pattern</property>
             <property name="primary-icon-name">edit-find</property>
+            <property name="primary-icon-tooltip-text">Search pattern</property>
             <property name="secondary-icon-name">edit-clear</property>
+            <property name="secondary-icon-tooltip-text">Clear search pattern</property>
             <layout>
               <property name="column">0</property>
               <property name="row">0</property>
@@ -16,8 +19,12 @@
         </child>
         <child>
           <object class="GtkEntry">
+            <property name="hexpand">true</property>
+            <property name="tooltip-text">Search replacement text</property>
             <property name="primary-icon-name">edit-find-replace</property>
+            <property name="primary-icon-tooltip-text">Search replacement text</property>
             <property name="secondary-icon-name">edit-clear</property>
+            <property name="secondary-icon-tooltip-text">Clear search replacement text</property>
             <layout>
               <property name="column">0</property>
               <property name="row">1</property>
@@ -31,12 +38,16 @@
               <object class="GtkButton">
                 <property name="hexpand">true</property>
                 <property name="icon-name">go-up</property>
+                <property name="tooltip-text">Previous match (Ctrl+Shift+G)</property>
+                <property name="action-name">win.find-previous</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="hexpand">true</property>
                 <property name="icon-name">go-down</property>
+                <property name="tooltip-text">Next match (Ctrl+G)</property>
+                <property name="action-name">win.find-next</property>
               </object>
             </child>
             <layout>
@@ -52,12 +63,16 @@
               <object class="GtkButton">
                 <property name="hexpand">true</property>
                 <property name="label">Aa</property>
+                <property name="tooltip-text">Match case</property>
+                <property name="action-name">win.case-sensitive-search</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="hexpand">true</property>
                 <property name="label">.*</property>
+                <property name="tooltip-text">Use regular expressions (Ctrl+.)</property>
+                <property name="action-name">win.regular-expression-search</property>
               </object>
             </child>
             <layout>
@@ -70,6 +85,8 @@
           <object class="GtkButton">
             <property name="halign">fill</property>
             <property name="label">Replace</property>
+            <property name="tooltip-text">Replace currently highlighted instance (Ctrl+R)</property>
+            <property name="action-name">win.replace</property>
             <layout>
               <property name="column">1</property>
               <property name="row">1</property>
@@ -80,6 +97,8 @@
           <object class="GtkButton">
             <property name="halign">fill</property>
             <property name="label">Replace All</property>
+            <property name="tooltip-text">Replace all instances (Ctrl+Alt+R)</property>
+            <property name="action-name">win.replace-all</property>
             <layout>
               <property name="column">2</property>
               <property name="row">1</property>
