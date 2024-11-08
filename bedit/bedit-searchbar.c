@@ -2,10 +2,10 @@
 
 #include "bedit-searchbar.h"
 
+#include <bricks.h>
 #include <glib-object.h>
 #include <glib.h>
 #include <gtk/gtk.h>
-#include <bricks.h>
 
 struct _BeditSearchbar {
     GtkWidget parent_instance;

@@ -8,8 +8,8 @@
 #include <gtk/gtk.h>
 
 #include "bedit-document.h"
-#include "bedit-window-actions.h"
 #include "bedit-searchbar.h"
+#include "bedit-window-actions.h"
 
 struct _BeditWindow {
     GtkApplicationWindow parent_instance;
