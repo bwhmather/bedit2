@@ -126,6 +126,7 @@ bedit_sources = [
   'bedit/main.c',
   'bedit/bedit-application-actions.c',
   'bedit/bedit-application.c',
+  'bedit/bedit-application-shortcuts.c',
   'bedit/bedit-document.c',
   'bedit/bedit-searchbar.c',
   'bedit/bedit-window-actions.c',
