@@ -68,3 +68,11 @@ bedit_window_new(GtkApplication *application) {
         NULL
     );
 }
+
+void
+bedit_window_add_document(BeditWindow *self, BeditDocument *document) {
+    g_return_if_fail(BEDIT_IS_WINDOW(self));
+    g_return_if_fail(BEDIT_IS_DOCUMENT(document));
+
+    brk_tab_view_append(self->tab_view, GTK_WIDGET(document));
+}
