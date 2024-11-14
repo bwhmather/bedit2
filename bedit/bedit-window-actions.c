@@ -56,7 +56,7 @@ bedit_window_handle_open_file_dialog_open_result(
     GError *error = NULL;
 
     file = gtk_file_dialog_open_finish(file_dialog, result, &error);
-    g_return_if_fail(file != NULL); // TODO
+    g_return_if_fail(G_IS_FILE(file));
 
     document = bedit_document_new_for_file(file);
     bedit_window_add_document(self, document);

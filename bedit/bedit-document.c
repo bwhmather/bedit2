@@ -48,15 +48,21 @@ static void
 bedit_document_on_source_file_loader_load_notify(GObject *object, GAsyncResult *result, gpointer user_data);
 
 static void
-bedit_document_do_load(BeditDocument *self, GTask *task) {
+bedit_document_do_load(GTask *task) {
+    BeditDocument *self;
     GtkSourceFile *source_file;
     GtkSourceFileLoader *source_loader;
 
-    g_assert(BEDIT_IS_DOCUMENT(self));
     g_assert(G_IS_TASK(task));
-    g_return_if_fail(self->loading == FALSE);
-    g_return_if_fail(self->saving == FALSE);
+
+    self = g_task_get_source_object(task);
+    g_assert(BEDIT_IS_DOCUMENT(self));
+
+    g_return_if_fail(!self->loading);
+    g_return_if_fail(!self->saving);
     g_return_if_fail(G_IS_FILE(self->file));
+
+    self->loading = TRUE;
 
     source_file = gtk_source_file_new();
     gtk_source_file_set_location(source_file, self->file);
@@ -77,7 +83,6 @@ bedit_document_do_load(BeditDocument *self, GTask *task) {
     g_object_unref(source_loader);
     g_object_unref(source_file);
 
-    self->loading = TRUE;
     g_object_notify_by_pspec(G_OBJECT(self), properties[PROP_LOADING]);
 }
 
@@ -102,11 +107,12 @@ bedit_document_on_source_file_loader_load_notify(GObject *object, GAsyncResult *
     g_assert(GTK_SOURCE_IS_FILE_LOADER(source_loader));
     g_assert(G_IS_ASYNC_RESULT(result));
     g_assert(G_IS_TASK(task));
-    g_assert(self->loading == TRUE);
-    g_assert(self->saving == FALSE);
 
     self = g_task_get_source_object(task);
     g_assert(BEDIT_IS_DOCUMENT(self));
+
+    g_assert(self->loading);
+    g_assert(!self->saving);
 
     success = gtk_source_file_loader_load_finish(source_loader, result, &error);
     if (!success) {
@@ -144,11 +150,12 @@ bedit_document_on_file_query_info_notify(GObject *object, GAsyncResult *result, 
     g_assert(G_IS_FILE(file));
     g_assert(G_IS_ASYNC_RESULT(result));
     g_assert(G_IS_TASK(task));
-    g_assert(self->loading == TRUE);
-    g_assert(self->saving == FALSE);
 
     self = g_task_get_source_object(task);
     g_assert(BEDIT_IS_DOCUMENT(self));
+
+    g_assert(self->loading);
+    g_assert(!self->saving);
 
     info = g_file_query_info_finish(file, result, &error);
     if (info == NULL) {
@@ -178,6 +185,10 @@ bedit_document_constructed(GObject *gobject) {
     g_assert(BEDIT_IS_DOCUMENT(self));
 
     G_OBJECT_CLASS(bedit_document_parent_class)->constructed(gobject);
+
+    if (self->file != NULL) {
+        bedit_document_reload_async(self, NULL, NULL, NULL);
+    }
 }
 
 static void
@@ -312,11 +323,12 @@ bedit_document_reload_async(BeditDocument *self, GCancellable *cancellable, GAsy
 
     g_return_if_fail(BEDIT_IS_DOCUMENT(self));
     g_return_if_fail(cancellable == NULL || G_IS_CANCELLABLE(cancellable));
+    g_return_if_fail(G_IS_FILE(self->file));
 
     task = g_task_new(self, cancellable, callback, user_data);
     g_task_set_source_tag(task, bedit_document_reload_async);
 
-    bedit_document_do_load(self, task);
+    bedit_document_do_load(task);
 }
 
 gboolean
