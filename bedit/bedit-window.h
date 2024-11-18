@@ -19,4 +19,7 @@ bedit_window_new(GtkApplication *application);
 void
 bedit_window_add_document(BeditWindow *self, BeditDocument *document);
 
+BeditDocument *
+bedit_window_get_active_document(BeditWindow *self);
+
 G_END_DECLS

@@ -45,8 +45,9 @@ bedit_document_set_modified(BeditDocument *self, gboolean modified);
 
 gboolean
 bedit_document_get_loading(BeditDocument *self);
-
 gboolean
 bedit_document_get_saving(BeditDocument *self);
+gboolean
+bedit_document_get_busy(BeditDocument *self);
 
 G_END_DECLS

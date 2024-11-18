@@ -76,3 +76,17 @@ bedit_window_add_document(BeditWindow *self, BeditDocument *document) {
 
     brk_tab_view_append(self->tab_view, GTK_WIDGET(document));
 }
+
+BeditDocument *
+bedit_window_get_active_document(BeditWindow *self) {
+    BrkTabPage *tab_page;
+    GtkWidget *widget;
+
+    g_return_val_if_fail(BEDIT_IS_WINDOW(self), NULL);
+
+    tab_page = brk_tab_view_get_selected_page(self->tab_view);
+    widget = brk_tab_page_get_child(tab_page);
+    g_return_val_if_fail(BEDIT_IS_DOCUMENT(widget), NULL);
+
+    return BEDIT_DOCUMENT(widget);
+}

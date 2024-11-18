@@ -44,19 +44,18 @@ bedit_window_actions_get_cancellable(BeditWindow *self) {
 /* --- Window Open ---------------------------------------------------------------------------------------- */
 
 static void
-bedit_window_handle_open_file_dialog_open_result(
-    GObject *object,
-    GAsyncResult *result,
-    gpointer data
-) {
+bedit_window_actions_handle_open_dialog_result(GObject *object, GAsyncResult *result, gpointer user_data);
+
+static void
+bedit_window_actions_handle_open_dialog_result(GObject *object, GAsyncResult *result, gpointer user_data) {
     GtkFileDialog *file_dialog = GTK_FILE_DIALOG(object);
-    BeditWindow *self = BEDIT_WINDOW(data);
+    BeditWindow *self = BEDIT_WINDOW(user_data);
     GFile *file;
     BeditDocument *document;
     GError *error = NULL;
 
     file = gtk_file_dialog_open_finish(file_dialog, result, &error);
-    g_return_if_fail(G_IS_FILE(file));
+    g_return_if_fail(G_IS_FILE(file)); // TODO
 
     document = bedit_document_new_for_file(file);
     bedit_window_add_document(self, document);
@@ -84,27 +83,159 @@ bedit_window_actions_do_open(GtkWidget *widget, char const *action_name, GVarian
         file_dialog,
         GTK_WINDOW(self),
         cancellable,
-        bedit_window_handle_open_file_dialog_open_result,
+        bedit_window_actions_handle_open_dialog_result,
         self
     );
 
-    g_object_unref(file_dialog);
-    g_object_unref(cancellable);
+    g_clear_object(&file_dialog);
+    g_clear_object(&cancellable);
 }
 
 /* --- Document Save -------------------------------------------------------------------------------------- */
 
 static void
+bedit_window_actions_save_on_document_save_result(GObject *object, GAsyncResult *result, gpointer user_data);
+
+static void
+bedit_window_actions_save_begin(BeditWindow *self) {
+    BeditDocument *document;
+
+    g_assert(BEDIT_IS_WINDOW(self));
+
+    document = bedit_window_get_active_document(self);
+    g_assert(BEDIT_IS_DOCUMENT(document));
+
+    bedit_document_save_async(
+        document,
+        NULL,
+        bedit_window_actions_save_on_document_save_result,
+        NULL
+    );
+}
+
+static void
+bedit_window_actions_save_on_document_save_result(GObject *object, GAsyncResult *result, gpointer user_data) {
+    BeditDocument *document = BEDIT_DOCUMENT(object);
+    gboolean success;
+    GError *error;
+
+    (void) user_data;
+
+    g_return_if_fail(BEDIT_IS_DOCUMENT(document));
+
+    success = bedit_document_save_finish(document, result, &error);
+    if (!success) {
+        // TODO show an error message.
+        g_warning("Saving failed: %s", error->message);
+        g_clear_pointer(&error, g_error_free);
+        return;
+    }
+}
+
+static void
+bedit_window_actions_save_as_on_dialog_result(GObject *object, GAsyncResult *result, gpointer user_data);
+static void
+bedit_window_actions_save_as_on_document_save_as_result(GObject *object, GAsyncResult *result, gpointer user_data);
+
+static void
+bedit_window_actions_save_as_begin(BeditWindow *self) {
+    BeditDocument *document;
+    GCancellable *cancellable;
+    GtkFileDialog *file_dialog;
+
+    g_return_if_fail(BEDIT_IS_WINDOW(self));
+
+    document = bedit_window_get_active_document(self);
+    g_return_if_fail(BEDIT_IS_DOCUMENT(document));
+
+    cancellable = bedit_window_actions_get_cancellable(self);
+
+    file_dialog = gtk_file_dialog_new();
+
+    gtk_file_dialog_save(
+        file_dialog,
+        GTK_WINDOW(self),
+        cancellable,
+        bedit_window_actions_save_as_on_dialog_result,
+        g_object_ref(document)
+    );
+
+    g_clear_object(&file_dialog);
+    g_clear_object(&cancellable);
+}
+
+static void
+bedit_window_actions_save_as_on_dialog_result(GObject *object, GAsyncResult *result, gpointer user_data) {
+    GtkFileDialog *file_dialog = GTK_FILE_DIALOG(object);
+    BeditDocument *document = BEDIT_DOCUMENT(user_data);
+    GError *error = NULL;
+    GFile *file;
+
+    g_assert(GTK_IS_FILE_DIALOG(object));
+    g_assert(BEDIT_IS_DOCUMENT(document));
+
+    file = gtk_file_dialog_save_finish(file_dialog, result, &error);
+    if (file == NULL) {
+        // TODO show an error message.
+        g_warning("Save dialog error: %s", error->message);
+        g_clear_pointer(&error, g_error_free);
+        g_clear_object(&document);
+        return;
+    }
+
+    bedit_document_save_as_async(
+        document,
+        file,
+        NULL,
+        bedit_window_actions_save_as_on_document_save_as_result,
+        NULL
+    );
+
+    g_clear_object(&document);
+    g_clear_object(&file);
+}
+
+static void
+bedit_window_actions_save_as_on_document_save_as_result(GObject *object, GAsyncResult *result, gpointer user_data) {
+    BeditDocument *document = BEDIT_DOCUMENT(object);
+    gboolean success;
+    GError *error;
+
+    (void) user_data;
+
+    g_return_if_fail(BEDIT_IS_DOCUMENT(document));
+
+    success = bedit_document_save_as_finish(document, result, &error);
+    if (!success) {
+        // TODO show an error message.
+        g_warning("Saving failed: %s", error->message);
+        g_clear_pointer(&error, g_error_free);
+        return;
+    }
+}
+
+static void
 bedit_window_actions_do_save(GtkWidget *widget, char const *action_name, GVariant *param) {
     BeditWindow *self = BEDIT_WINDOW(widget);
+    BeditDocument *document;
+    GFile *file;
 
     (void) action_name;
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
-}
 
-/* --- Document Save As ----------------------------------------------------------------------------------- */
+    document = bedit_window_get_active_document(self);
+    g_return_if_fail(BEDIT_IS_DOCUMENT(document));
+
+    file = bedit_document_get_file(document);
+
+    if (file == NULL) {
+        bedit_window_actions_save_as_begin(self);
+    } else {
+        bedit_window_actions_save_begin(self);
+    }
+}
 
 static void
 bedit_window_actions_do_save_as(GtkWidget *widget, char const *action_name, GVariant *param) {
@@ -114,6 +245,8 @@ bedit_window_actions_do_save_as(GtkWidget *widget, char const *action_name, GVar
 
     g_return_if_fail(BEDIT_IS_WINDOW(self));
     g_return_if_fail(param == NULL);
+
+    bedit_window_actions_save_as_begin(self);
 }
 
 /* --- Document Revert ------------------------------------------------------------------------------------ */
