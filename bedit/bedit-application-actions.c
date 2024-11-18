@@ -12,21 +12,19 @@
 /* --- File ----------------------------------------------------------------------------------------------- */
 
 static void
-bedit_application_actions_do_new(GtkWidget *widget, char const *action_name, GVariant *param) {
-    BeditApplication *self = BEDIT_APPLICATION(widget);
+bedit_application_actions_do_new(GSimpleAction *action, GVariant *param, gpointer user_data) {
+    BeditApplication *self = BEDIT_APPLICATION(user_data);
 
-    (void) action_name;
-
+    g_return_if_fail(G_IS_SIMPLE_ACTION(action));
     g_return_if_fail(BEDIT_IS_APPLICATION(self));
     g_return_if_fail(param == NULL);
 }
 
 static void
-bedit_application_actions_do_close(GtkWidget *widget, char const *action_name, GVariant *param) {
-    BeditApplication *self = BEDIT_APPLICATION(widget);
+bedit_application_actions_do_close(GSimpleAction *action, GVariant *param, gpointer user_data) {
+    BeditApplication *self = BEDIT_APPLICATION(user_data);
 
-    (void) action_name;
-
+    g_return_if_fail(G_IS_SIMPLE_ACTION(action));
     g_return_if_fail(BEDIT_IS_APPLICATION(self));
     g_return_if_fail(param == NULL);
 }
@@ -34,11 +32,10 @@ bedit_application_actions_do_close(GtkWidget *widget, char const *action_name, G
 /* --- Edit ----------------------------------------------------------------------------------------------- */
 
 static void
-bedit_application_actions_do_open_preferences(GtkWidget *widget, char const *action_name, GVariant *param) {
-    BeditApplication *self = BEDIT_APPLICATION(widget);
+bedit_application_actions_do_open_preferences(GSimpleAction *action, GVariant *param, gpointer user_data) {
+    BeditApplication *self = BEDIT_APPLICATION(user_data);
 
-    (void) action_name;
-
+    g_return_if_fail(G_IS_SIMPLE_ACTION(action));
     g_return_if_fail(BEDIT_IS_APPLICATION(self));
     g_return_if_fail(param == NULL);
 }
@@ -46,31 +43,28 @@ bedit_application_actions_do_open_preferences(GtkWidget *widget, char const *act
 /* --- View ----------------------------------------------------------------------------------------------- */
 
 static void
-bedit_application_actions_do_increase_text_size(GtkWidget *widget, char const *action_name, GVariant *param) {
-    BeditApplication *self = BEDIT_APPLICATION(widget);
+bedit_application_actions_do_increase_text_size(GSimpleAction *action, GVariant *param, gpointer user_data) {
+    BeditApplication *self = BEDIT_APPLICATION(user_data);
 
-    (void) action_name;
-
+    g_return_if_fail(G_IS_SIMPLE_ACTION(action));
     g_return_if_fail(BEDIT_IS_APPLICATION(self));
     g_return_if_fail(param == NULL);
 }
 
 static void
-bedit_application_actions_do_decrease_text_size(GtkWidget *widget, char const *action_name, GVariant *param) {
-    BeditApplication *self = BEDIT_APPLICATION(widget);
+bedit_application_actions_do_decrease_text_size(GSimpleAction *action, GVariant *param, gpointer user_data) {
+    BeditApplication *self = BEDIT_APPLICATION(user_data);
 
-    (void) action_name;
-
+    g_return_if_fail(G_IS_SIMPLE_ACTION(action));
     g_return_if_fail(BEDIT_IS_APPLICATION(self));
     g_return_if_fail(param == NULL);
 }
 
 static void
-bedit_application_actions_do_reset_text_size(GtkWidget *widget, char const *action_name, GVariant *param) {
-    BeditApplication *self = BEDIT_APPLICATION(widget);
+bedit_application_actions_do_reset_text_size(GSimpleAction *action, GVariant *param, gpointer user_data) {
+    BeditApplication *self = BEDIT_APPLICATION(user_data);
 
-    (void) action_name;
-
+    g_return_if_fail(G_IS_SIMPLE_ACTION(action));
     g_return_if_fail(BEDIT_IS_APPLICATION(self));
     g_return_if_fail(param == NULL);
 }
@@ -78,21 +72,19 @@ bedit_application_actions_do_reset_text_size(GtkWidget *widget, char const *acti
 /* --- Tools ---------------------------------------------------------------------------------------------- */
 
 static void
-bedit_application_actions_do_open_check_spelling(GtkWidget *widget, char const *action_name, GVariant *param) {
-    BeditApplication *self = BEDIT_APPLICATION(widget);
+bedit_application_actions_do_open_check_spelling(GSimpleAction *action, GVariant *param, gpointer user_data) {
+    BeditApplication *self = BEDIT_APPLICATION(user_data);
 
-    (void) action_name;
-
+    g_return_if_fail(G_IS_SIMPLE_ACTION(action));
     g_return_if_fail(BEDIT_IS_APPLICATION(self));
     g_return_if_fail(param == NULL);
 }
 
 static void
-bedit_application_actions_do_open_set_language(GtkWidget *widget, char const *action_name, GVariant *param) {
-    BeditApplication *self = BEDIT_APPLICATION(widget);
+bedit_application_actions_do_open_set_language(GSimpleAction *action, GVariant *param, gpointer user_data) {
+    BeditApplication *self = BEDIT_APPLICATION(user_data);
 
-    (void) action_name;
-
+    g_return_if_fail(G_IS_SIMPLE_ACTION(action));
     g_return_if_fail(BEDIT_IS_APPLICATION(self));
     g_return_if_fail(param == NULL);
 }
@@ -100,31 +92,28 @@ bedit_application_actions_do_open_set_language(GtkWidget *widget, char const *ac
 /* --- Help ----------------------------------------------------------------------------------------------- */
 
 static void
-bedit_application_actions_do_open_help(GtkWidget *widget, char const *action_name, GVariant *param) {
-    BeditApplication *self = BEDIT_APPLICATION(widget);
+bedit_application_actions_do_open_help(GSimpleAction *action, GVariant *param, gpointer user_data) {
+    BeditApplication *self = BEDIT_APPLICATION(user_data);
 
-    (void) action_name;
-
+    g_return_if_fail(G_IS_SIMPLE_ACTION(action));
     g_return_if_fail(BEDIT_IS_APPLICATION(self));
     g_return_if_fail(param == NULL);
 }
 
 static void
-bedit_application_actions_do_open_keyboard_shortcuts(GtkWidget *widget, char const *action_name, GVariant *param) {
-    BeditApplication *self = BEDIT_APPLICATION(widget);
+bedit_application_actions_do_open_keyboard_shortcuts(GSimpleAction *action, GVariant *param, gpointer user_data) {
+    BeditApplication *self = BEDIT_APPLICATION(user_data);
 
-    (void) action_name;
-
+    g_return_if_fail(G_IS_SIMPLE_ACTION(action));
     g_return_if_fail(BEDIT_IS_APPLICATION(self));
     g_return_if_fail(param == NULL);
 }
 
 static void
-bedit_application_actions_do_open_about(GtkWidget *widget, char const *action_name, GVariant *param) {
-    BeditApplication *self = BEDIT_APPLICATION(widget);
+bedit_application_actions_do_open_about(GSimpleAction *action, GVariant *param, gpointer user_data) {
+    BeditApplication *self = BEDIT_APPLICATION(user_data);
 
-    (void) action_name;
-
+    g_return_if_fail(G_IS_SIMPLE_ACTION(action));
     g_return_if_fail(BEDIT_IS_APPLICATION(self));
     g_return_if_fail(param == NULL);
 }
