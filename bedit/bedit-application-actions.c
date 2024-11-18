@@ -8,16 +8,21 @@
 #include <gtk/gtk.h>
 
 #include "bedit-application.h"
+#include "bedit-window.h"
 
 /* --- File ----------------------------------------------------------------------------------------------- */
 
 static void
 bedit_application_actions_do_new(GSimpleAction *action, GVariant *param, gpointer user_data) {
     BeditApplication *self = BEDIT_APPLICATION(user_data);
+    BeditWindow *window;
 
     g_return_if_fail(G_IS_SIMPLE_ACTION(action));
     g_return_if_fail(BEDIT_IS_APPLICATION(self));
     g_return_if_fail(param == NULL);
+
+    window = bedit_window_new(GTK_APPLICATION(self));
+    gtk_window_present(GTK_WINDOW(window));
 }
 
 static void
