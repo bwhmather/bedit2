@@ -25,14 +25,14 @@
               <object class="GtkButton">
                 <property name="icon-name">document-save</property>
                 <property name="tooltip-text">Save (Ctrl+S)</property>
-                <property name="action-name">win.save</property>
+                <property name="action-name">doc.save</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">document-save-as</property>
                 <property name="tooltip-text">Save as (Ctrl+Shift+S)</property>
-                <property name="action-name">win.save-as</property>
+                <property name="action-name">doc.save-as</property>
               </object>
             </child>
 
