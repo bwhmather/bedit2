@@ -11,6 +11,7 @@ void
 bedit_application_shortcuts_init_instance(BeditApplication *self) {
     // File.
     gtk_application_set_accels_for_action(GTK_APPLICATION(self), "app.new", (char const *[]){"<Control>N", NULL});
+    gtk_application_set_accels_for_action(GTK_APPLICATION(self), "win.new", (char const *[]){"<Control>T", NULL});
     gtk_application_set_accels_for_action(GTK_APPLICATION(self), "win.open", (char const *[]){"<Control>O", NULL});
     gtk_application_set_accels_for_action(GTK_APPLICATION(self), "doc.save", (char const *[]){"<Control>S", NULL});
     gtk_application_set_accels_for_action(GTK_APPLICATION(self), "doc.save-as", (char const *[]){"<Control><Shift>S", NULL});
