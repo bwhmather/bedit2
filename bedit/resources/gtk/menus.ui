@@ -5,8 +5,12 @@
       <attribute name="label" translatable="yes">_File</attribute>
       <section>
         <item>
-          <attribute name="label" translatable="yes">New</attribute>
+          <attribute name="label" translatable="yes">New Window…</attribute>
           <attribute name="action">app.new</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">New Tab</attribute>
+          <attribute name="action">win.new</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Open…</attribute>

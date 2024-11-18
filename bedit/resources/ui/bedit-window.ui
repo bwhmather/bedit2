@@ -11,7 +11,7 @@
               <object class="GtkButton">
                 <property name="icon-name">document-new</property>
                 <property name="tooltip-text">New (Ctrl+T)</property>
-                <property name="action-name">app.new</property>
+                <property name="action-name">win.new</property>
               </object>
             </child>
             <child>

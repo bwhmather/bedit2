@@ -41,6 +41,24 @@ bedit_window_actions_get_cancellable(BeditWindow *self) {
 
 /* === File =============================================================================================== */
 
+/* --- Window New ----------------------------------------------------------------------------------------- */
+
+static void
+bedit_window_actions_do_new(GtkWidget *widget, char const *action_name, GVariant *param) {
+    BeditWindow *self = BEDIT_WINDOW(widget);
+    BeditDocument *document;
+
+    (void) action_name;
+
+    g_return_if_fail(BEDIT_IS_WINDOW(self));
+    g_return_if_fail(param == NULL);
+
+    document = bedit_document_new();
+    bedit_window_add_document(self, document);
+
+    g_clear_object(&document);
+}
+
 /* --- Window Open ---------------------------------------------------------------------------------------- */
 
 static void
@@ -551,6 +569,7 @@ bedit_window_actions_init_class(BeditWindowClass *class) {
     GtkWidgetClass *widget_class = GTK_WIDGET_CLASS(class);
 
     // File.
+    gtk_widget_class_install_action(widget_class, "win.new", NULL, bedit_window_actions_do_new);
     gtk_widget_class_install_action(widget_class, "win.open", NULL, bedit_window_actions_do_open);
     gtk_widget_class_install_action(widget_class, "doc.save", NULL, bedit_window_actions_do_save);
     gtk_widget_class_install_action(widget_class, "doc.save-as", NULL, bedit_window_actions_do_save_as);
