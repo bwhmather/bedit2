@@ -264,16 +264,31 @@ bedit_document_constructed_on_reload_result(GObject *object, GAsyncResult *resul
 }
 
 static void
-bedit_document_constructed(GObject *gobject) {
-    BeditDocument *self = BEDIT_DOCUMENT(gobject);
+bedit_document_constructed(GObject *object) {
+    BeditDocument *self = BEDIT_DOCUMENT(object);
 
     g_assert(BEDIT_IS_DOCUMENT(self));
 
-    G_OBJECT_CLASS(bedit_document_parent_class)->constructed(gobject);
+    G_OBJECT_CLASS(bedit_document_parent_class)->constructed(object);
 
     if (gtk_source_file_get_location(self->source_file) != NULL) {
         bedit_document_reload_async(self, NULL, bedit_document_constructed_on_reload_result, NULL);
     }
+}
+
+static void
+bedit_document_dispose(GObject *object) {
+    BeditDocument *self = BEDIT_DOCUMENT(object);
+
+    g_assert(BEDIT_IS_DOCUMENT(self));
+
+    g_clear_pointer(&self->title, g_free);
+    g_clear_object(&self->source_file);
+    g_clear_object(&self->source_buffer);
+
+    gtk_widget_dispose_template(GTK_WIDGET(self), BEDIT_TYPE_DOCUMENT);
+
+    G_OBJECT_CLASS(bedit_document_parent_class)->dispose(object);
 }
 
 static void
@@ -336,6 +351,7 @@ bedit_document_class_init(BeditDocumentClass *class) {
     g_type_ensure(GTK_SOURCE_TYPE_VIEW);
 
     object_class->constructed = bedit_document_constructed;
+    object_class->dispose = bedit_document_dispose;
     object_class->get_property = bedit_document_get_property;
     object_class->set_property = bedit_document_set_property;
 

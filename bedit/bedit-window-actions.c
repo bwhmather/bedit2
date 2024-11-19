@@ -55,8 +55,6 @@ bedit_window_actions_do_new(GtkWidget *widget, char const *action_name, GVariant
 
     document = bedit_document_new();
     bedit_window_add_document(self, document);
-
-    g_clear_object(&document);
 }
 
 /* --- Window Open ---------------------------------------------------------------------------------------- */
@@ -78,7 +76,6 @@ bedit_window_actions_handle_open_dialog_result(GObject *object, GAsyncResult *re
     document = bedit_document_new_for_file(file);
     bedit_window_add_document(self, document);
 
-    g_clear_object(&document);
     g_clear_object(&file);
 }
 
