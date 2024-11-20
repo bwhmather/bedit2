@@ -1,6 +1,6 @@
 project(
   'bedit2',
-  'c',
+  'c', 'vala',
   version: '0.1.0',
   meson_version: '>=1.3',
 )
@@ -11,6 +11,14 @@ add_project_arguments(
   language: 'c'
 )
 
+add_project_arguments(
+  '--gresourcesdir', 'resources',
+  '--gresources', meson.current_source_dir() / 'bedit/resources/bedit.gresources.xml',
+  '--vapidir=' + meson.project_build_root() / 'subprojects/libbricks-1/src/',
+  '--pkg', 'libbricks-1',
+  language: 'vala'
+)
+
 gnome = import('gnome')
 
 cc = meson.get_compiler('c')
@@ -19,7 +27,7 @@ prefix = get_option('prefix')
 bindir = get_option('bindir')
 datadir = get_option('datadir')
 
-bricks_proj = subproject('libbricks')
+bricks_proj = subproject('libbricks-1')
 
 bricks_dep = bricks_proj.get_variable('libbricks_dep')
 gtk_dep = dependency('gtk4', include_type: 'system')
@@ -83,6 +91,7 @@ test_c_args = [
   '-Wno-missing-field-initializers',
   '-Wno-sign-compare',
   '-Wno-unused-parameter',
+  '-Wno-unused-variable',
   '-Wold-style-definition',
   '-Wpointer-arith',
   '-Wstrict-prototypes',
@@ -104,7 +113,6 @@ foreach arg: test_c_args
 endforeach
 add_project_arguments(global_c_args, language: 'c')
 
-
 bedit_resources = gnome.compile_resources(
   'bedit-resources',
   'bedit/resources/bedit.gresources.xml',
@@ -122,13 +130,16 @@ bedit_enums = gnome.mkenums_simple(
   body_prefix: '#include <config.h>\n',
 )
 
+bedit_vala_sources = [
+  'bedit-searchbar'
+]
+
 bedit_sources = [
   'bedit/main.c',
   'bedit/bedit-application-actions.c',
   'bedit/bedit-application.c',
   'bedit/bedit-application-shortcuts.c',
   'bedit/bedit-document.c',
-  'bedit/bedit-searchbar.c',
   'bedit/bedit-window-actions.c',
   'bedit/bedit-window.c',
   bedit_enums,
@@ -136,11 +147,23 @@ bedit_sources = [
   bedit_resources.get(1),
 ]
 
+bedit_vala_libs = []
+foreach vala_source : bedit_vala_sources
+    bedit_vala_libs += static_library(
+      vala_source,
+      ['bedit/' + vala_source + '.vala'],
+      install: false,
+      vala_header: vala_source + '.h',
+      dependencies: bedit_deps,
+    )
+endforeach
+
 bedit_exe = executable(
   'bedit2',
   bedit_sources,
   install: true,
   dependencies: bedit_deps,
+  link_with: bedit_vala_libs,
 )
 
 configure_file(
