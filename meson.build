@@ -131,7 +131,8 @@ bedit_enums = gnome.mkenums_simple(
 )
 
 bedit_vala_sources = [
-  'bedit-searchbar'
+  'bedit-document',
+  'bedit-searchbar',
 ]
 
 bedit_sources = [
@@ -139,7 +140,6 @@ bedit_sources = [
   'bedit/bedit-application-actions.c',
   'bedit/bedit-application.c',
   'bedit/bedit-application-shortcuts.c',
-  'bedit/bedit-document.c',
   'bedit/bedit-window-actions.c',
   'bedit/bedit-window.c',
   bedit_enums,
@@ -155,6 +155,7 @@ foreach vala_source : bedit_vala_sources
       install: false,
       vala_header: vala_source + '.h',
       dependencies: bedit_deps,
+      c_args: ['-Wno-unused-but-set-variable', '-Wno-discarded-qualifiers'],
     )
 endforeach
 
