@@ -42,7 +42,7 @@
               <object class="GtkButton">
                 <property name="icon-name">document-print</property>
                 <property name="tooltip-text">Print (Ctrl+P)</property>
-                <property name="action-name">win.print</property>
+                <property name="action-name">doc.print</property>
               </object>
             </child>
 
@@ -52,14 +52,14 @@
               <object class="GtkButton">
                 <property name="icon-name">edit-undo</property>
                 <property name="tooltip-text">Undo (Ctrl+Z)</property>
-                <property name="action-name">win.undo</property>
+                <property name="action-name">doc.undo</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">edit-redo</property>
                 <property name="tooltip-text">Redo (Ctrl+Shift+Z)</property>
-                <property name="action-name">win.redo</property>
+                <property name="action-name">doc.redo</property>
               </object>
             </child>
 
@@ -69,21 +69,21 @@
               <object class="GtkButton">
                 <property name="icon-name">edit-cut</property>
                 <property name="tooltip-text">Cut (Ctrl+X)</property>
-                <property name="action-name">win.cut</property>
+                <property name="action-name">doc.cut</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">edit-copy</property>
                 <property name="tooltip-text">Copy (Ctrl+C)</property>
-                <property name="action-name">win.copy</property>
+                <property name="action-name">doc.copy</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">edit-paste</property>
                 <property name="tooltip-text">Paste (Ctrl+V)</property>
-                <property name="action-name">win.paste</property>
+                <property name="action-name">doc.paste</property>
               </object>
             </child>
 
