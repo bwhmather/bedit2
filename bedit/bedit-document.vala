@@ -28,10 +28,9 @@ public sealed class Bedit.Document : Gtk.Widget {
             file = source_file.location;
             title = file.get_basename();
         });
-    }
-
-    public override void constructed() {
-        reload_async.begin(null);
+        if (file != null) {
+            reload_async.begin(null);
+        }
     }
 
     public Document.for_file(GLib.File file) {
