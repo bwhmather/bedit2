@@ -121,7 +121,6 @@ bedit_resources = gnome.compile_resources(
 
 bedit_headers = [
   'bedit/bedit-application.h',
-  'bedit/bedit-window.h',
 ]
 
 bedit_enums = gnome.mkenums_simple(
@@ -131,8 +130,6 @@ bedit_enums = gnome.mkenums_simple(
 )
 
 bedit_vala_sources = [
-  'bedit-document',
-  'bedit-searchbar',
 ]
 
 bedit_sources = [
@@ -140,24 +137,23 @@ bedit_sources = [
   'bedit/bedit-application-actions.c',
   'bedit/bedit-application.c',
   'bedit/bedit-application-shortcuts.c',
-  'bedit/bedit-window-actions.c',
-  'bedit/bedit-window.c',
   bedit_enums,
   bedit_resources.get(0),
   bedit_resources.get(1),
 ]
 
-bedit_vala_libs = []
-foreach vala_source : bedit_vala_sources
-    bedit_vala_libs += static_library(
-      vala_source,
-      ['bedit/' + vala_source + '.vala'],
-      install: false,
-      vala_header: vala_source + '.h',
-      dependencies: bedit_deps,
-      c_args: ['-Wno-unused-but-set-variable', '-Wno-discarded-qualifiers'],
-    )
-endforeach
+bedit_vala_libs = static_library(
+  'bedit-vala',
+  [
+    'bedit/bedit-document.vala',
+    'bedit/bedit-searchbar.vala',
+    'bedit/bedit-window.vala',
+  ],
+  install: false,
+  vala_header: 'bedit-window.h',
+  dependencies: bedit_deps,
+  c_args: ['-Wno-unused-but-set-variable', '-Wno-discarded-qualifiers'],
+)
 
 bedit_exe = executable(
   'bedit2',
