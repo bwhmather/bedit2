@@ -1,5 +1,6 @@
 [GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-window.ui")]
 public sealed class Bedit.Window : Gtk.ApplicationWindow {
+    private GLib.Cancellable cancellable = new GLib.Cancellable();
 
     private GLib.SimpleActionGroup doc_actions = new GLib.SimpleActionGroup();
 
@@ -7,6 +8,120 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     private unowned Brk.TabView tab_view;
 
     public Bedit.Document? active_document { get; private set; }
+
+    /* === File Actions =================================================================================== */
+
+    /* --- Creating New Documents and Opening Existing Ones ----------------------------------------------- */
+
+    private void on_new() {
+        var document = new Bedit.Document();
+        this.add_document(document);
+    }
+
+    private async void do_open() throws Error {
+        var file_dialog = new Gtk.FileDialog();
+        var file = yield file_dialog.open(this, this.cancellable);
+
+        var document = new Bedit.Document.for_file(file);
+        this.add_document(document);
+    }
+
+    private void on_open() {
+        this.do_open.begin((_, res) => {
+            try {
+                this.do_open.end(res);
+            } catch (Error err) {
+                warning("Error: %s\n", err.message);
+            }
+        });
+    }
+
+    /* --- Saving Documents ------------------------------------------------------------------------------- */
+
+    private async void do_save() throws Error {
+        yield this.active_document.save(this.cancellable);
+    }
+
+    private async void do_save_as() throws Error {
+        var file_dialog = new Gtk.FileDialog();
+        var file = yield file_dialog.save(this, this.cancellable);
+        yield this.active_document.save_as(file, this.cancellable);
+    }
+
+    private void on_save() {
+        if (active_document.file == null) {
+            this.do_save_as.begin((_, res) => {
+                try {
+                    this.do_save_as.end(res);
+                } catch (Error err) {
+                    warning("Error: %s\n", err.message);
+                }
+            });
+        } else {
+            this.do_save.begin((_, res) => {
+                try {
+                    this.do_save.end(res);
+                } catch (Error err) {
+                    warning("Error: %s\n", err.message);
+                }
+            });
+        }
+    }
+
+    private void on_save_as() {
+        this.do_save_as.begin((_, res) => {
+            try {
+                this.do_save_as.end(res);
+            } catch (Error err) {
+                warning("Error: %s\n", err.message);
+            }
+        });
+    }
+
+    /* --- Printing Documents ----------------------------------------------------------------------------- */
+
+
+
+    /* --- Closing Windows and Tabs ----------------------------------------------------------------------- */
+
+
+    /* === Edit Actions =================================================================================== */
+
+    /* --- Edit History ----------------------------------------------------------------------------------- */
+
+    /* --- Clipboard -------------------------------------------------------------------------------------- */
+
+
+    /* --- Selection -------------------------------------------------------------------------------------- */
+
+
+    /* --- Commenting and Uncommenting -------------------------------------------------------------------- */
+
+
+    /* --- Insert Date and Time --------------------------------------------------------------------------- */
+
+    /* --- Sorting ---------------------------------------------------------------------------------------- */
+
+    /* --- Line Operations -------------------------------------------------------------------------------- */
+
+    /* --- Preferences ------------------------------------------------------------------------------------ */
+
+
+    /* === Search Actions ================================================================================= */
+
+    /* --- Find ------------------------------------------------------------------------------------------- */
+
+
+    /* --- Replace ---------------------------------------------------------------------------------------- */
+
+    /* --- Navigate to Line ------------------------------------------------------------------------------- */
+
+    /* === Tools Actions ================================================================================== */
+
+    /* --- Spell Checking --------------------------------------------------------------------------------- */
+
+    /* --- Document Statistics ---------------------------------------------------------------------------- */
+
 
     class construct {
         typeof (Brk.TabBar).ensure();
@@ -29,33 +144,29 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
             }
         });
 
+        var w = (this as Gtk.Widget);
+        w.destroy.connect((w) => {
+            cancellable.cancel();
+        });
+
         GLib.SimpleAction action;
         var win_actions = this as GLib.ActionMap;
 
         // File.
         action = new SimpleAction("new", null);
-        action.activate.connect(() => {
-            var document = new Bedit.Document();
-            this.add_document(document);
-        });
+        action.activate.connect(this.on_new);
         win_actions.add_action(action);
 
         action = new SimpleAction("open", null);
-        action.activate.connect(() => {
-
-        });
+        action.activate.connect(this.on_open);
         win_actions.add_action(action);
 
         action = new SimpleAction("save", null);
-        action.activate.connect(() => {
-
-        });
-        win_actions.add_action(action);
+        action.activate.connect(this.on_save);
+        doc_actions.add_action(action);
 
         action = new SimpleAction("save-as", null);
-        action.activate.connect(() => {
-
-        });
+        action.activate.connect(this.on_save_as);
         doc_actions.add_action(action);
 
         action = new SimpleAction("revert", null);

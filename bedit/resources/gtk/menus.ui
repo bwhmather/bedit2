@@ -82,14 +82,6 @@
           <attribute name="label" translatable="yes">Paste</attribute>
           <attribute name="action">doc.paste</attribute>
         </item>
-        <item>
-          <attribute name="label" translatable="yes">Delete Line</attribute>
-          <attribute name="action">doc.delete</attribute>
-        </item>
-        <item>
-          <attribute name="label" translatable="yes">Duplicate Line</attribute>
-          <attribute name="action">doc.duplicate</attribute>
-        </item>
       </section>
       <section>
         <item>
@@ -118,8 +110,14 @@
           <attribute name="label" translatable="yes">Sort Lines…</attribute>
           <attribute name="action">doc.sort-lines</attribute>
         </item>
-      </section>
-      <section>
+        <item>
+          <attribute name="label" translatable="yes">Delete Line</attribute>
+          <attribute name="action">doc.delete</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Duplicate Line</attribute>
+          <attribute name="action">doc.duplicate</attribute>
+        </item>
         <item>
           <attribute name="label" translatable="yes">Join Lines</attribute>
           <attribute name="action">doc.join-lines</attribute>
