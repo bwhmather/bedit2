@@ -55,6 +55,8 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private void
     on_save() {
+        return_if_fail(this.active_document is Bedit.Document);
+
         if (active_document.file == null) {
             this.do_save_as.begin((_, res) => {
                 try {
@@ -76,6 +78,8 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private void
     on_save_as() {
+        return_if_fail(this.active_document is Bedit.Document);
+
         this.do_save_as.begin((_, res) => {
             try {
                 this.do_save_as.end(res);
@@ -95,6 +99,17 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     /* === Edit Actions =================================================================================== */
 
     /* --- Edit History ----------------------------------------------------------------------------------- */
+    private void
+    on_undo() {
+        return_if_fail(this.active_document is Bedit.Document);
+        this.active_document.undo();
+    }
+
+    private void
+    on_redo() {
+        return_if_fail(this.active_document is Bedit.Document);
+        this.active_document.redo();
+    }
 
     /* --- Clipboard -------------------------------------------------------------------------------------- */
 
@@ -209,15 +224,11 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
         // Edit.
         action = new SimpleAction("undo", null);
-        action.activate.connect(() => {
-
-        });
+        action.activate.connect(this.on_undo);
         doc_actions.add_action(action);
 
         action = new SimpleAction("redo", null);
-        action.activate.connect(() => {
-
-        });
+        action.activate.connect(this.on_redo);
         doc_actions.add_action(action);
 
         action = new SimpleAction("cut", null);
