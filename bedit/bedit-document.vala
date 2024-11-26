@@ -37,7 +37,8 @@ public sealed class Bedit.Document : Gtk.Widget {
         Object(file: file);
     }
 
-    public async bool reload_async(GLib.Cancellable? cancellable) throws Error {
+    public async bool
+    reload_async(GLib.Cancellable? cancellable) throws Error {
         return_val_if_fail(file is GLib.File, false);
         return_val_if_fail(!busy, false);
 
@@ -53,7 +54,8 @@ public sealed class Bedit.Document : Gtk.Widget {
         return true;
     }
 
-    public async bool save(GLib.Cancellable? cancellable) throws Error {
+    public async bool
+    save(GLib.Cancellable? cancellable) throws Error {
         return_val_if_fail(file is GLib.File, false);
         return_val_if_fail(!busy, false);
 
@@ -71,7 +73,8 @@ public sealed class Bedit.Document : Gtk.Widget {
         return true;
     }
 
-    public async bool save_as(GLib.File file, GLib.Cancellable cancellable) throws Error {
+    public async bool
+    save_as(GLib.File file, GLib.Cancellable cancellable) throws Error {
         return_val_if_fail(file is GLib.File, false);
         return_val_if_fail(!busy, false);
 

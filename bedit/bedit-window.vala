@@ -13,12 +13,14 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     /* --- Creating New Documents and Opening Existing Ones ----------------------------------------------- */
 
-    private void on_new() {
+    private void
+    on_new() {
         var document = new Bedit.Document();
         this.add_document(document);
     }
 
-    private async void do_open() throws Error {
+    private async void
+    do_open() throws Error {
         var file_dialog = new Gtk.FileDialog();
         var file = yield file_dialog.open(this, this.cancellable);
 
@@ -26,7 +28,8 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.add_document(document);
     }
 
-    private void on_open() {
+    private void
+    on_open() {
         this.do_open.begin((_, res) => {
             try {
                 this.do_open.end(res);
@@ -38,17 +41,20 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     /* --- Saving Documents ------------------------------------------------------------------------------- */
 
-    private async void do_save() throws Error {
+    private async void
+    do_save() throws Error {
         yield this.active_document.save(this.cancellable);
     }
 
-    private async void do_save_as() throws Error {
+    private async void
+    do_save_as() throws Error {
         var file_dialog = new Gtk.FileDialog();
         var file = yield file_dialog.save(this, this.cancellable);
         yield this.active_document.save_as(file, this.cancellable);
     }
 
-    private void on_save() {
+    private void
+    on_save() {
         if (active_document.file == null) {
             this.do_save_as.begin((_, res) => {
                 try {
@@ -68,7 +74,8 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         }
     }
 
-    private void on_save_as() {
+    private void
+    on_save_as() {
         this.do_save_as.begin((_, res) => {
             try {
                 this.do_save_as.end(res);
@@ -327,7 +334,8 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         );
     }
 
-    public void add_document(Bedit.Document document) {
+    public void
+    add_document(Bedit.Document document) {
         Brk.TabPage page = tab_view.append(document);
         document.bind_property("title", page, "title", SYNC_CREATE);
     }
