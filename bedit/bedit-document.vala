@@ -13,7 +13,6 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     public bool loading { get; private set; }
     public bool saving { get; private set; }
-    public bool busy { get { return loading || saving; } }
 
     public bool can_undo { get { return this.source_buffer.can_undo; } }
     public bool can_redo { get { return this.source_buffer.can_redo; } }
@@ -50,27 +49,25 @@ public sealed class Bedit.Document : Gtk.Widget {
     public async bool
     reload_async(GLib.Cancellable? cancellable) throws Error {
         return_val_if_fail(file is GLib.File, false);
-        return_val_if_fail(!busy, false);
+        return_val_if_fail(!loading, false);
+        return_val_if_fail(!saving, false);
 
         loading = true;
-        notify_property("busy");
 
         var source_loader = new GtkSource.FileLoader(source_buffer, source_file);
         yield source_loader.load_async(Priority.LOW, cancellable, null);
 
         loading = false;
-        notify_property("busy");
-
         return true;
     }
 
     public async bool
     save(GLib.Cancellable? cancellable) throws Error {
         return_val_if_fail(file is GLib.File, false);
-        return_val_if_fail(!busy, false);
+        return_val_if_fail(!loading, false);
+        return_val_if_fail(!saving, false);
 
         saving = true;
-        notify_property("busy");
 
         var source_saver = new GtkSource.FileSaver(source_buffer, source_file);
         source_saver.flags = IGNORE_INVALID_CHARS | IGNORE_MODIFICATION_TIME;
@@ -78,18 +75,16 @@ public sealed class Bedit.Document : Gtk.Widget {
         yield source_saver.save_async(Priority.DEFAULT, cancellable, null);
 
         saving = false;
-        notify_property("busy");
-
         return true;
     }
 
     public async bool
     save_as(GLib.File file, GLib.Cancellable cancellable) throws Error {
         return_val_if_fail(file is GLib.File, false);
-        return_val_if_fail(!busy, false);
+        return_val_if_fail(!loading, false);
+        return_val_if_fail(!saving, false);
 
         saving = true;
-        notify_property("busy");
 
         var source_saver = new GtkSource.FileSaver.with_target(source_buffer, source_file, file);
         source_saver.flags = IGNORE_INVALID_CHARS | IGNORE_MODIFICATION_TIME;
@@ -97,8 +92,6 @@ public sealed class Bedit.Document : Gtk.Widget {
         yield source_saver.save_async(Priority.DEFAULT, cancellable, null);
 
         saving = false;
-        notify_property("busy");
-
         return true;
     }
 
