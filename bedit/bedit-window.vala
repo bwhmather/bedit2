@@ -2,8 +2,6 @@
 public sealed class Bedit.Window : Gtk.ApplicationWindow {
     private GLib.Cancellable cancellable = new GLib.Cancellable();
 
-    private GLib.SimpleActionGroup doc_actions = new GLib.SimpleActionGroup();
-
     [GtkChild]
     private unowned Brk.TabView tab_view;
 
@@ -39,111 +37,45 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         });
     }
 
-    /* --- Saving Documents ------------------------------------------------------------------------------- */
-
-    private async void
-    do_save() throws Error {
-        yield this.active_document.save(this.cancellable);
-    }
-
-    private async void
-    do_save_as() throws Error {
-        var file_dialog = new Gtk.FileDialog();
-        var file = yield file_dialog.save(this, this.cancellable);
-        yield this.active_document.save_as(file, this.cancellable);
-    }
-
-    private void
-    on_save() {
-        return_if_fail(this.active_document is Bedit.Document);
-
-        if (active_document.file == null) {
-            this.do_save_as.begin((_, res) => {
-                try {
-                    this.do_save_as.end(res);
-                } catch (Error err) {
-                    warning("Error: %s\n", err.message);
-                }
-            });
-        } else {
-            this.do_save.begin((_, res) => {
-                try {
-                    this.do_save.end(res);
-                } catch (Error err) {
-                    warning("Error: %s\n", err.message);
-                }
-            });
-        }
-    }
-
-    private void
-    on_save_as() {
-        return_if_fail(this.active_document is Bedit.Document);
-
-        this.do_save_as.begin((_, res) => {
-            try {
-                this.do_save_as.end(res);
-            } catch (Error err) {
-                warning("Error: %s\n", err.message);
-            }
-        });
-    }
-
-    /* --- Printing Documents ----------------------------------------------------------------------------- */
-
-
-
     /* --- Closing Windows and Tabs ----------------------------------------------------------------------- */
-
-
-    /* === Edit Actions =================================================================================== */
-
-    /* --- Edit History ----------------------------------------------------------------------------------- */
     private void
-    on_undo() {
-        return_if_fail(this.active_document is Bedit.Document);
-        this.active_document.undo();
+    on_close_window() {
     }
-
-    private void
-    on_redo() {
-        return_if_fail(this.active_document is Bedit.Document);
-        this.active_document.redo();
-    }
-
-    /* --- Clipboard -------------------------------------------------------------------------------------- */
-
-
-    /* --- Selection -------------------------------------------------------------------------------------- */
-
-
-    /* --- Commenting and Uncommenting -------------------------------------------------------------------- */
-
-
-    /* --- Insert Date and Time --------------------------------------------------------------------------- */
-
-    /* --- Sorting ---------------------------------------------------------------------------------------- */
-
-    /* --- Line Operations -------------------------------------------------------------------------------- */
-
-    /* --- Preferences ------------------------------------------------------------------------------------ */
-
 
     /* === Search Actions ================================================================================= */
 
     /* --- Find ------------------------------------------------------------------------------------------- */
+    private void
+    on_find() {
+    }
 
+    private void
+    on_find_next() {
+    }
+
+    private void
+    on_find_previous() {
+    }
 
     /* --- Replace ---------------------------------------------------------------------------------------- */
+    private void
+    on_replace() {
+    }
 
-    /* --- Navigate to Line ------------------------------------------------------------------------------- */
+    private void
+    on_replace_all() {
+    }
 
-    /* === Tools Actions ================================================================================== */
-
-    /* --- Spell Checking --------------------------------------------------------------------------------- */
-
-    /* --- Document Statistics ---------------------------------------------------------------------------- */
-
+    const GLib.ActionEntry[] action_entries = {
+        {"new", on_new},
+        {"open", on_open},
+        {"close", on_close_window},
+        {"find", on_find},
+        {"find-next", on_find_next},
+        {"find-previous", on_find_previous},
+        {"replace", on_replace},
+        {"replace-all", on_replace_all},
+    };
 
     class construct {
         typeof (Brk.TabBar).ensure();
@@ -162,7 +94,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
                 this.insert_action_group("doc", null);
             } else {
                 this.active_document = page.child as Bedit.Document;
-                this.insert_action_group("doc", doc_actions);
+                this.insert_action_group("doc", this.active_document.action_group);
             }
         });
 
@@ -171,171 +103,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
             cancellable.cancel();
         });
 
-        GLib.SimpleAction action;
-        var win_actions = this as GLib.ActionMap;
-
-        // File.
-        action = new SimpleAction("new", null);
-        action.activate.connect(this.on_new);
-        win_actions.add_action(action);
-
-        action = new SimpleAction("open", null);
-        action.activate.connect(this.on_open);
-        win_actions.add_action(action);
-
-        action = new SimpleAction("save", null);
-        action.activate.connect(this.on_save);
-        doc_actions.add_action(action);
-
-        action = new SimpleAction("save-as", null);
-        action.activate.connect(this.on_save_as);
-        doc_actions.add_action(action);
-
-        action = new SimpleAction("revert", null);
-        action.activate.connect(() => {
-
-        });
-        doc_actions.add_action(action);
-
-        action = new SimpleAction("print-preview", null);
-        action.activate.connect(() => {
-
-        });
-        doc_actions.add_action(action);
-
-        action = new SimpleAction("print", null);
-        action.activate.connect(() => {
-
-        });
-        doc_actions.add_action(action);
-
-        action = new SimpleAction("close", null);
-        action.activate.connect(() => {
-
-        });
-        doc_actions.add_action(action);
-
-        action = new SimpleAction("close", null);
-        action.activate.connect(() => {
-
-        });
-        win_actions.add_action(action);
-
-
-        // Edit.
-        action = new SimpleAction("undo", null);
-        action.activate.connect(this.on_undo);
-        doc_actions.add_action(action);
-
-        action = new SimpleAction("redo", null);
-        action.activate.connect(this.on_redo);
-        doc_actions.add_action(action);
-
-        action = new SimpleAction("cut", null);
-        action.activate.connect(() => {
-
-        });
-        doc_actions.add_action(action);
-
-        action = new SimpleAction("copy", null);
-        action.activate.connect(() => {
-
-        });
-        doc_actions.add_action(action);
-
-        action = new SimpleAction("paste", null);
-        action.activate.connect(() => {
-
-        });
-        doc_actions.add_action(action);
-
-        action = new SimpleAction("delete", null);
-        action.activate.connect(() => {
-
-        });
-        doc_actions.add_action(action);
-
-        action = new SimpleAction("duplicate", null);
-        action.activate.connect(() => {
-
-        });
-        doc_actions.add_action(action);
-
-        action = new SimpleAction("select-all", null);
-        action.activate.connect(() => {
-
-        });
-        doc_actions.add_action(action);
-
-        action = new SimpleAction("comment", null);
-        action.activate.connect(() => {
-
-        });
-        doc_actions.add_action(action);
-
-        action = new SimpleAction("uncomment", null);
-        action.activate.connect(() => {
-
-        });
-        doc_actions.add_action(action);
-
-        action = new SimpleAction("insert-date-and-time", null);
-        action.activate.connect(() => {
-
-        });
-        doc_actions.add_action(action);
-
-        action = new SimpleAction("sort-lines", null);
-        action.activate.connect(() => {
-
-        });
-        doc_actions.add_action(action);
-
-        action = new SimpleAction("join-lines", null);
-        action.activate.connect(() => {
-
-        });
-        doc_actions.add_action(action);
-
-        // View.
-        // ...
-
-        // Search.
-        action = new SimpleAction("find", null);
-        action.activate.connect(() => {
-
-        });
-        win_actions.add_action(action);
-
-        action = new SimpleAction("find-next", null);
-        action.activate.connect(() => {
-
-        });
-        win_actions.add_action(action);
-
-        action = new SimpleAction("find-previous", null);
-        action.activate.connect(() => {
-
-        });
-        win_actions.add_action(action);
-
-        action = new SimpleAction("replace", null);
-        action.activate.connect(() => {
-
-        });
-        win_actions.add_action(action);
-
-        action = new SimpleAction("replace-all", null);
-        action.activate.connect(() => {
-
-        });
-        win_actions.add_action(action);
-
-        action = new SimpleAction("show-go-to-line", null);
-        action.activate.connect(() => {
-
-        });
-        win_actions.add_action(action);
+        this.add_action_entries(action_entries, this);
     }
 
     public Window(Gtk.Application application) {
