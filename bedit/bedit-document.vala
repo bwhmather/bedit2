@@ -1,5 +1,6 @@
 [GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-document.ui")]
 public sealed class Bedit.Document : Gtk.Widget {
+    private GLib.Cancellable cancellable = new GLib.Cancellable();
 
     [GtkChild]
     private unowned GtkSource.View source_view;
@@ -22,14 +23,37 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     private async void
     do_save() throws Error {
-        yield this.save(null);
+        return_val_if_fail(this.file is GLib.File, false);
+        return_val_if_fail(!this.loading, false);
+        return_val_if_fail(!this.saving, false);
+
+        saving = true;
+
+        var source_saver = new GtkSource.FileSaver(this.source_buffer, this.source_file);
+        source_saver.flags = IGNORE_INVALID_CHARS | IGNORE_MODIFICATION_TIME;
+
+        yield source_saver.save_async(Priority.DEFAULT, this.cancellable, null);
+
+        saving = false;
     }
 
     private async void
     do_save_as() throws Error {
+        return_val_if_fail(!loading, false);
+        return_val_if_fail(!saving, false);
+
+        saving = true;
+
         var file_dialog = new Gtk.FileDialog();
         var file = yield file_dialog.save(this.root as Gtk.Window, null);
-        yield this.save_as(file, null);
+        return_val_if_fail(file is GLib.File, false);  // TODO
+
+        var source_saver = new GtkSource.FileSaver.with_target(this.source_buffer, this.source_file, file);
+        source_saver.flags = IGNORE_INVALID_CHARS | IGNORE_MODIFICATION_TIME;
+
+        yield source_saver.save_async(Priority.DEFAULT, this.cancellable, null);
+
+        saving = false;
     }
 
     private void
@@ -263,40 +287,6 @@ public sealed class Bedit.Document : Gtk.Widget {
         yield source_loader.load_async(Priority.LOW, cancellable, null);
 
         loading = false;
-        return true;
-    }
-
-    public async bool
-    save(GLib.Cancellable? cancellable) throws Error {
-        return_val_if_fail(file is GLib.File, false);
-        return_val_if_fail(!loading, false);
-        return_val_if_fail(!saving, false);
-
-        saving = true;
-
-        var source_saver = new GtkSource.FileSaver(source_buffer, source_file);
-        source_saver.flags = IGNORE_INVALID_CHARS | IGNORE_MODIFICATION_TIME;
-
-        yield source_saver.save_async(Priority.DEFAULT, cancellable, null);
-
-        saving = false;
-        return true;
-    }
-
-    public async bool
-    save_as(GLib.File file, GLib.Cancellable? cancellable) throws Error {
-        return_val_if_fail(file is GLib.File, false);
-        return_val_if_fail(!loading, false);
-        return_val_if_fail(!saving, false);
-
-        saving = true;
-
-        var source_saver = new GtkSource.FileSaver.with_target(source_buffer, source_file, file);
-        source_saver.flags = IGNORE_INVALID_CHARS | IGNORE_MODIFICATION_TIME;
-
-        yield source_saver.save_async(Priority.DEFAULT, cancellable, null);
-
-        saving = false;
         return true;
     }
 }
