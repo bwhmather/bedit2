@@ -58,7 +58,6 @@ test_c_args = [
   ['-Werror=format-security', '-Werror=format=2'],
   '-Werror=implicit',
   '-Werror=implicit-function-declaration',
-  '-Werror=incompatible-pointer-types',
   '-Werror=init-self',
   '-Werror=int-conversion',
   '-Werror=int-to-pointer-cast',
@@ -88,8 +87,11 @@ test_c_args = [
   '-Wmissing-noreturn',
   '-Wnested-externs',
   '-Wno-cast-function-type',
+  '-Wno-discarded-qualifiers',
+  '-Wno-incompatible-pointer-types',
   '-Wno-missing-field-initializers',
   '-Wno-sign-compare',
+  '-Wno-unused-but-set-variable',
   '-Wno-unused-parameter',
   '-Wno-unused-variable',
   '-Wold-style-definition',
@@ -101,6 +103,7 @@ test_c_args = [
   '-Wuninitialized',
   '-Wunused',
 ]
+
 if get_option('buildtype') != 'plain'
   test_c_args += '-fstack-protector-strong'
 endif
@@ -119,48 +122,20 @@ bedit_resources = gnome.compile_resources(
   source_dir: 'bedit/resources',
 )
 
-bedit_headers = [
-  'bedit/bedit-application.h',
-]
-
-bedit_enums = gnome.mkenums_simple(
-  'bedit-enums',
-  sources: bedit_headers,
-  body_prefix: '#include <config.h>\n',
-)
-
-bedit_vala_sources = [
-]
-
 bedit_sources = [
-  'bedit/main.c',
-  'bedit/bedit-application-actions.c',
-  'bedit/bedit-application.c',
-  'bedit/bedit-application-shortcuts.c',
-  bedit_enums,
+  'bedit/bedit-application.vala',
+  'bedit/bedit-document.vala',
+  'bedit/bedit-searchbar.vala',
+  'bedit/bedit-window.vala',
   bedit_resources.get(0),
   bedit_resources.get(1),
 ]
-
-bedit_vala_libs = static_library(
-  'bedit-vala',
-  [
-    'bedit/bedit-document.vala',
-    'bedit/bedit-searchbar.vala',
-    'bedit/bedit-window.vala',
-  ],
-  install: false,
-  vala_header: 'bedit-window.h',
-  dependencies: bedit_deps,
-  c_args: ['-Wno-unused-but-set-variable', '-Wno-discarded-qualifiers'],
-)
 
 bedit_exe = executable(
   'bedit2',
   bedit_sources,
   install: true,
   dependencies: bedit_deps,
-  link_with: bedit_vala_libs,
 )
 
 configure_file(
@@ -176,37 +151,3 @@ install_data(
 )
 gnome.compile_schemas()  # Only for testing.
 gnome.post_install(glib_compile_schemas: true, update_desktop_database: true)
-
-test_suites = {
-  'lint': [
-    'exact-includes',
-    'include-guards',
-    'no-circular-includes',
-    'source-and-header-contents-match',
-    'source-and-header-orders-match',
-    'source-heading',
-    'unused-symbols',
-  ],
-}
-
-pymod = import('python')
-python = pymod.find_installation('python3')
-
-foreach suite, tests : test_suites
-  foreach test_name : tests
-    test(
-      suite + '-' + test_name,
-      python,
-      args: [
-        meson.current_source_dir() +
-        '/tests/' + suite +
-        '/test_' + test_name.replace('-', '_') + '.py',
-      ],
-      env: {
-        'MESON_BUILD_ROOT': meson.project_build_root(),
-        'MESON_SOURCE_ROOT': meson.project_source_root(),
-      },
-      timeout: 1000,
-    )
-  endforeach
-endforeach
