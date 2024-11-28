@@ -210,10 +210,11 @@ public sealed class Bedit.Document : Gtk.Widget {
     private void
     update_actions() {
         bool busy = this.saving || this.loading;
+        bool has_file = this.file != null;
         bool can_undo = this.source_buffer.can_undo;
         bool can_redo = this.source_buffer.can_redo;
 
-        update_action("save", !busy);
+        update_action("save", !busy && has_file);
         update_action("save-as", !busy);
         update_action("revert", !busy);
         update_action("print-preview", !busy);
@@ -254,7 +255,8 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.source_file.set_location(file);
         this.source_file.notify["location"].connect((sf, pspec) => {
             this.file = this.source_file.location;
-            this.title = file.get_basename();
+            this.title = this.file.get_basename();
+            this.update_actions();
         });
 
         this.notify["loading"].connect((d, pspec) => {
