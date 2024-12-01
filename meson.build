@@ -92,6 +92,7 @@ test_c_args = [
   '-Wno-missing-field-initializers',
   '-Wno-sign-compare',
   '-Wno-unused-but-set-variable',
+  '-Wno-unused-function',
   '-Wno-unused-parameter',
   '-Wno-unused-variable',
   '-Wold-style-definition',
@@ -125,6 +126,7 @@ bedit_resources = gnome.compile_resources(
 bedit_sources = [
   'bedit/bedit-application.vala',
   'bedit/bedit-document.vala',
+  'bedit/bedit-document-actions.vala',
   'bedit/bedit-searchbar.vala',
   'bedit/bedit-window.vala',
   bedit_resources.get(0),

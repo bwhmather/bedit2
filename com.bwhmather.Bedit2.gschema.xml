@@ -25,7 +25,7 @@
       <summary>Word Wrap</summary>
       <description>Whether Bedit should soft-wrap lines that go beyond the edge of the visible area.</description>
     </key>
-    <key name="highlight-mode" type="b">
+    <key name="highlight-selection" type="b">
       <default>true</default>
       <summary>Highlight Mode</summary>
       <description>Whether Bedit should highlight areas that match the current selection.</description>

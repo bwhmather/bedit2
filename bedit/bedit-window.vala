@@ -94,7 +94,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
                 this.insert_action_group("doc", null);
             } else {
                 this.active_document = page.child as Bedit.Document;
-                this.insert_action_group("doc", this.active_document.action_group);
+                this.insert_action_group("doc", new Bedit.DocumentActions(this.active_document));
             }
         });
 
