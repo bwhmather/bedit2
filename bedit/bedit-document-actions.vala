@@ -57,8 +57,14 @@ public sealed class Bedit.DocumentActions : GLib.Object, GLib.ActionGroup {
 
     private void
     on_close() {
+        this.document.request_close_async.begin((_, res) => {
+            try {
+                this.document.request_close_async.end(res);
+            } catch (Error err) {
+                warning("Error: %s\n", err.message);
+            }
+        });
     }
-
 
     /* --- Edit History ----------------------------------------------------------------------------------- */
 

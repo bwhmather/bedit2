@@ -97,6 +97,17 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
                 this.insert_action_group("doc", new Bedit.DocumentActions(this.active_document));
             }
         });
+        tab_view.close_page.connect((view, page) => {
+            var document = page.child as Bedit.Document;
+            document.request_close_async.begin((_, res) => {
+                try {
+                    document.request_close_async.end(res);
+                } catch (Error err) {
+                    warning("Error: %s\n", err.message);
+                }
+            });
+            return Gdk.EVENT_STOP;
+        });
 
         var w = (this as Gtk.Widget);
         w.destroy.connect((w) => {

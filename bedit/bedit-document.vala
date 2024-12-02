@@ -14,6 +14,8 @@ public sealed class Bedit.Document : Gtk.Widget {
     public bool loading { get; private set; }
     public bool saving { get; private set; }
 
+    public signal void closed();
+
     public bool can_undo { get; private set; }
     public bool can_redo { get; private set; }
 
@@ -93,6 +95,25 @@ public sealed class Bedit.Document : Gtk.Widget {
         yield source_loader.load_async(Priority.LOW, cancellable, null);
 
         loading = false;
+        return true;
+    }
+
+    public async bool
+    request_close_async() throws Error {
+        var window = this.root as Gtk.Window;
+
+        var save_changes_dialog = new Bedit.CloseConfirmationDialog(window.application);
+        save_changes_dialog.set_transient_for(window);
+        save_changes_dialog.present();
+
+
+        while (this.saving) {
+            this.notify["saving"].connect((d, pspec) => { request_close_async.callback(); });
+            yield;
+        }
+
+        this.closed();
+
         return true;
     }
 
