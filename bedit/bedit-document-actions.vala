@@ -1,38 +1,58 @@
 public sealed class Bedit.DocumentActions : GLib.Object, GLib.ActionGroup {
 
     public Bedit.Document document { get; construct; }
+    public Bedit.Window window { get { return document.root as Bedit.Window; } }
+
     private GLib.SimpleActionGroup actions = new GLib.SimpleActionGroup();
 
     /* === Actions ======================================================================================== */
 
     /* --- Saving Documents ------------------------------------------------------------------------------- */
 
+    private async void
+    do_save_async() throws Error {
+        var file = this.document.file;
+        if (file == null) {
+            var file_dialog = new Gtk.FileDialog();
+            try {
+                file = yield file_dialog.save(this.window, null);
+            } catch (Gtk.DialogError.DISMISSED err) {
+                return;
+            }
+        }
+
+        yield this.document.save_async(file);
+    }
+
     private void
     on_save() {
-        if (this.document.file == null) {
-            this.document.save_as_async.begin((_, res) => {
-                try {
-                    this.document.save_as_async.end(res);
-                } catch (Error err) {
-                    warning("Error: %s\n", err.message);
-                }
-            });
-        } else {
-            this.document.save_async.begin((_, res) => {
-                try {
-                    this.document.save_async.end(res);
-                } catch (Error err) {
-                    warning("Error: %s\n", err.message);
-                }
-            });
+        this.do_save_async.begin((_, res) => {
+            try {
+                this.do_save_async.end(res);
+            } catch (Error err) {
+                warning("Error: %s\n", err.message);
+            }
+        });
+    }
+
+    private async void
+    do_save_as_async() throws Error {
+        GLib.File file;
+        var file_dialog = new Gtk.FileDialog();
+        try {
+            file = yield file_dialog.save(this.window, null);
+        } catch (Gtk.DialogError.DISMISSED err) {
+            return;
         }
+
+        yield this.document.save_async(file);
     }
 
     private void
     on_save_as() {
-        this.document.save_as_async.begin((_, res) => {
+        this.do_save_as_async.begin((_, res) => {
             try {
-                this.document.save_as_async.end(res);
+                this.do_save_as_async.end(res);
             } catch (Error err) {
                 warning("Error: %s\n", err.message);
             }

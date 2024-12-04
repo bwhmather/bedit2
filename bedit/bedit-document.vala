@@ -49,31 +49,11 @@ public sealed class Bedit.Document : Gtk.Widget {
     }
 
     public async void
-    save_async() throws Error {
-        return_val_if_fail(this.file is GLib.File, false);
-        return_val_if_fail(!this.loading, false);
-        return_val_if_fail(!this.saving, false);
-
-        saving = true;
-
-        var source_saver = new GtkSource.FileSaver(this.source_buffer, this.source_file);
-        source_saver.flags = IGNORE_INVALID_CHARS | IGNORE_MODIFICATION_TIME;
-
-        yield source_saver.save_async(Priority.DEFAULT, this.cancellable, null);
-
-        saving = false;
-    }
-
-    public async void
-    save_as_async() throws Error {
+    save_async(GLib.File file) throws Error {
         return_val_if_fail(!loading, false);
         return_val_if_fail(!saving, false);
 
         saving = true;
-
-        var file_dialog = new Gtk.FileDialog();
-        var file = yield file_dialog.save(this.root as Gtk.Window, null);
-        return_val_if_fail(file is GLib.File, false);  // TODO
 
         var source_saver = new GtkSource.FileSaver.with_target(this.source_buffer, this.source_file, file);
         source_saver.flags = IGNORE_INVALID_CHARS | IGNORE_MODIFICATION_TIME;
