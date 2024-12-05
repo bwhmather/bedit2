@@ -38,6 +38,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     }
 
     /* --- Closing Windows and Tabs ----------------------------------------------------------------------- */
+
     private void
     on_close_window() {
     }
@@ -45,6 +46,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     /* === Search Actions ================================================================================= */
 
     /* --- Find ------------------------------------------------------------------------------------------- */
+
     private void
     on_find() {
     }
@@ -58,6 +60,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     }
 
     /* --- Replace ---------------------------------------------------------------------------------------- */
+
     private void
     on_replace() {
     }

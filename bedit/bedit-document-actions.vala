@@ -9,7 +9,7 @@ public sealed class Bedit.DocumentActions : GLib.Object, GLib.ActionGroup {
 
     /* --- Saving Documents ------------------------------------------------------------------------------- */
 
-    private async void
+    private async bool
     do_save_async() throws Error {
         var file = this.document.file;
         if (file == null) {
@@ -17,11 +17,13 @@ public sealed class Bedit.DocumentActions : GLib.Object, GLib.ActionGroup {
             try {
                 file = yield file_dialog.save(this.window, null);
             } catch (Gtk.DialogError.DISMISSED err) {
-                return;
+                return false;
             }
         }
 
         yield this.document.save_async(file);
+
+        return true;
     }
 
     private void
@@ -35,17 +37,19 @@ public sealed class Bedit.DocumentActions : GLib.Object, GLib.ActionGroup {
         });
     }
 
-    private async void
+    private async bool
     do_save_as_async() throws Error {
         GLib.File file;
         var file_dialog = new Gtk.FileDialog();
         try {
             file = yield file_dialog.save(this.window, null);
         } catch (Gtk.DialogError.DISMISSED err) {
-            return;
+            return false;
         }
 
         yield this.document.save_async(file);
+
+        return true;
     }
 
     private void
@@ -73,13 +77,43 @@ public sealed class Bedit.DocumentActions : GLib.Object, GLib.ActionGroup {
     on_print_preview() {
     }
 
-    /* --- Closing Windows and Tabs ----------------------------------------------------------------------- */
+    /* --- Closing Tabs ----------------------------------------------------------------------------------- */
+
+    private async bool
+    do_close_async() throws Error {
+        if (this.document.loading) {
+            return true;
+        }
+
+        var handle = this.document.notify["saving"].connect((d, pspec) => { do_close_async.callback(); });
+        while (this.document.saving) {
+            yield;
+        }
+        this.document.disconnect(handle);
+
+        // TODO
+        //if (!document.modified) {
+        //    return true;
+       // }
+
+        var save_changes_dialog = new Bedit.CloseConfirmationDialog(window.application);
+        save_changes_dialog.set_transient_for(window);
+        save_changes_dialog.present();
+
+        // TODO block;
+        // TODO return true;
+
+
+        return yield this.do_save_async();
+    }
 
     private void
     on_close() {
-        this.document.request_close_async.begin((_, res) => {
+        this.do_close_async.begin((_, res) => {
             try {
-                this.document.request_close_async.end(res);
+                if (this.do_close_async.end(res)) {
+                    brk_tab_view_close_page_finish();
+                }
             } catch (Error err) {
                 warning("Error: %s\n", err.message);
             }
