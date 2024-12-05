@@ -112,7 +112,7 @@ public sealed class Bedit.DocumentActions : GLib.Object, GLib.ActionGroup {
         this.do_close_async.begin((_, res) => {
             try {
                 if (this.do_close_async.end(res)) {
-                    brk_tab_view_close_page_finish();
+                  //  brk_tab_view_close_page_finish();
                 }
             } catch (Error err) {
                 warning("Error: %s\n", err.message);
@@ -218,38 +218,73 @@ public sealed class Bedit.DocumentActions : GLib.Object, GLib.ActionGroup {
     };
 
     private void
-    update_action(string name, bool enabled) {
+    document_actions_set_action_enabled(string name, bool enabled) {
         var action = this.actions.lookup_action(name) as GLib.SimpleAction;
         action.set_enabled(enabled);
     }
 
     private void
-    update_actions() {
-        bool busy = this.document.saving || this.document.loading;
-        bool has_file = this.document.file != null;
-        bool can_undo = this.document.can_undo;
-        bool can_redo = this.document.can_redo;
+    document_actions_update() {
+        bool exists = this.document != null;
+        bool busy = exists && this.document.saving || this.document.loading;
+        bool has_file = exists && this.document.file != null;
+        bool can_undo = exists && this.document.can_undo;
+        bool can_redo = exists && this.document.can_redo;
 
-        update_action("save", !busy && has_file);
-        update_action("save-as", !busy);
-        update_action("revert", !busy);
-        update_action("print-preview", !busy);
-        update_action("print", !busy);
-        update_action("close", !busy);
-        update_action("undo", !busy && can_undo);
-        update_action("redo", !busy && can_redo);
-        update_action("cut", !busy);
-        update_action("copy", !busy);
-        update_action("paste", !busy);
-        update_action("select-all", !busy);
-        update_action("comment", !busy);
-        update_action("uncomment", !busy);
-        update_action("insert-date-and-time", !busy);
-        update_action("sort-lines", !busy);
-        update_action("join-lines", !busy);
-        update_action("delete", !busy);
-        update_action("duplicate", !busy);
-        update_action("show-go-to-line", !busy);
+        document_actions_set_action_enabled("save", exists && !busy && has_file);
+        document_actions_set_action_enabled("save-as", exists && !busy);
+        document_actions_set_action_enabled("revert", exists && !busy);
+        document_actions_set_action_enabled("print-preview", exists && !busy);
+        document_actions_set_action_enabled("print", exists && !busy);
+        document_actions_set_action_enabled("close", exists && !busy);
+        document_actions_set_action_enabled("undo", exists && !busy && can_undo);
+        document_actions_set_action_enabled("redo", exists && !busy && can_redo);
+        document_actions_set_action_enabled("cut", exists && !busy);
+        document_actions_set_action_enabled("copy", exists && !busy);
+        document_actions_set_action_enabled("paste", exists && !busy);
+        document_actions_set_action_enabled("select-all", exists && !busy);
+        document_actions_set_action_enabled("comment", exists && !busy);
+        document_actions_set_action_enabled("uncomment", exists && !busy);
+        document_actions_set_action_enabled("insert-date-and-time", exists && !busy);
+        document_actions_set_action_enabled("sort-lines", exists && !busy);
+        document_actions_set_action_enabled("join-lines", exists && !busy);
+        document_actions_set_action_enabled("delete", exists && !busy);
+        document_actions_set_action_enabled("duplicate", exists && !busy);
+        document_actions_set_action_enabled("show-go-to-line", exists && !busy);
+    }
+
+    private void
+    document_actions_update_on_notify(string name) {
+        ulong handle = 0;
+        Bedit.Document? current;
+
+        if (this.document != null) {
+            handle = this.document.notify[name].connect((d, pspec) => { this.document_actions_update(); });
+        }
+        current = this.document;
+
+        this.notify["document"].connect((da, pspec) => {
+            if (current != null) {
+                current.disconnect(handle);
+            }
+            if (this.document != null) {
+                handle = this.document.notify[name].connect((d, pspec) => { this.document_actions_update(); });
+            }
+            current = this.document;
+        });
+    }
+
+    private void
+    document_actions_init() {
+        this.actions.add_action_entries(action_entries,this);
+
+        this.document_actions_update_on_notify("can-undo");
+        this.document_actions_update_on_notify("can-redo");
+        this.document_actions_update_on_notify("file");
+        this.document_actions_update_on_notify("loading");
+        this.document_actions_update_on_notify("saving");
+
+        this.document_actions_update();
     }
 
     construct {
@@ -265,25 +300,8 @@ public sealed class Bedit.DocumentActions : GLib.Object, GLib.ActionGroup {
         this.actions.action_state_changed.connect((_, action_name, state) => {
             this.action_state_changed(action_name, state);
         });
-        this.actions.add_action_entries(action_entries,this);
 
-        this.document.notify["can-undo"].connect((sb, pspec) => {
-            this.update_actions();
-        });
-        this.document.notify["can-redo"].connect((sb, pspec) => {
-            this.update_actions();
-        });
-        this.document.notify["file"].connect((sf, pspec) => {
-            this.update_actions();
-        });
-        this.document.notify["loading"].connect((d, pspec) => {
-            this.update_actions();
-        });
-        this.document.notify["saving"].connect((d, pspec) => {
-            this.update_actions();
-        });
-
-        this.update_actions();
+        document_actions_init();
     }
 
     public
