@@ -126,7 +126,6 @@ bedit_resources = gnome.compile_resources(
 bedit_sources = [
   'bedit/bedit-application.vala',
   'bedit/bedit-close-confirmation-dialog.vala',
-  'bedit/bedit-document-actions.vala',
   'bedit/bedit-document.vala',
   'bedit/bedit-searchbar.vala',
   'bedit/bedit-window.vala',
