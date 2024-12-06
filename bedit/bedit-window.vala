@@ -83,45 +83,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     /* --- Closing Tabs ----------------------------------------------------------------------------------- */
 
-    private async bool
-    do_close_async() throws Error {
-        if (this.active_document.loading) {
-            return true;
-        }
-
-        var handle = this.active_document.notify["saving"].connect((d, pspec) => { do_close_async.callback(); });
-        while (this.active_document.saving) {
-            yield;
-        }
-        this.active_document.disconnect(handle);
-
-        // TODO
-        //if (!active_document.modified) {
-        //    return true;
-        // }
-
-        var save_changes_dialog = new Bedit.CloseConfirmationDialog(this.application);
-        save_changes_dialog.set_transient_for(this);
-        save_changes_dialog.present();
-
-        // TODO block;
-        // TODO return true;
-
-
-        return yield this.do_save_async();
-    }
 
     private void
     on_close() {
-        this.do_close_async.begin((_, res) => {
-            try {
-                if (this.do_close_async.end(res)) {
-                    //  brk_tab_view_close_page_finish();
-                }
-            } catch (Error err) {
-                warning("Error: %s\n", err.message);
-            }
-        });
     }
 
     /* --- Edit History ----------------------------------------------------------------------------------- */
@@ -376,6 +340,58 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     /* === Lifecycle ====================================================================================== */
 
+    private void
+    on_tab_view_selected_tab_changed(GLib.Object _, GLib.ParamSpec pspec) {
+        var page = this.tab_view.selected_page;
+        if (page == null) {
+            this.active_document = null;
+        } else {
+            this.active_document = page.child as Bedit.Document;
+        }
+    }
+
+
+    private async bool
+    do_close_async() throws Error {
+        if (this.active_document.loading) {
+            return true;
+        }
+
+        var handle = this.active_document.notify["saving"].connect((d, pspec) => { do_close_async.callback(); });
+        while (this.active_document.saving) {
+            yield;
+        }
+        this.active_document.disconnect(handle);
+
+        // TODO
+        //if (!active_document.modified) {
+        //    return true;
+        // }
+
+        var save_changes_dialog = new Bedit.CloseConfirmationDialog(this.application);
+        save_changes_dialog.set_transient_for(this);
+        save_changes_dialog.present();
+
+        // TODO block;
+        // TODO return true;
+
+
+        return yield this.do_save_async();
+    }
+
+    private bool
+    on_tab_view_close_page(Brk.TabView view, Brk.TabPage page) {
+        this.do_close_async.begin((_, res) => {
+            try {
+                var should_close = this.do_close_async.end(res);
+                view.close_page_finish(page, should_close);
+            } catch (Error err) {
+                warning("Error: %s\n", err.message);
+            }
+        });
+        return Gdk.EVENT_STOP;
+    }
+
     class construct {
         typeof (Brk.TabBar).ensure();
         typeof (Brk.TabView).ensure();
@@ -386,25 +402,8 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     }
 
     construct {
-        tab_view.notify["selected-page"].connect((view, pspec) => {
-            var page = tab_view.selected_page;
-            if (page == null) {
-                this.active_document = null;
-            } else {
-                this.active_document = page.child as Bedit.Document;
-            }
-        });
-        tab_view.close_page.connect((view, page) => {
-            var document = page.child as Bedit.Document;
-            document.request_close_async.begin((_, res) => {
-                try {
-                    document.request_close_async.end(res);
-                } catch (Error err) {
-                    warning("Error: %s\n", err.message);
-                }
-            });
-            return Gdk.EVENT_STOP;
-        });
+        tab_view.notify["selected-page"].connect(on_tab_view_selected_tab_changed);
+        tab_view.close_page.connect(on_tab_view_close_page);
 
         var w = (this as Gtk.Widget);
         w.destroy.connect((w) => {

@@ -78,25 +78,6 @@ public sealed class Bedit.Document : Gtk.Widget {
         return true;
     }
 
-    public async bool
-    request_close_async() throws Error {
-        var window = this.root as Gtk.Window;
-
-        var save_changes_dialog = new Bedit.CloseConfirmationDialog(window.application);
-        save_changes_dialog.set_transient_for(window);
-        save_changes_dialog.present();
-
-
-        while (this.saving) {
-            this.notify["saving"].connect((d, pspec) => { request_close_async.callback(); });
-            yield;
-        }
-
-        this.closed();
-
-        return true;
-    }
-
     public void
     undo() {
         this.source_buffer.undo();
