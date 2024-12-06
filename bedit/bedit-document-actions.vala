@@ -1,7 +1,7 @@
 public sealed class Bedit.DocumentActions : GLib.Object, GLib.ActionGroup {
 
-    public Bedit.Document document { get; construct; }
-    public Bedit.Window window { get { return document.root as Bedit.Window; } }
+    public Bedit.Document? active_document { get; construct; }
+    public Bedit.Window window { get { return active_document.root as Bedit.Window; } }
 
     private GLib.SimpleActionGroup actions = new GLib.SimpleActionGroup();
 
@@ -11,7 +11,7 @@ public sealed class Bedit.DocumentActions : GLib.Object, GLib.ActionGroup {
 
     private async bool
     do_save_async() throws Error {
-        var file = this.document.file;
+        var file = this.active_document.file;
         if (file == null) {
             var file_dialog = new Gtk.FileDialog();
             try {
@@ -21,7 +21,7 @@ public sealed class Bedit.DocumentActions : GLib.Object, GLib.ActionGroup {
             }
         }
 
-        yield this.document.save_async(file);
+        yield this.active_document.save_async(file);
 
         return true;
     }
@@ -47,7 +47,7 @@ public sealed class Bedit.DocumentActions : GLib.Object, GLib.ActionGroup {
             return false;
         }
 
-        yield this.document.save_async(file);
+        yield this.active_document.save_async(file);
 
         return true;
     }
@@ -81,18 +81,18 @@ public sealed class Bedit.DocumentActions : GLib.Object, GLib.ActionGroup {
 
     private async bool
     do_close_async() throws Error {
-        if (this.document.loading) {
+        if (this.active_document.loading) {
             return true;
         }
 
-        var handle = this.document.notify["saving"].connect((d, pspec) => { do_close_async.callback(); });
-        while (this.document.saving) {
+        var handle = this.active_document.notify["saving"].connect((d, pspec) => { do_close_async.callback(); });
+        while (this.active_document.saving) {
             yield;
         }
-        this.document.disconnect(handle);
+        this.active_document.disconnect(handle);
 
         // TODO
-        //if (!document.modified) {
+        //if (!active_document.modified) {
         //    return true;
        // }
 
@@ -124,12 +124,12 @@ public sealed class Bedit.DocumentActions : GLib.Object, GLib.ActionGroup {
 
     private void
     on_undo() {
-        this.document.undo();
+        this.active_document.undo();
     }
 
     private void
     on_redo() {
-        this.document.redo();
+        this.active_document.redo();
     }
 
     /* --- Clipboard -------------------------------------------------------------------------------------- */
@@ -225,11 +225,11 @@ public sealed class Bedit.DocumentActions : GLib.Object, GLib.ActionGroup {
 
     private void
     document_actions_update() {
-        bool exists = this.document != null;
-        bool busy = exists && this.document.saving || this.document.loading;
-        bool has_file = exists && this.document.file != null;
-        bool can_undo = exists && this.document.can_undo;
-        bool can_redo = exists && this.document.can_redo;
+        bool exists = this.active_document != null;
+        bool busy = exists && this.active_document.saving || this.active_document.loading;
+        bool has_file = exists && this.active_document.file != null;
+        bool can_undo = exists && this.active_document.can_undo;
+        bool can_redo = exists && this.active_document.can_redo;
 
         document_actions_set_action_enabled("save", exists && !busy && has_file);
         document_actions_set_action_enabled("save-as", exists && !busy);
@@ -258,19 +258,19 @@ public sealed class Bedit.DocumentActions : GLib.Object, GLib.ActionGroup {
         ulong handle = 0;
         Bedit.Document? current;
 
-        if (this.document != null) {
-            handle = this.document.notify[name].connect((d, pspec) => { this.document_actions_update(); });
+        if (this.active_document != null) {
+            handle = this.active_document.notify[name].connect((d, pspec) => { this.document_actions_update(); });
         }
-        current = this.document;
+        current = this.active_document;
 
-        this.notify["document"].connect((da, pspec) => {
+        this.notify["active-document"].connect((da, pspec) => {
             if (current != null) {
                 current.disconnect(handle);
             }
-            if (this.document != null) {
-                handle = this.document.notify[name].connect((d, pspec) => { this.document_actions_update(); });
+            if (this.active_document != null) {
+                handle = this.active_document.notify[name].connect((d, pspec) => { this.document_actions_update(); });
             }
-            current = this.document;
+            current = this.active_document;
         });
     }
 
@@ -307,7 +307,7 @@ public sealed class Bedit.DocumentActions : GLib.Object, GLib.ActionGroup {
     public
     DocumentActions(Bedit.Document document) {
         Object(
-            document: document
+            active_document: document
         );
     }
 
