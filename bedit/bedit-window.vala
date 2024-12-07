@@ -31,7 +31,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     }
 
     private void
-    on_save() {
+    action_doc_save() {
         this.do_save_async.begin((_, res) => {
             try {
                 this.do_save_async.end(res);
@@ -57,7 +57,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     }
 
     private void
-    on_save_as() {
+    action_doc_save_as() {
         this.do_save_as_async.begin((_, res) => {
             try {
                 this.do_save_as_async.end(res);
@@ -68,121 +68,121 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     }
 
     private void
-    on_revert() {
+    action_doc_revert() {
     }
 
     /* --- Printing Documents ----------------------------------------------------------------------------- */
 
     private void
-    on_print() {
+    action_doc_print() {
     }
 
     private void
-    on_print_preview() {
+    action_doc_print_preview() {
     }
 
     /* --- Closing Tabs ----------------------------------------------------------------------------------- */
 
 
     private void
-    on_close() {
+    action_doc_close() {
     }
 
     /* --- Edit History ----------------------------------------------------------------------------------- */
 
     private void
-    on_undo() {
+    action_doc_undo() {
         this.active_document.undo();
     }
 
     private void
-    on_redo() {
+    action_doc_redo() {
         this.active_document.redo();
     }
 
     /* --- Clipboard -------------------------------------------------------------------------------------- */
 
     private void
-    on_cut() {
+    action_doc_cut() {
     }
 
     private void
-    on_copy() {
+    action_doc_copy() {
     }
 
     private void
-    on_paste() {
+    action_doc_paste() {
     }
 
     /* --- Selection -------------------------------------------------------------------------------------- */
 
     private void
-    on_select_all() {
+    action_doc_select_all() {
     }
 
     /* --- Commenting and Uncommenting -------------------------------------------------------------------- */
 
     private void
-    on_comment() {
+    action_doc_comment() {
     }
 
     private void
-    on_uncomment() {
+    action_doc_uncomment() {
     }
 
     /* --- Insert Date and Time --------------------------------------------------------------------------- */
 
     private void
-    on_insert_date_and_time() {
+    action_doc_insert_date_and_time() {
     }
 
     /* --- Line Operations -------------------------------------------------------------------------------- */
 
     private void
-    on_sort_lines() {
+    action_doc_sort_lines() {
     }
 
     private void
-    on_join_lines() {
+    action_doc_join_lines() {
     }
 
     private void
-    on_delete_line() {
+    action_doc_delete_line() {
     }
 
     private void
-    on_duplicate_line() {
+    action_doc_duplicate_line() {
     }
 
     /* --- Navigate to Line ------------------------------------------------------------------------------- */
 
     private void
-    on_show_go_to_line() {
+    action_doc_show_go_to_line() {
     }
 
     /* --- Document Action State -------------------------------------------------------------------------- */
 
     const GLib.ActionEntry[] document_action_entries = {
-        {"save", on_save},
-        {"save-as", on_save_as},
-        {"revert", on_revert},
-        {"print-preview", on_print_preview},
-        {"print", on_print},
-        {"close", on_close},
-        {"undo", on_undo},
-        {"redo", on_redo},
-        {"cut", on_cut},
-        {"copy", on_copy},
-        {"paste", on_paste},
-        {"select-all", on_select_all},
-        {"comment", on_comment},
-        {"uncomment", on_uncomment},
-        {"insert-date-and-time", on_insert_date_and_time},
-        {"sort-lines", on_sort_lines},
-        {"join-lines", on_join_lines},
-        {"delete", on_delete_line},
-        {"duplicate", on_duplicate_line},
-        {"show-go-to-line", on_show_go_to_line},
+        {"save", action_doc_save},
+        {"save-as", action_doc_save_as},
+        {"revert", action_doc_revert},
+        {"print-preview", action_doc_print_preview},
+        {"print", action_doc_print},
+        {"close", action_doc_close},
+        {"undo", action_doc_undo},
+        {"redo", action_doc_redo},
+        {"cut", action_doc_cut},
+        {"copy", action_doc_copy},
+        {"paste", action_doc_paste},
+        {"select-all", action_doc_select_all},
+        {"comment", action_doc_comment},
+        {"uncomment", action_doc_uncomment},
+        {"insert-date-and-time", action_doc_insert_date_and_time},
+        {"sort-lines", action_doc_sort_lines},
+        {"join-lines", action_doc_join_lines},
+        {"delete", action_doc_delete_line},
+        {"duplicate", action_doc_duplicate_line},
+        {"show-go-to-line", action_doc_show_go_to_line},
     };
 
     private void
@@ -265,7 +265,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     /* --- Creating New Documents and Opening Existing Ones ----------------------------------------------- */
 
     private void
-    on_new() {
+    action_win_new() {
         var document = new Bedit.Document();
         this.add_document(document);
     }
@@ -280,7 +280,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     }
 
     private void
-    on_open() {
+    action_win_open() {
         this.do_open.begin((_, res) => {
             try {
                 this.do_open.end(res);
@@ -293,45 +293,45 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     /* --- Closing Windows and Tabs ----------------------------------------------------------------------- */
 
     private void
-    on_close_window() {
+    action_win_close_window() {
         this.close_request();
     }
 
     /* --- Find ------------------------------------------------------------------------------------------- */
 
     private void
-    on_find() {
+    action_win_find() {
     }
 
     private void
-    on_find_next() {
+    action_win_find_next() {
     }
 
     private void
-    on_find_previous() {
+    action_win_find_previous() {
     }
 
     /* --- Replace ---------------------------------------------------------------------------------------- */
 
     private void
-    on_replace() {
+    action_win_replace() {
     }
 
     private void
-    on_replace_all() {
+    action_win_replace_all() {
     }
 
     /* --- Window Action State ---------------------------------------------------------------------------- */
 
     const GLib.ActionEntry[] window_action_entries = {
-        {"new", on_new},
-        {"open", on_open},
-        {"close", on_close_window},
-        {"find", on_find},
-        {"find-next", on_find_next},
-        {"find-previous", on_find_previous},
-        {"replace", on_replace},
-        {"replace-all", on_replace_all},
+        {"new", action_win_new},
+        {"open", action_win_open},
+        {"close", action_win_close_window},
+        {"find", action_win_find},
+        {"find-next", action_win_find_next},
+        {"find-previous", action_win_find_previous},
+        {"replace", action_win_replace},
+        {"replace-all", action_win_replace_all},
     };
 
     private void
