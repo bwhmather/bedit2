@@ -294,6 +294,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private void
     on_close_window() {
+        this.close_request();
     }
 
     /* --- Find ------------------------------------------------------------------------------------------- */
@@ -350,27 +351,36 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         }
     }
 
-
     private async bool
-    do_close_async() throws Error {
-        if (this.active_document.loading) {
+    confirm_close_async(Bedit.Document document) throws Error {
+        if (document.loading) {
             return true;
         }
 
-        var handle = this.active_document.notify["saving"].connect((d, pspec) => { do_close_async.callback(); });
+        var handle = document.notify["saving"].connect((d, pspec) => { confirm_close_async.callback(); });
         while (this.active_document.saving) {
             yield;
         }
-        this.active_document.disconnect(handle);
+        document.disconnect(handle);
 
-        // TODO
+//        if (!document.modified) {
+//          return true;
+//    }
+
+
+        var action = yield Bedit.CloseConfirmationDialog.run_async(this.cancellable, this, document);
+        switch (action) {
+        case CANCEL:
+            return false;
+        case DISCARD:
+            return true;
+        case SAVE:
+            break;
+        }
+
         //if (!active_document.modified) {
         //    return true;
         // }
-
-        var save_changes_dialog = new Bedit.CloseConfirmationDialog(this.application);
-        save_changes_dialog.set_transient_for(this);
-        save_changes_dialog.present();
 
         // TODO block;
         // TODO return true;
@@ -380,10 +390,17 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     }
 
     private bool
-    on_tab_view_close_page(Brk.TabView view, Brk.TabPage page) {
-        this.do_close_async.begin((_, res) => {
+    on_window_close_request(Gtk.Window window) {
+
+        return true;
+    }
+
+    private bool
+    on_tab_view_close_page_request(Brk.TabView view, Brk.TabPage page) {
+        var document = page.child as Bedit.Document;
+        this.confirm_close_async.begin(document, (_, res) => {
             try {
-                var should_close = this.do_close_async.end(res);
+                var should_close = this.confirm_close_async.end(res);
                 view.close_page_finish(page, should_close);
             } catch (Error err) {
                 warning("Error: %s\n", err.message);
@@ -403,8 +420,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     construct {
         tab_view.notify["selected-page"].connect(on_tab_view_selected_tab_changed);
-        tab_view.close_page.connect(on_tab_view_close_page);
+        tab_view.close_page.connect(on_tab_view_close_page_request);
 
+        this.close_request.connect(on_window_close_request);
         var w = (this as Gtk.Widget);
         w.destroy.connect((w) => {
             cancellable.cancel();
