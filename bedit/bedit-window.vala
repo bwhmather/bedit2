@@ -7,15 +7,12 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     public Bedit.Document? active_document { get; private set; }
 
-    /* === Document Actions =============================================================================== */
 
-    private GLib.SimpleActionGroup document_actions = new GLib.SimpleActionGroup();
-
-    /* --- Saving Documents ------------------------------------------------------------------------------- */
+    /* === Document Operations ============================================================================ */
 
     private async bool
-    do_save_async() throws Error {
-        var file = this.active_document.file;
+    document_save_async(Bedit.Document document) throws Error {
+        var file = document.file;
         if (file == null) {
             var file_dialog = new Gtk.FileDialog();
             try {
@@ -25,24 +22,13 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
             }
         }
 
-        yield this.active_document.save_async(file);
+        yield document.save_async(file);
 
         return true;
     }
 
-    private void
-    action_doc_save() {
-        this.do_save_async.begin((_, res) => {
-            try {
-                this.do_save_async.end(res);
-            } catch (Error err) {
-                warning("Error: %s\n", err.message);
-            }
-        });
-    }
-
     private async bool
-    do_save_as_async() throws Error {
+    document_save_as_async(Bedit.Document document) throws Error {
         GLib.File file;
         var file_dialog = new Gtk.FileDialog();
         try {
@@ -51,16 +37,73 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
             return false;
         }
 
-        yield this.active_document.save_async(file);
+        yield document.save_async(file);
 
         return true;
     }
 
+    private async bool
+    document_confirm_close_async(Bedit.Document document) throws Error {
+        if (document.loading) {
+            return true;
+        }
+
+        var handle = document.notify["saving"].connect((d, pspec) => {
+            document_confirm_close_async.callback();
+        });
+        while (this.active_document.saving) {
+            yield;
+        }
+        document.disconnect(handle);
+
+//        if (!document.modified) {
+//          return true;
+//    }
+
+
+        var action = yield Bedit.CloseConfirmationDialog.run_async(this.cancellable, this, document);
+        switch (action) {
+        case CANCEL:
+            return false;
+        case DISCARD:
+            return true;
+        case SAVE:
+            break;
+        }
+
+        //if (!active_document.modified) {
+        //    return true;
+        // }
+
+        // TODO block;
+        // TODO return true;
+
+
+        return yield this.document_save_async(document);
+    }
+
+    /* === Document Actions =============================================================================== */
+
+    private GLib.SimpleActionGroup document_actions = new GLib.SimpleActionGroup();
+
+    /* --- Saving Documents ------------------------------------------------------------------------------- */
+
+    private void
+    action_doc_save() {
+        this.document_save_async.begin(this.active_document, (_, res) => {
+            try {
+                this.document_save_async.end(res);
+            } catch (Error err) {
+                warning("Error: %s\n", err.message);
+            }
+        });
+    }
+
     private void
     action_doc_save_as() {
-        this.do_save_as_async.begin((_, res) => {
+        this.document_save_as_async.begin(this.active_document, (_, res) => {
             try {
-                this.do_save_as_async.end(res);
+                this.document_save_as_async.end(res);
             } catch (Error err) {
                 warning("Error: %s\n", err.message);
             }
@@ -351,56 +394,18 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         }
     }
 
-    private async bool
-    confirm_close_async(Bedit.Document document) throws Error {
-        if (document.loading) {
-            return true;
-        }
-
-        var handle = document.notify["saving"].connect((d, pspec) => { confirm_close_async.callback(); });
-        while (this.active_document.saving) {
-            yield;
-        }
-        document.disconnect(handle);
-
-//        if (!document.modified) {
-//          return true;
-//    }
-
-
-        var action = yield Bedit.CloseConfirmationDialog.run_async(this.cancellable, this, document);
-        switch (action) {
-        case CANCEL:
-            return false;
-        case DISCARD:
-            return true;
-        case SAVE:
-            break;
-        }
-
-        //if (!active_document.modified) {
-        //    return true;
-        // }
-
-        // TODO block;
-        // TODO return true;
-
-
-        return yield this.do_save_async();
-    }
-
     private bool
     on_window_close_request(Gtk.Window window) {
 
-        return true;
+        return false;
     }
 
     private bool
     on_tab_view_close_page_request(Brk.TabView view, Brk.TabPage page) {
         var document = page.child as Bedit.Document;
-        this.confirm_close_async.begin(document, (_, res) => {
+        this.document_confirm_close_async.begin(document, (_, res) => {
             try {
-                var should_close = this.confirm_close_async.end(res);
+                var should_close = this.document_confirm_close_async.end(res);
                 view.close_page_finish(page, should_close);
             } catch (Error err) {
                 warning("Error: %s\n", err.message);
