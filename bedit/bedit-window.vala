@@ -11,23 +11,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     /* === Document Operations ============================================================================ */
 
     private async bool
-    document_save_async(Bedit.Document document) throws Error {
-        var file = document.file;
-        if (file == null) {
-            var file_dialog = new Gtk.FileDialog();
-            try {
-                file = yield file_dialog.save(this, null);
-            } catch (Gtk.DialogError.DISMISSED err) {
-                return false;
-            }
-        }
-
-        yield document.save_async(file);
-
-        return true;
-    }
-
-    private async bool
     document_save_as_async(Bedit.Document document) throws Error {
         GLib.File file;
         var file_dialog = new Gtk.FileDialog();
@@ -40,6 +23,16 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         yield document.save_async(file);
 
         return true;
+    }
+
+    private async bool
+    document_save_async(Bedit.Document document) throws Error {
+        if (document.file != null) {
+            yield document.save_async(document.file);
+            return true;
+        }
+
+        return yield this.document_save_as_async(document);
     }
 
     private async bool
