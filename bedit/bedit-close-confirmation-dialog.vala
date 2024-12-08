@@ -13,20 +13,19 @@ public sealed class Bedit.CloseConfirmationDialog : Gtk.Window {
 
     private void
     action_cancel(Gtk.Widget widget, string? action_name, GLib.Variant? parameter) {
-        this.close_request();
+        this.close();
     }
 
     private void
     action_discard(Gtk.Widget widget, string? action_name, GLib.Variant? parameter) {
         this.discard();
-        this.close_request();
-
+        this.close();
     }
 
     private void
     action_save(Gtk.Widget widget, string? action_name, GLib.Variant? parameter) {
         this.save();
-        this.close_request();
+        this.close();
     }
 
     static construct {
