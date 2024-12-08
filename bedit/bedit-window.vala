@@ -1,3 +1,14 @@
+private async void
+document_wait_idle(Bedit.Document document) {
+    var handle = document.notify["busy"].connect((d, pspec) => {
+        document_wait_idle.callback();
+    });
+    while (document.busy) {
+        yield;
+    }
+    document.disconnect(handle);
+}
+
 [GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-window.ui")]
 public sealed class Bedit.Window : Gtk.ApplicationWindow {
     private GLib.Cancellable cancellable = new GLib.Cancellable();
@@ -20,6 +31,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
             return false;
         }
 
+        yield document_wait_idle(document);
         yield document.save_async(file);
 
         return true;
@@ -27,6 +39,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private async bool
     document_save_async(Bedit.Document document) throws Error {
+        yield document_wait_idle(document);
         if (document.file != null) {
             yield document.save_async(document.file);
             return true;
@@ -41,18 +54,11 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
             return true;
         }
 
-        var handle = document.notify["saving"].connect((d, pspec) => {
-            document_confirm_close_async.callback();
-        });
-        while (this.active_document.saving) {
-            yield;
-        }
-        document.disconnect(handle);
+        yield document_wait_idle(document);
 
 //        if (!document.modified) {
 //          return true;
 //    }
-
 
         var action = yield Bedit.CloseConfirmationDialog.run_async(this.cancellable, this, document);
         switch (action) {
@@ -230,31 +236,31 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     private void
     document_actions_update() {
         bool exists = this.active_document != null;
-        bool busy = exists && (this.active_document.saving || this.active_document.loading);
+        bool idle = exists && !this.active_document.busy;
         bool has_file = exists && this.active_document.file != null;
         bool can_undo = exists && this.active_document.can_undo;
         bool can_redo = exists && this.active_document.can_redo;
 
-        document_actions_set_action_enabled("save", exists && !busy && has_file);
-        document_actions_set_action_enabled("save-as", exists && !busy);
-        document_actions_set_action_enabled("revert", exists && !busy);
-        document_actions_set_action_enabled("print-preview", exists && !busy);
-        document_actions_set_action_enabled("print", exists && !busy);
-        document_actions_set_action_enabled("close", exists && !busy);
-        document_actions_set_action_enabled("undo", exists && !busy && can_undo);
-        document_actions_set_action_enabled("redo", exists && !busy && can_redo);
-        document_actions_set_action_enabled("cut", exists && !busy);
-        document_actions_set_action_enabled("copy", exists && !busy);
-        document_actions_set_action_enabled("paste", exists && !busy);
-        document_actions_set_action_enabled("select-all", exists && !busy);
-        document_actions_set_action_enabled("comment", exists && !busy);
-        document_actions_set_action_enabled("uncomment", exists && !busy);
-        document_actions_set_action_enabled("insert-date-and-time", exists && !busy);
-        document_actions_set_action_enabled("sort-lines", exists && !busy);
-        document_actions_set_action_enabled("join-lines", exists && !busy);
-        document_actions_set_action_enabled("delete", exists && !busy);
-        document_actions_set_action_enabled("duplicate", exists && !busy);
-        document_actions_set_action_enabled("show-go-to-line", exists && !busy);
+        document_actions_set_action_enabled("save", exists && idle && has_file);
+        document_actions_set_action_enabled("save-as", exists && idle);
+        document_actions_set_action_enabled("revert", exists && idle);
+        document_actions_set_action_enabled("print-preview", exists && idle);
+        document_actions_set_action_enabled("print", exists && idle);
+        document_actions_set_action_enabled("close", exists && idle);
+        document_actions_set_action_enabled("undo", exists && idle && can_undo);
+        document_actions_set_action_enabled("redo", exists && idle && can_redo);
+        document_actions_set_action_enabled("cut", exists && idle);
+        document_actions_set_action_enabled("copy", exists && idle);
+        document_actions_set_action_enabled("paste", exists && idle);
+        document_actions_set_action_enabled("select-all", exists && idle);
+        document_actions_set_action_enabled("comment", exists && idle);
+        document_actions_set_action_enabled("uncomment", exists && idle);
+        document_actions_set_action_enabled("insert-date-and-time", exists && idle);
+        document_actions_set_action_enabled("sort-lines", exists && idle);
+        document_actions_set_action_enabled("join-lines", exists && idle);
+        document_actions_set_action_enabled("delete", exists && idle);
+        document_actions_set_action_enabled("duplicate", exists && idle);
+        document_actions_set_action_enabled("show-go-to-line", exists && idle);
     }
 
     private void

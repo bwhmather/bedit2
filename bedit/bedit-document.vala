@@ -13,6 +13,7 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     public bool loading { get; private set; }
     public bool saving { get; private set; }
+    public bool busy { get; private set; }
 
     public signal void closed();
 
@@ -21,6 +22,11 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     class construct {
         set_layout_manager_type(typeof (Gtk.BinLayout));
+    }
+
+    private void
+    update_busy() {
+        this.busy = this.loading || this.saving;
     }
 
     construct {
@@ -39,9 +45,16 @@ public sealed class Bedit.Document : Gtk.Widget {
             this.title = this.file.get_basename();
         });
 
+        this.notify["loading"].connect((_, pspec) => { this.update_busy(); });
+        this.notify["saving"].connect((_, pspec) => { this.update_busy(); });
+
         if (file != null) {
             reload_async.begin(null);
         }
+    }
+
+    ~Document() {
+        assert(!this.busy);
     }
 
     public Document.for_file(GLib.File file) {
