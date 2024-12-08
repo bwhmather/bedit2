@@ -70,14 +70,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
             break;
         }
 
-        //if (!active_document.modified) {
-        //    return true;
-        // }
-
-        // TODO block;
-        // TODO return true;
-
-
         return yield this.document_save_async(document);
     }
 
