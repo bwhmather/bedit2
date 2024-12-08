@@ -89,6 +89,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private void
     action_doc_save() {
+        return_if_fail(this.active_document != null);
+        return_if_fail(!this.active_document.busy);
+
         this.document_save_async.begin(this.active_document, (_, res) => {
             try {
                 this.document_save_async.end(res);
@@ -100,6 +103,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private void
     action_doc_save_as() {
+        return_if_fail(this.active_document != null);
+        return_if_fail(!this.active_document.busy);
+
         this.document_save_as_async.begin(this.active_document, (_, res) => {
             try {
                 this.document_save_as_async.end(res);
@@ -111,6 +117,8 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private void
     action_doc_revert() {
+        return_if_fail(this.active_document != null);
+        return_if_fail(!this.active_document.busy);
     }
 
     /* --- Printing Documents ----------------------------------------------------------------------------- */
@@ -136,11 +144,19 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private void
     action_doc_undo() {
+        return_if_fail(this.active_document != null);
+        return_if_fail(!this.active_document.busy);
+        return_if_fail(this.active_document.can_undo);
+
         this.active_document.undo();
     }
 
     private void
     action_doc_redo() {
+        return_if_fail(this.active_document != null);
+        return_if_fail(!this.active_document.busy);
+        return_if_fail(this.active_document.can_redo);
+
         this.active_document.redo();
     }
 
