@@ -128,6 +128,8 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private void
     action_doc_close() {
+        this.tab_view.close_page(this.tab_view.selected_page);
+
     }
 
     /* --- Edit History ----------------------------------------------------------------------------------- */
