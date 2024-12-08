@@ -8,12 +8,13 @@
             <child type="end">
               <object class="GtkButton">
                 <property name="label">Cancel</property>
-                <property name="action-name">window.close</property>
+                <property name="action-name">cancel</property>
               </object>
             </child>
             <child type="end">
               <object class="GtkButton">
                 <property name="label">Close without saving</property>
+                <property name="action-name">discard</property>
                 <style>
                   <class name="destructive-action"/>
                 </style>
@@ -22,6 +23,7 @@
             <child type="end">
               <object class="GtkButton">
                 <property name="label">Save as…</property>
+                <property name="action-name">save</property>
                 <style>
                   <class name="suggested-action"/>
                 </style>
