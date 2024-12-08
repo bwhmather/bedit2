@@ -56,9 +56,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
         yield document_wait_idle(document);
 
-//        if (!document.modified) {
-//          return true;
-//    }
+        if (!document.modified) {
+            return true;
+        }
 
         var action = yield Bedit.CloseConfirmationDialog.run_async(this.cancellable, this, document);
         switch (action) {

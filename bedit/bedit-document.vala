@@ -9,7 +9,7 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     public string title { get; private set; }
     public unowned GLib.File? file { get; construct; }
-    public bool modified { get; }
+    public bool modified { get; private set; }
 
     public bool loading { get; private set; }
     public bool saving { get; private set; }
@@ -36,6 +36,9 @@ public sealed class Bedit.Document : Gtk.Widget {
         });
         this.source_buffer.notify["can-redo"].connect((sb, pspec) => {
             this.can_redo = source_buffer.can_redo;
+        });
+        this.source_buffer.modified_changed.connect((tb) => {
+            this.modified = this.source_buffer.get_modified();
         });
 
         this.source_file = new GtkSource.File();
