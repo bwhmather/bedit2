@@ -426,7 +426,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         typeof (Brk.TabBar).ensure();
         typeof (Brk.TabView).ensure();
         typeof (Brk.ToolbarView).ensure();
-        typeof (Brk.Toolbar).ensure();
+        typeof (Bedit.Toolbar).ensure();
         typeof (Bedit.Document).ensure();
         typeof (Bedit.Searchbar).ensure();
     }

@@ -6,7 +6,7 @@
         <property name="top-bar-style">raised-border</property>
 
         <child type="top">
-          <object class="BrkToolbar">
+          <object class="BeditToolbar">
             <child>
               <object class="GtkButton">
                 <property name="icon-name">document-new</property>
