@@ -32,6 +32,8 @@ public sealed class Bedit.CloseConfirmationDialog : Gtk.Window {
         install_action("cancel", null, (Gtk.WidgetActionActivateFunc) action_cancel);
         install_action("discard", null, (Gtk.WidgetActionActivateFunc) action_discard);
         install_action("save", null, (Gtk.WidgetActionActivateFunc) action_save);
+
+        set_accessible_role(DIALOG);
     }
 
     public CloseConfirmationDialog(Gtk.Window window, Bedit.Document document) {
