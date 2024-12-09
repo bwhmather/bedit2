@@ -18,7 +18,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     public Bedit.Document? active_document { get; private set; }
 
-
     /* === Document Operations ============================================================================ */
 
     private async bool
@@ -433,6 +432,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     }
 
     construct {
+        var window_group = new Gtk.WindowGroup();
+        window_group.add_window(this);
+
         tab_view.notify["selected-page"].connect(on_tab_view_selected_tab_changed);
         tab_view.close_page.connect(on_tab_view_close_page_request);
 
