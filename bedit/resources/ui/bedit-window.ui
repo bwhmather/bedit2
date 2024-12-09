@@ -6,7 +6,7 @@
         <property name="top-bar-style">raised-border</property>
 
         <child type="top">
-          <object class="BrkToolbar">
+          <object class="BeditToolbar">
             <property name="visible" bind-source="BeditWindow" bind-property="show-toolbar" bind-flags="sync-create"/>
             <child>
               <object class="GtkButton">
