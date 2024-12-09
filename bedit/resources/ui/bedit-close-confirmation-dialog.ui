@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <template class="BeditCloseConfirmationDialog" parent="GtkWindow">
+    <property name="modal">true</property>
     <child>
       <object class="BrkToolbarView">
         <child type="bottom">
