@@ -129,6 +129,7 @@ bedit_sources = [
   'bedit/bedit-document.vala',
   'bedit/bedit-searchbar.vala',
   'bedit/bedit-window.vala',
+  'bedit/bedit-tab-view.vala',
   'bedit/bedit-toolbar.vala',
   bedit_resources.get(0),
   bedit_resources.get(1),
