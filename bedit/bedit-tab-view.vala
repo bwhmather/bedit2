@@ -265,6 +265,10 @@ private class Bedit.TabPageStack : Gtk.Widget {
         this.children.insert(index, page);
         page.bin.set_parent(this);
 
+        if (this.n_pages == 1) {
+            this.selected_page = page;
+        }
+
         unowned Bedit.TabPage reference = page;
         return reference;
     }
