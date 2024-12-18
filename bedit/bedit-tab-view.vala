@@ -1,3 +1,22 @@
+/**
+ * # CSS nodes
+ *
+ * ```
+ * tabview[.empty][.single]
+ * ├── tabbar
+ * ┊   ├── tabbuttons.start
+ * ┊   ┊
+ * ┊   ├── tabs
+ * ┊   ┊    ╰── tab[.selected]
+ * ┊   ┊
+ * ┊   ╰── tabbuttons.end
+ * ┊
+ * ╰── tabpages
+ *     ╰── tabpage
+ *          ╰── <child>
+ * ```
+ */
+
 [Flags]
 public enum Bedit.TabViewShortcuts {
     NONE,
@@ -69,6 +88,7 @@ private class Bedit.TabPageBin : Gtk.Widget {
 
 public class Bedit.TabPage : GLib.Object {
     internal Bedit.TabPageBin bin = new Bedit.TabPageBin();
+//    internal GLib.WeakRef last_focus;
 
     /**
      * The child widget that this page wraps.
@@ -159,14 +179,124 @@ public class Bedit.TabPage : GLib.Object {
      * of the tab bar will be highlighted.
      */
     public bool needs_attention { get; set; }
+
+    internal TabPage(Gtk.Widget child) {
+        Object(child: child);
+    }
 }
 
+private class Bedit.TabPageStack : Gtk.Widget {
+    private GLib.ListStore children = new GLib.ListStore(typeof(Bedit.TabPage));
+
+    internal int n_pages { get; private set; }
+
+    internal Gtk.SelectionModel pages { owned get; private set; }
+
+    private Bedit.TabPage? _selected_page;
+    internal Bedit.TabPage? selected_page {
+        get { return this._selected_page; }
+        set {
+            return_if_fail(value == null || value.bin.parent == this);
+
+            var contains_focus = false;
+
+            var old_value = this.selected_page;
+
+            if (old_value == value) {
+                return;
+            }
+
+            if (old_value != null) {
+                if (!old_value.bin.in_destruction() && old_value.bin.has_focus) {
+                    // TODO save focus.
+                    contains_focus = false;
+                }
+
+                old_value.bin.set_child_visible(false);
+            }
+
+            this._selected_page = value;
+
+            if (value != null) {
+                if (!this.in_destruction()) {
+                    value.bin.set_child_visible(true);
+
+                    if (contains_focus) {
+                        // TODO restore focus.
+                    }
+                }
+            }
+        }
+    }
+    internal bool is_transferring_page { get; private set; }
+
+    public signal bool close_page(Bedit.TabPage page);
+    public signal unowned Bedit.TabPageStack? create_window();
+    public signal void indicator_activated(Bedit.TabPage page);
+    public signal void page_attached(Bedit.TabPage page);
+    public signal void page_detached(Bedit.TabPage page);
+    public signal void setup_menu(Bedit.TabPage? page);
+
+    static construct {
+        set_layout_manager_type(typeof (Gtk.BinLayout));
+        set_css_name("tabpages");
+    }
+
+    public override bool
+    focus(Gtk.DirectionType direction) {
+        if (this.selected_page == null) {
+            return false;
+        }
+
+        // TODO restore focus.
+        return this.selected_page.bin.focus(direction);
+    }
+
+    internal unowned Bedit.TabPage
+    add_page(Gtk.Widget child, Bedit.TabPage? parent) {
+        return_val_if_fail(child.parent != null, null);
+
+        var page = new Bedit.TabPage(child);
+
+        // TODO position should depend on parent, on the existing children of
+        // the parent, and probably on lots of other subtle things.
+        uint index = this.children.n_items;
+
+        this.children.insert(index, page);
+        page.bin.set_parent(this);
+
+        unowned Bedit.TabPage reference = page;
+        return reference;
+    }
+
+    public void
+    transfer_page(Bedit.TabPage page, Bedit.TabPageStack other_stack) {
+
+    }
+}
+
+
 public class Bedit.TabView : Gtk.Widget {
+    internal Bedit.TabPageStack stack = new Bedit.TabPageStack();
 
     /**
      * The number of pages in the tab view.
      */
-    public int n_pages { get; }
+    public int n_pages { get; private set; }
+
+    /**
+     * A selection model with the tab view's pages.
+     *
+     * This can be used to keep an up-to-date view. The model also implements
+     * [iface@Gtk.SelectionModel] and can be used to track and change the selected
+     * page.
+     */
+    public Gtk.SelectionModel pages { owned get; private set; }
+
+    /**
+     * The currently visible page.
+     */
+    public Bedit.TabPage selected_page { get; set; }
 
     /**
      * Whether a page is being transferred.
@@ -177,12 +307,7 @@ public class Bedit.TabView : Gtk.Widget {
      * During the transfer, children cannot receive pointer input and a tab can
      * be safely dropped on the tab view.
      */
-    public bool is_transferring_page { get; }
-
-    /**
-     * The currently visible page.
-     */
-    public Bedit.TabPage selected_page { get; set; }
+    public bool is_transferring_page { get; private set; }
 
     /**
      * Tab context menu model.
@@ -192,15 +317,6 @@ public class Bedit.TabView : Gtk.Widget {
      * the menu actions for the particular tab.
      */
     public GLib.MenuModel menu_model { get; set; }
-
-    /**
-     * A selection model with the tab view's pages.
-     *
-     * This can be used to keep an up-to-date view. The model also implements
-     * [iface@Gtk.SelectionModel] and can be used to track and change the selected
-     * page.
-     */
-    public Gtk.SelectionModel pages { owned get; }
 
     /**
      * Requests to close page.
@@ -241,16 +357,22 @@ public class Bedit.TabView : Gtk.Widget {
     public signal void page_detached(Bedit.TabPage page);
     public signal void setup_menu(Bedit.TabPage? page);
 
-    public unowned Bedit.TabPage add_page(Gtk.Widget child, Bedit.TabPage? parent) {
-
+    static construct {
+        set_layout_manager_type(typeof (Gtk.BoxLayout));
+        set_css_name("tabview");
     }
 
-    public unowned Bedit.TabPage get_page(Gtk.Widget child) {
-
+    construct {
+        this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.VERTICAL, -1);
     }
 
-    public void transfer_page(Bedit.TabPage page, Bedit.TabView other_view, int position) {
-
+    public unowned Bedit.TabPage
+    add_page(Gtk.Widget child, Bedit.TabPage? parent) {
+        return this.stack.add_page(child, parent);
     }
 
+    public void
+    transfer_page(Bedit.TabPage page, Bedit.TabView other_view) {
+        this.stack.transfer_page(page, other_view.stack);
+    }
 }
