@@ -375,4 +375,9 @@ public class Bedit.TabView : Gtk.Widget {
     transfer_page(Bedit.TabPage page, Bedit.TabView other_view) {
         this.stack.transfer_page(page, other_view.stack);
     }
+
+    public void
+    close_page_finish(Bedit.TabPage page, bool should_close) {
+
+    }
 }

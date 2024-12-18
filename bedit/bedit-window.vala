@@ -14,7 +14,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     private GLib.Cancellable cancellable = new GLib.Cancellable();
 
     [GtkChild]
-    private unowned Brk.TabView tab_view;
+    private unowned Bedit.TabView tab_view;
 
     public Bedit.Document? active_document { get; private set; }
 
@@ -409,7 +409,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     }
 
     private bool
-    on_tab_view_close_page_request(Brk.TabView view, Brk.TabPage page) {
+    on_tab_view_close_page_request(Bedit.TabView view, Bedit.TabPage page) {
         var document = page.child as Bedit.Document;
         this.document_confirm_close_async.begin(document, (_, res) => {
             try {
@@ -423,9 +423,8 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     }
 
     class construct {
-        typeof (Brk.TabBar).ensure();
-        typeof (Brk.TabView).ensure();
         typeof (Brk.ToolbarView).ensure();
+        typeof (Bedit.TabView).ensure();
         typeof (Bedit.Toolbar).ensure();
         typeof (Bedit.Document).ensure();
         typeof (Bedit.Searchbar).ensure();
@@ -457,7 +456,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     public void
     add_document(Bedit.Document document) {
-        Brk.TabPage page = tab_view.append(document);
+        Bedit.TabPage page = tab_view.add_page(document, null);
         document.bind_property("title", page, "title", SYNC_CREATE);
     }
 }
