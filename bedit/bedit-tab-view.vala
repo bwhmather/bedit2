@@ -254,7 +254,7 @@ private class Bedit.TabPageStack : Gtk.Widget {
 
     internal unowned Bedit.TabPage
     add_page(Gtk.Widget child, Bedit.TabPage? parent) {
-        return_val_if_fail(child.parent != null, null);
+        return_val_if_fail(child.parent == null, null);
 
         var page = new Bedit.TabPage(child);
 
