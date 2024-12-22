@@ -420,6 +420,7 @@ public class Bedit.TabView : Gtk.Widget {
     }
 
     construct {
+        this.stack.set_parent(this);
         this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.VERTICAL, -1);
     }
 
