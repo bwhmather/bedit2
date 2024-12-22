@@ -252,6 +252,59 @@ private class Bedit.TabPageStack : Gtk.Widget {
         return this.selected_page.bin.focus(direction);
     }
 
+    public override void
+    measure(Gtk.Orientation orientation, int for_size, out int minimum, out int natural, out int minimum_baseline, out int natural_baseline) {
+        minimum = 0;
+        natural = 0;
+
+        for (var i = 0; i < this.children.get_n_items(); i++) {
+            var page = this.children.get_item(i) as Bedit.TabPage;
+
+            int child_minimum, child_natural;
+            page.bin.measure(orientation, for_size, out child_minimum, out child_natural, null, null);
+
+            if (child_minimum > minimum) {
+                minimum = child_minimum;
+            }
+            if (child_natural > natural) {
+                natural = child_natural;
+            }
+        }
+
+        minimum_baseline = 0;
+        natural_baseline = 0;
+    }
+
+    public override void
+    size_allocate (int width, int height, int baseline) {
+        for (var i = 0; i < this.children.get_n_items(); i++) {
+            var page = this.children.get_item(i) as Bedit.TabPage;
+
+            if (page.bin.get_child_visible()) {
+                page.bin.allocate(width, height, baseline, null);
+            }
+        }
+    }
+
+    public override void
+    snapshot(Gtk.Snapshot snapshot) {
+        if (this.selected_page != null) {
+            this.snapshot_child(this.selected_page.bin, snapshot);
+        }
+    }
+
+    public override Gtk.SizeRequestMode
+    get_request_mode() {
+        // TODO
+        return Gtk.SizeRequestMode.HEIGHT_FOR_WIDTH;
+    }
+
+    public override void
+    compute_expand_internal(out bool hexpand, out bool vexpand) {
+        hexpand = true;
+        vexpand = true;
+    }
+
     internal unowned Bedit.TabPage
     add_page(Gtk.Widget child, Bedit.TabPage? parent) {
         return_val_if_fail(child.parent == null, null);
