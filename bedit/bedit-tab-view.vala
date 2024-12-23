@@ -42,7 +42,7 @@ private class Bedit.TabPageBin : Gtk.Widget {
         set {
             return_if_fail(value == null || value.parent == null);
 
-            if (child == this._child) {
+            if (value == this._child) {
                 return;
             }
 
@@ -50,7 +50,7 @@ private class Bedit.TabPageBin : Gtk.Widget {
                 this._child.unparent();
             }
 
-            this._child = child;
+            this._child = value;
             this._child.set_parent(this);
         }
     }
