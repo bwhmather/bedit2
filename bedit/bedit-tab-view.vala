@@ -188,7 +188,7 @@ public class Bedit.TabPage : GLib.Object {
 private class Bedit.TabPageStack : Gtk.Widget {
     private GLib.ListStore children = new GLib.ListStore(typeof(Bedit.TabPage));
 
-    internal int n_pages { get; private set; }
+    internal int n_pages { get; internal set; }
 
     internal Gtk.SelectionModel pages { owned get; private set; }
 
@@ -224,6 +224,7 @@ private class Bedit.TabPageStack : Gtk.Widget {
                     if (contains_focus) {
                         // TODO restore focus.
                     }
+                    this.queue_allocate();
                 }
             }
         }
@@ -240,6 +241,10 @@ private class Bedit.TabPageStack : Gtk.Widget {
     static construct {
         set_layout_manager_type(typeof (Gtk.BinLayout));
         set_css_name("tabpages");
+    }
+
+    construct {
+        this.children.bind_property("n-items", this, "n-pages", SYNC_CREATE);
     }
 
     public override bool
@@ -295,7 +300,6 @@ private class Bedit.TabPageStack : Gtk.Widget {
 
     public override Gtk.SizeRequestMode
     get_request_mode() {
-        // TODO
         return Gtk.SizeRequestMode.HEIGHT_FOR_WIDTH;
     }
 
@@ -316,7 +320,10 @@ private class Bedit.TabPageStack : Gtk.Widget {
         uint index = this.children.n_items;
 
         this.children.insert(index, page);
+
         page.bin.set_parent(this);
+        page.bin.set_child_visible(false);
+        this.queue_resize();
 
         if (this.n_pages == 1) {
             this.selected_page = page;
