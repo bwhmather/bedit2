@@ -35,6 +35,14 @@ public enum Bedit.TabViewShortcuts {
     ALL_SHORTCUTS
 }
 
+
+[GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-tab.ui")]
+private class Bedit.Tab : Gtk.Widget {
+    [GtkChild]
+    private unowned Gtk.Label label;
+}
+
+
 private class Bedit.TabPageBin : Gtk.Widget {
     Gtk.Widget? _child;
     public Gtk.Widget? child {
@@ -87,6 +95,7 @@ private class Bedit.TabPageBin : Gtk.Widget {
 
 
 public class Bedit.TabPage : GLib.Object {
+    internal Bedit.Tab tab = new Bedit.Tab();
     internal Bedit.TabPageBin bin = new Bedit.TabPageBin();
 //    internal GLib.WeakRef last_focus;
 
@@ -180,10 +189,13 @@ public class Bedit.TabPage : GLib.Object {
      */
     public bool needs_attention { get; set; }
 
+
+
     internal TabPage(Gtk.Widget child) {
         Object(child: child);
     }
 }
+
 
 private class Bedit.TabPageStack : Gtk.Widget {
     private GLib.ListStore children = new GLib.ListStore(typeof(Bedit.TabPage));
@@ -336,6 +348,32 @@ private class Bedit.TabPageStack : Gtk.Widget {
     public void
     transfer_page(Bedit.TabPage page, Bedit.TabPageStack other_stack) {
 
+    }
+}
+
+
+public class Bedit.Tabs : Gtk.Widget {
+    static construct {
+        set_layout_manager_type(typeof (Gtk.BoxLayout));
+        set_css_name("tabs");
+        set_accessible_role(GROUP);
+    }
+
+    construct {
+        this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.HORIZONTAL, -1);
+    }
+}
+
+
+public class Bedit.TabBar : Gtk.Widget {
+    static construct {
+        set_layout_manager_type(typeof (Gtk.BoxLayout));
+        set_css_name("tabbar");
+        set_accessible_role(GROUP);
+    }
+
+    construct {
+        this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.HORIZONTAL, -1);
     }
 }
 
