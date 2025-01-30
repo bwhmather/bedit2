@@ -87,6 +87,7 @@ private class Bedit.TabPageBin : Gtk.Widget {
 
 
 public class Bedit.TabPage : GLib.Object {
+    //internal Bedit.Tab tab = new Bedit.Tab();
     internal Bedit.TabPageBin bin = new Bedit.TabPageBin();
 //    internal GLib.WeakRef last_focus;
 
@@ -340,8 +341,54 @@ private class Bedit.TabPageStack : Gtk.Widget {
 }
 
 
+[GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-tab.ui")]
+private sealed class Bedit.Tab : Gtk.Widget {
+//    [GtkChild]
+//    private unowned Gtk.Label label;
+}
+
+public class Bedit.Tabs : Gtk.Widget {
+    static construct {
+        set_layout_manager_type(typeof (Gtk.BoxLayout));
+        set_css_name("tabs");
+        set_accessible_role(GROUP);
+    }
+
+    construct {
+        this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.HORIZONTAL, -1);
+    }
+}
+
+
+private sealed class Bedit.TabBar : Gtk.Widget {
+
+    public Bedit.TabPageStack stack { get; construct; }
+
+    static construct {
+        set_layout_manager_type(typeof (Gtk.BoxLayout));
+        set_css_name("tabbar");
+        set_accessible_role(GROUP);
+    }
+
+    construct {
+        this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.HORIZONTAL, -1);
+
+        this.pages.selection_model.items_changed.connect((position, removed, added) => {
+
+
+        });
+    }
+
+    public TabBar(Bedit.TabPageStack stack) {
+        Object(
+            stack: stack
+        );
+    }
+}
+
 public class Bedit.TabView : Gtk.Widget {
-    internal Bedit.TabPageStack stack = new Bedit.TabPageStack();
+    private Bedit.TabPageStack stack;
+    private Bedit.TabBar bar;
 
     /**
      * The number of pages in the tab view.
@@ -427,8 +474,13 @@ public class Bedit.TabView : Gtk.Widget {
     }
 
     construct {
-        this.stack.set_parent(this);
         this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.VERTICAL, -1);
+
+        this.stack = new Bedit.TabPageStack();
+        this.stack.insert_after(this, null);
+
+        this.bar = new Bedit.TabBar(stack);
+        this.bar.insert_after(this, null);
     }
 
     public unowned Bedit.TabPage
