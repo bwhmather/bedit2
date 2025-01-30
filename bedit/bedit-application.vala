@@ -83,7 +83,7 @@ class Bedit.Application : Gtk.Application {
         }
 
         bool standalone = false;
-        options.lookup("standalon", "b", standalone);
+        options.lookup("standalone", "b", standalone);
         if (standalone) {
             this.flags |= NON_UNIQUE;
             options.remove("standalone");
