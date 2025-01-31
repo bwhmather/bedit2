@@ -129,4 +129,12 @@ public sealed class Bedit.Document : Gtk.Widget {
         var clipboard = this.get_display().get_clipboard();
         this.source_buffer.paste_clipboard(clipboard, null, true);
     }
+
+    public void
+    select_all() {
+        Gtk.TextIter start;
+        Gtk.TextIter end;
+        this.source_buffer.get_bounds(out start, out end);
+        this.source_buffer.select_range(start, end);
+    }
 }

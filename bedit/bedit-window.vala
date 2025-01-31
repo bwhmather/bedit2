@@ -182,6 +182,10 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private void
     action_doc_select_all() {
+        return_if_fail(this.active_document != null);
+        return_if_fail(!this.active_document.busy);
+
+        this.active_document.select_all();
     }
 
     /* --- Commenting and Uncommenting -------------------------------------------------------------------- */
