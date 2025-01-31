@@ -137,4 +137,16 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.source_buffer.get_bounds(out start, out end);
         this.source_buffer.select_range(start, end);
     }
+
+    public void
+    sort_lines() {
+        Gtk.TextIter start;
+        Gtk.TextIter end;
+
+        if (!this.source_buffer.get_selection_bounds(out start, out end)) {
+            this.source_buffer.get_bounds(out start, out end);
+        }
+        this.source_buffer.sort_lines(start, end, NONE, 0);
+    }
+
 }
