@@ -19,6 +19,9 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     public bool can_undo { get; private set; }
     public bool can_redo { get; private set; }
+    public bool can_cut { get; private set; }
+    public bool can_copy { get; private set; }
+    public bool can_paste { get; private set; default = true; }
 
     class construct {
         set_layout_manager_type(typeof (Gtk.BinLayout));
@@ -36,6 +39,11 @@ public sealed class Bedit.Document : Gtk.Widget {
         });
         this.source_buffer.notify["can-redo"].connect((sb, pspec) => {
             this.can_redo = source_buffer.can_redo;
+        });
+        this.source_buffer.notify["has-selection"].connect((db, pspec) => {
+            bool has_selection = this.source_buffer.has_selection;
+            this.can_cut = has_selection;
+            this.can_copy = has_selection;
         });
         this.source_buffer.modified_changed.connect((tb) => {
             this.modified = this.source_buffer.get_modified();
@@ -102,5 +110,23 @@ public sealed class Bedit.Document : Gtk.Widget {
     public void
     redo() {
         this.source_buffer.redo();
+    }
+
+    public void
+    cut() {
+        var clipboard = this.get_display().get_clipboard();
+        this.source_buffer.cut_clipboard(clipboard, true);
+    }
+
+    public void
+    copy() {
+        var clipboard = this.get_display().get_clipboard();
+        this.source_buffer.copy_clipboard(clipboard);
+    }
+
+    public void
+    paste() {
+        var clipboard = this.get_display().get_clipboard();
+        this.source_buffer.paste_clipboard(clipboard, null, true);
     }
 }

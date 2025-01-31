@@ -155,14 +155,27 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private void
     action_doc_cut() {
+        return_if_fail(this.active_document != null);
+        return_if_fail(this.active_document.can_cut);
+
+        this.active_document.cut();
+
     }
 
     private void
     action_doc_copy() {
+        return_if_fail(this.active_document != null);
+        return_if_fail(this.active_document.can_copy);
+
+        this.active_document.copy();
     }
 
     private void
     action_doc_paste() {
+        return_if_fail(this.active_document != null);
+        return_if_fail(this.active_document.can_paste);
+
+        this.active_document.paste();
     }
 
     /* --- Selection -------------------------------------------------------------------------------------- */
@@ -249,6 +262,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         bool has_file = exists && this.active_document.file != null;
         bool can_undo = exists && this.active_document.can_undo;
         bool can_redo = exists && this.active_document.can_redo;
+        bool can_cut = exists && this.active_document.can_cut;
+        bool can_copy = exists && this.active_document.can_copy;
+        bool can_paste = exists && this.active_document.can_paste;
 
         document_actions_set_action_enabled("save", exists && idle && has_file);
         document_actions_set_action_enabled("save-as", exists && idle);
@@ -258,9 +274,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         document_actions_set_action_enabled("close", exists && idle);
         document_actions_set_action_enabled("undo", exists && idle && can_undo);
         document_actions_set_action_enabled("redo", exists && idle && can_redo);
-        document_actions_set_action_enabled("cut", exists && idle);
-        document_actions_set_action_enabled("copy", exists && idle);
-        document_actions_set_action_enabled("paste", exists && idle);
+        document_actions_set_action_enabled("cut", exists && idle && can_cut);
+        document_actions_set_action_enabled("copy", exists && idle && can_copy);
+        document_actions_set_action_enabled("paste", exists && idle && can_paste);
         document_actions_set_action_enabled("select-all", exists && idle);
         document_actions_set_action_enabled("comment", exists && idle);
         document_actions_set_action_enabled("uncomment", exists && idle);
@@ -300,6 +316,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
         this.document_actions_update_on_notify("can-undo");
         this.document_actions_update_on_notify("can-redo");
+        this.document_actions_update_on_notify("can-cut");
+        this.document_actions_update_on_notify("can-copy");
+        this.document_actions_update_on_notify("can-paste");
         this.document_actions_update_on_notify("file");
         this.document_actions_update_on_notify("loading");
         this.document_actions_update_on_notify("saving");
