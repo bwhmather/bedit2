@@ -62,7 +62,7 @@
               <object class="BrkButtonGroup">
                 <property name="halign">fill</property>
                 <child>
-                  <object class="GtkButton" id="case_sensitive_toggle">
+                  <object class="GtkToggleButton" id="case_sensitive_toggle">
                     <property name="hexpand">true</property>
                     <property name="label">Aa</property>
                     <property name="tooltip-text">Match case</property>
@@ -70,7 +70,7 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkButton" id="regex_toggle">
+                  <object class="GtkToggleButton" id="regex_toggle">
                     <property name="hexpand">true</property>
                     <property name="label">.*</property>
                     <property name="tooltip-text">Use regular expressions (Ctrl+.)</property>

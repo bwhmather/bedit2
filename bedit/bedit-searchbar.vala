@@ -22,10 +22,10 @@ public sealed class Searchbar : Gtk.Widget {
     unowned Gtk.Button case_sensitive_toggle;
 
     [GtkChild]
-    unowned Gtk.Button regex_toggle;
+    unowned Gtk.ToggleButton regex_toggle;
 
     [GtkChild]
-    unowned Gtk.Button replace_button;
+    unowned Gtk.ToggleButton replace_button;
 
     [GtkChild]
     unowned Gtk.Button replace_all_button;
