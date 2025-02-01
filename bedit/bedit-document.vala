@@ -115,7 +115,7 @@ public sealed class Bedit.Document : Gtk.Widget {
     public void
     cut() {
         var clipboard = this.get_display().get_clipboard();
-        this.source_buffer.cut_clipboard(clipboard, true);
+        this.source_buffer.cut_clipboard(clipboard, this.source_view.editable);
     }
 
     public void
@@ -127,7 +127,7 @@ public sealed class Bedit.Document : Gtk.Widget {
     public void
     paste() {
         var clipboard = this.get_display().get_clipboard();
-        this.source_buffer.paste_clipboard(clipboard, null, true);
+        this.source_buffer.paste_clipboard(clipboard, null, this.source_view.editable);
     }
 
     public void
@@ -149,4 +149,32 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.source_buffer.sort_lines(start, end, NONE, 0);
     }
 
+    public void
+    delete_line() {
+        Gtk.TextIter start;
+        Gtk.TextIter end;
+        if (!this.source_buffer.get_selection_bounds(out start, out end)) {
+            var cursor = this.source_buffer.get_insert();
+            this.source_buffer.get_iter_at_mark(out start, cursor);
+            end = start;
+        }
+        start.order(ref end);
+
+        start.set_line_offset(0);
+        end.forward_lines(1);
+
+        if (end.is_end()) {
+            if (start.backward_line() && !start.ends_line()) {
+                start.forward_to_line_end();
+            }
+        }
+
+        if (!start.equal(end)){
+            this.source_buffer.begin_user_action();
+            this.source_buffer.delete_interactive(ref start, ref end, this.source_view.editable);
+            this.source_buffer.end_user_action();
+
+            this.source_view.scroll_mark_onscreen(this.source_buffer.get_insert());
+        }
+    }
 }

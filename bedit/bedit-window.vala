@@ -220,6 +220,10 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private void
     action_doc_delete_line() {
+        return_if_fail(this.active_document != null);
+        return_if_fail(!this.active_document.busy);
+
+        this.active_document.delete_line();
     }
 
     private void
