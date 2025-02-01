@@ -2,11 +2,11 @@
 <interface>
   <template class="BeditSearchbar" parent="GtkWidget">
     <child>
-      <object class="GtkRevealer">
+      <object class="GtkRevealer" id="revealer">
         <child>
           <object class="GtkGrid">
             <child>
-              <object class="GtkEntry">
+              <object class="GtkEntry" id="search_entry">
                 <property name="hexpand">true</property>
                 <property name="tooltip-text">Search pattern</property>
                 <property name="primary-icon-name">edit-find</property>
@@ -20,7 +20,7 @@
               </object>
             </child>
             <child>
-              <object class="GtkEntry">
+              <object class="GtkEntry" id="replace_entry">
                 <property name="hexpand">true</property>
                 <property name="tooltip-text">Search replacement text</property>
                 <property name="primary-icon-name">edit-find-replace</property>
@@ -37,7 +37,7 @@
               <object class="BrkButtonGroup">
                 <property name="halign">fill</property>
                 <child>
-                  <object class="GtkButton">
+                  <object class="GtkButton" id="prev_button">
                     <property name="hexpand">true</property>
                     <property name="icon-name">go-up</property>
                     <property name="tooltip-text">Previous match (Ctrl+Shift+G)</property>
@@ -45,7 +45,7 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkButton">
+                  <object class="GtkButton" id="next_button">
                     <property name="hexpand">true</property>
                     <property name="icon-name">go-down</property>
                     <property name="tooltip-text">Next match (Ctrl+G)</property>
@@ -62,7 +62,7 @@
               <object class="BrkButtonGroup">
                 <property name="halign">fill</property>
                 <child>
-                  <object class="GtkButton">
+                  <object class="GtkButton" id="case_sensitive_toggle">
                     <property name="hexpand">true</property>
                     <property name="label">Aa</property>
                     <property name="tooltip-text">Match case</property>
@@ -70,7 +70,7 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkButton">
+                  <object class="GtkButton" id="regex_toggle">
                     <property name="hexpand">true</property>
                     <property name="label">.*</property>
                     <property name="tooltip-text">Use regular expressions (Ctrl+.)</property>
@@ -84,7 +84,7 @@
               </object>
             </child>
             <child>
-              <object class="GtkButton">
+              <object class="GtkButton" id="replace_button">
                 <property name="halign">fill</property>
                 <property name="label">Replace</property>
                 <property name="tooltip-text">Replace currently highlighted instance (Ctrl+R)</property>
@@ -96,7 +96,7 @@
               </object>
             </child>
             <child>
-              <object class="GtkButton">
+              <object class="GtkButton" id="replace_all_button">
                 <property name="halign">fill</property>
                 <property name="label">Replace All</property>
                 <property name="tooltip-text">Replace all instances (Ctrl+Alt+R)</property>
