@@ -16,6 +16,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     [GtkChild]
     private unowned Brk.TabView tab_view;
 
+    [GtkChild]
+    private unowned Bedit.Searchbar searchbar;
+
     public Bedit.Document? active_document { get; private set; }
 
     /* === Document Operations ============================================================================ */
@@ -379,41 +382,12 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.close_request();
     }
 
-    /* --- Find ------------------------------------------------------------------------------------------- */
-
-    private void
-    action_win_find() {
-    }
-
-    private void
-    action_win_find_next() {
-    }
-
-    private void
-    action_win_find_previous() {
-    }
-
-    /* --- Replace ---------------------------------------------------------------------------------------- */
-
-    private void
-    action_win_replace() {
-    }
-
-    private void
-    action_win_replace_all() {
-    }
-
     /* --- Window Action State ---------------------------------------------------------------------------- */
 
     const GLib.ActionEntry[] window_action_entries = {
         {"new", action_win_new},
         {"open", action_win_open},
         {"close", action_win_close_window},
-        {"find", action_win_find},
-        {"find-next", action_win_find_next},
-        {"find-previous", action_win_find_previous},
-        {"replace", action_win_replace},
-        {"replace-all", action_win_replace_all},
     };
 
     private void
@@ -477,6 +451,8 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
         this.window_actions_init();
         this.document_actions_init();
+
+        this.insert_action_group("search", this.searchbar.search_actions);
     }
 
     public Window(Gtk.Application application) {

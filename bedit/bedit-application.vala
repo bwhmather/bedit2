@@ -169,11 +169,12 @@ class Bedit.Application : Gtk.Application {
         this.set_accels_for_action("app.highlight-mode", {});
 
         // Search.
-        this.set_accels_for_action("win.find", {"<Control>F"});
-        this.set_accels_for_action("win.find-next", {"<Control>G"});
-        this.set_accels_for_action("win.find-previous", {"<Control><Shift>G"});
-        this.set_accels_for_action("win.replace", {"<Control>R"});
-        this.set_accels_for_action("win.replace-all", {"<Control><Alt>R"});
+        this.set_accels_for_action("search.find", {"<Control>F"});
+        this.set_accels_for_action("search.find-next", {"<Control>G"});
+        this.set_accels_for_action("search.find-previous", {"<Control><Shift>G"});
+        this.set_accels_for_action("search.find-and-replace", {"<Control>H"});
+        this.set_accels_for_action("search.replace", {"<Control>R"});
+        this.set_accels_for_action("search.replace-all", {"<Control><Alt>R"});
         this.set_accels_for_action("win.go-to-line", {"<Control>I"});
 
         // Tools.

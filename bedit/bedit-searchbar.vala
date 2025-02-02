@@ -58,7 +58,7 @@ public sealed class Searchbar : Gtk.Widget {
     */
 
 
-    private GLib.SimpleActionGroup search_actions = new GLib.SimpleActionGroup();
+    public GLib.SimpleActionGroup search_actions = new GLib.SimpleActionGroup();
 
     private void
     action_find_prev() {

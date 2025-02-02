@@ -190,25 +190,25 @@
       <section>
         <item>
           <attribute name="label" translatable="yes">Find</attribute>
-          <attribute name="action">win.find</attribute>
+          <attribute name="action">search.find</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Find Next</attribute>
-          <attribute name="action">win.find-next</attribute>
+          <attribute name="action">search.find-next</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Find Previous</attribute>
-          <attribute name="action">win.find-previous</attribute>
+          <attribute name="action">search.find-previous</attribute>
         </item>
       </section>
       <section>
         <item>
           <attribute name="label" translatable="yes">Replace</attribute>
-          <attribute name="action">win.replace</attribute>
+          <attribute name="action">search.replace</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Replace All</attribute>
-          <attribute name="action">win.replace-all</attribute>
+          <attribute name="action">search.replace-all</attribute>
         </item>
       </section>
       <section>
