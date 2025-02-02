@@ -41,7 +41,7 @@
                     <property name="hexpand">true</property>
                     <property name="icon-name">go-up</property>
                     <property name="tooltip-text">Previous match (Ctrl+Shift+G)</property>
-                    <property name="action-name">win.find-previous</property>
+                    <property name="action-name">search.find-previous</property>
                   </object>
                 </child>
                 <child>
@@ -49,7 +49,7 @@
                     <property name="hexpand">true</property>
                     <property name="icon-name">go-down</property>
                     <property name="tooltip-text">Next match (Ctrl+G)</property>
-                    <property name="action-name">win.find-next</property>
+                    <property name="action-name">search.find-next</property>
                   </object>
                 </child>
                 <layout>
@@ -66,7 +66,7 @@
                     <property name="hexpand">true</property>
                     <property name="label">Aa</property>
                     <property name="tooltip-text">Match case</property>
-                    <property name="action-name">win.case-sensitive-search</property>
+                    <property name="action-name">search.case-sensitive</property>
                   </object>
                 </child>
                 <child>
@@ -74,7 +74,7 @@
                     <property name="hexpand">true</property>
                     <property name="label">.*</property>
                     <property name="tooltip-text">Use regular expressions (Ctrl+.)</property>
-                    <property name="action-name">win.regular-expression-search</property>
+                    <property name="action-name">search.regex</property>
                   </object>
                 </child>
                 <layout>
@@ -88,7 +88,7 @@
                 <property name="halign">fill</property>
                 <property name="label">Replace</property>
                 <property name="tooltip-text">Replace currently highlighted instance (Ctrl+R)</property>
-                <property name="action-name">win.replace</property>
+                <property name="action-name">search.replace</property>
                 <layout>
                   <property name="column">1</property>
                   <property name="row">1</property>
@@ -100,7 +100,7 @@
                 <property name="halign">fill</property>
                 <property name="label">Replace All</property>
                 <property name="tooltip-text">Replace all instances (Ctrl+Alt+R)</property>
-                <property name="action-name">win.replace-all</property>
+                <property name="action-name">search.replace-all</property>
                 <layout>
                   <property name="column">2</property>
                   <property name="row">1</property>
