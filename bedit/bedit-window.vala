@@ -508,12 +508,21 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     }
 
+    private void
+    action_search_hide() {
+        this.freeze_notify();
+        this.search_visible = false;
+        this.replace_visible = false;
+        this.thaw_notify();
+    }
+
     const GLib.ActionEntry[] search_action_entries = {
         {"find", action_search_find},
         {"find-previous", action_search_find_prev},
         {"find-next", action_search_find_next},
         {"replace", action_search_replace},
         {"replace-all", action_search_replace_all},
+        {"hide", action_search_hide},
     };
 
     private void

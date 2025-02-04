@@ -233,6 +233,18 @@
                     </layout>
                   </object>
                 </child>
+                <child>
+                  <object class="GtkButton">
+                    <property name="halign">fill</property>
+                    <property name="label">Hide</property>
+                    <property name="tooltip-text">Hide the search bar (Escape)</property>
+                    <property name="action-name">search.hide</property>
+                    <layout>
+                      <property name="column">3</property>
+                      <property name="row">0</property>
+                    </layout>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
