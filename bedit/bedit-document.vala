@@ -366,8 +366,6 @@ public sealed class Bedit.Document : Gtk.Widget {
 
         this.wait_focus_first();
 
-//        replacement = GtkSourceUtils.unescape_search_text(replacement);  // TODO
-
         this.source_buffer.get_selection_bounds(out selection_start, out selection_end);
         this.search_context.replace(selection_start, selection_end, replacement, -1);
 
@@ -387,6 +385,20 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.search_cancellable = null;
 
         this.search_context = null;
+    }
+
+    public string?
+    get_selection() {
+        Gtk.TextIter selection_start;
+        Gtk.TextIter selection_end;
+        bool found;
+
+        found = this.source_buffer.get_selection_bounds(out selection_start, out selection_end);
+        if (!found) {
+            return null;
+        }
+
+        return this.source_buffer.get_slice(selection_start, selection_end, true);
     }
 
     private void

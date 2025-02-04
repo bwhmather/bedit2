@@ -400,11 +400,14 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     [GtkChild]
     unowned Gtk.Entry replace_entry;
 
+    public bool search_visible { get; private set; }
+    public bool replace_visible { get; private set; }
     public bool search_active { get; private set; }
     public bool replace_active { get; private set; }
     public string query { get; private set; }
     public bool regex { get; set; }
     public bool case_sensitive { get; set; }
+
 
 
     /*
@@ -443,6 +446,47 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     public GLib.SimpleActionGroup search_actions = new GLib.SimpleActionGroup();
 
     private void
+    set_search_text_from_selection() {
+        string escaped;
+
+        if (this.active_document == null) {
+            return;
+        }
+
+        var selection = this.active_document.get_selection();
+        if (selection == null) {
+            return;
+        }
+        if (selection.length == 0) {
+            return;
+        }
+
+        if (this.regex) {
+            escaped = GLib.Regex.escape_string(selection, -1);
+        } else {
+            escaped = selection.escape();
+        }
+
+        if (strcmp(this.search_entry.text, escaped) == 0) {
+            return;
+        }
+
+        this.search_entry.text = escaped;
+        this.search_entry.set_position(-1);
+    }
+
+    private void
+    action_search_find() {
+        this.freeze_notify();
+        this.search_visible = true;
+        this.set_search_text_from_selection();
+        this.thaw_notify();
+
+        this.search_entry.grab_focus();
+        this.search_entry.select_region(0, -1);
+    }
+
+    private void
     action_search_find_prev() {
         this.active_document.find_prev();
     }
@@ -454,7 +498,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private void
     action_search_replace() {
-
+        try {
+            this.active_document.replace(this.replace_entry.text.compress());
+        } catch(Error err) {}
     }
 
     private void
@@ -463,6 +509,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     }
 
     const GLib.ActionEntry[] search_action_entries = {
+        {"find", action_search_find},
         {"find-previous", action_search_find_prev},
         {"find-next", action_search_find_next},
         {"replace", action_search_replace},
@@ -494,8 +541,12 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
             replace_active = false;
         }
 
-        // TODO: `if mode == HIDDEN`
-
+        if (!this.search_visible) {
+            search_active = false;
+        }
+        if (!this.replace_visible) {
+            replace_active = false;
+        }
 
         search_text = this.search_entry.text;
         if (search_text == null || search_text[0] == '\0') {
@@ -542,6 +593,8 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         //this.replace_entry.connect("escaped", this.replace_entry_on_escaped);
 
         this.notify["active-document"].connect((s, pspec) => { this.update_search(); });
+        this.notify["search-visible"].connect((s, pspec) => {this.update_search();});
+        this.notify["replace-visible"].connect((s, pspec) => {this.update_search();});
 
         this.notify["search-active"].connect((s, pspec) => { this.search_actions_update(); });
         this.notify["replace-active"].connect((s, pspec) => { this.search_actions_update(); });
