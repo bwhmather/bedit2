@@ -423,25 +423,10 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         assert(search_entry == this.search_entry);
     }
 
-    /*
-       private void
-       search_entry_on_escaped(Gtk.Entry search_entry) {
-        assert(search_entry == this.search_entry);
-       }
-     */
-
     private void
     replace_entry_on_activate(Gtk.Entry replace_entry) {
         assert(replace_entry == this.replace_entry);
     }
-
-    /*
-       private void
-       replace_entry_on_escaped(Gtk.Entry replace_entry) {
-        assert(replace_entry == this.replace_entry);
-       }
-     */
-
 
     public GLib.SimpleActionGroup search_actions = new GLib.SimpleActionGroup();
 
@@ -596,10 +581,8 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
             this.update_search();
             this.focus_first();
         });
-        //this.search_entry.escaped.connect(this.search_entry_on_escaped);
 
         this.replace_entry.activate.connect(this.replace_entry_on_activate);
-        //this.replace_entry.connect("escaped", this.replace_entry_on_escaped);
 
         this.notify["active-document"].connect((s, pspec) => { this.update_search(); });
         this.notify["search-visible"].connect((s, pspec) => {this.update_search();});
