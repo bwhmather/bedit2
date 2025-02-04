@@ -320,6 +320,10 @@ public sealed class Bedit.Document : Gtk.Widget {
 
         this.wait_focus_first();
 
+        if (this.search_context == null) {
+            return;
+        }
+
         this.source_buffer.get_selection_bounds(null, out start_at);
 
         found = this.search_context.forward(start_at, out match_start, out match_end, null);
@@ -332,12 +336,42 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     public void
     find_prev() {
+        Gtk.TextIter start_at;
+        Gtk.TextIter match_start;
+        Gtk.TextIter match_end;
+        bool found;
 
+        this.wait_focus_first();
+
+        if (this.search_context == null) {
+            return;
+        }
+
+        this.source_buffer.get_selection_bounds(out start_at, null);
+
+        found = this.search_context.backward(start_at, out match_start, out match_end, null);
+        if (found) {
+            this.source_buffer.select_range(match_start, match_end);
+            this.reset_search_start_mark();
+            this.scroll_to_cursor();
+        }
     }
 
     public void
-    replace(string replacement) {
+    replace(string replacement) throws Error {
+        Gtk.TextIter selection_start;
+        Gtk.TextIter selection_end;
 
+        return_if_fail(this.search_context != null);
+
+        this.wait_focus_first();
+
+//        replacement = GtkSourceUtils.unescape_search_text(replacement);  // TODO
+
+        this.source_buffer.get_selection_bounds(out selection_start, out selection_end);
+        this.search_context.replace(selection_start, selection_end, replacement, -1);
+
+        this.find_next();
     }
 
     public void
