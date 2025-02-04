@@ -16,8 +16,6 @@ public sealed class Searchbar : Gtk.Widget {
     public bool case_sensitive { get; set; }
     public Bedit.Document? document { get; set; }
 
-
-
     static construct {
         typeof (Brk.ButtonGroup).ensure();
 
@@ -61,12 +59,12 @@ public sealed class Searchbar : Gtk.Widget {
 
     private void
     action_find_prev() {
-
+        this.document.find_prev();
     }
 
     private void
     action_find_next() {
-
+        this.document.find_next();
     }
 
     private void
