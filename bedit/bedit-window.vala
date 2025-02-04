@@ -395,6 +395,12 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.add_action_entries(window_action_entries, this);
     }
 
+    /* === Search ========================================================================================= */
+    private void
+    search_init() {
+        this.bind_property("active-document", this.searchbar, "document", SYNC_CREATE);
+    }
+
     /* === Lifecycle ====================================================================================== */
 
     private void
@@ -451,6 +457,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
         this.window_actions_init();
         this.document_actions_init();
+        this.search_init();
 
         this.insert_action_group("search", this.searchbar.search_actions);
     }

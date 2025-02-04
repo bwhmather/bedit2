@@ -3,6 +3,7 @@
   <template class="BeditSearchbar" parent="GtkWidget">
     <child>
       <object class="GtkRevealer" id="revealer">
+        <property name="reveal-child">true</property>
         <child>
           <object class="GtkGrid">
             <child>

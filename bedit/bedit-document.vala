@@ -59,6 +59,8 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.notify["loading"].connect((_, pspec) => { this.update_busy(); });
         this.notify["saving"].connect((_, pspec) => { this.update_busy(); });
 
+        search_init();
+
         if (file != null) {
             reload_async.begin(null);
         }
@@ -176,5 +178,189 @@ public sealed class Bedit.Document : Gtk.Widget {
 
             this.source_view.scroll_mark_onscreen(this.source_buffer.get_insert());
         }
+    }
+
+    /* === Search and Replace ============================================================================= */
+
+    private GtkSource.SearchContext? search_context;
+    private GLib.Cancellable? search_cancellable;
+    private Gtk.TextMark? search_start_mark;
+
+    private void
+    clear_search_start_mark() {
+        if (search_start_mark != null) {
+            this.source_buffer.delete_mark(this.search_start_mark);
+            this.search_start_mark = null;
+        }
+    }
+
+    private void
+    set_search_start_mark() {
+        return_if_fail(this.search_start_mark == null);
+
+        Gtk.TextIter start_iter;
+        this.source_buffer.get_selection_bounds(out start_iter, null);
+        this.search_start_mark = this.source_buffer.create_mark(null, start_iter, false);
+    }
+
+    private void
+    reset_search_start_mark() {
+        this.clear_search_start_mark();
+        this.set_search_start_mark();
+    }
+
+    public void
+    find(string query, bool regex, bool case_sensitive) {
+        if (this.search_context == null) {
+            this.search_context = new GtkSource.SearchContext(this.source_buffer, null);
+        }
+
+        var settings = this.search_context.settings;
+        settings.search_text = query;
+        settings.regex_enabled = regex;
+        settings.case_sensitive = case_sensitive;
+        settings.wrap_around = true;
+    }
+
+    private void
+    scroll_to_cursor() {
+        this.source_view.scroll_to_mark(this.source_buffer.get_insert(), 0.25, false, 0.0, 0.0);
+    }
+
+    private void
+    wait_focus_first() {
+        Gtk.TextIter start_at;
+        Gtk.TextIter match_start;
+        Gtk.TextIter match_end;
+        bool found;
+
+        if (this.search_cancellable == null) {
+            return;
+        }
+
+        return_if_fail(this.search_context != null);
+        return_if_fail(this.search_start_mark != null);
+
+        // TODO it would be nice if there was a way to block on the current run
+        // of bedit_searchbar_focus_first() instead of killing it and starting
+        // again.
+        this.search_cancellable.cancel();
+        this.search_cancellable = null;
+
+        this.source_buffer.get_iter_at_mark(out start_at, this.search_start_mark);
+
+        found = this.search_context.forward(start_at, out match_start, out match_end, null);
+
+        if (found) {
+            // TODO block updating of start mark.
+            this.source_buffer.select_range(match_start, match_end);
+
+        } else {
+            this.source_buffer.select_range(start_at, start_at);
+        }
+
+        this.scroll_to_cursor();
+    }
+
+    private async void
+    focus_first_async() throws Error {
+        Gtk.TextIter start_at;
+        Gtk.TextIter match_start;
+        Gtk.TextIter match_end;
+        bool found;
+
+        assert(this.search_context != null);
+        assert(this.search_start_mark != null);
+
+        if (this.cancellable!= null) {
+            this.search_cancellable.cancel();
+        }
+        this.search_cancellable = new GLib.Cancellable();
+
+        this.source_buffer.get_iter_at_mark(out start_at, this.search_start_mark);
+
+        found = yield this.search_context.forward_async(
+            start_at, this.search_cancellable, out match_start, out match_end, null
+        );
+
+        if (found) {
+            // TODO block updating of start mark.
+            this.source_buffer.select_range(match_start, match_end);
+
+        } else {
+            this.source_buffer.select_range(start_at, start_at);
+        }
+
+        this.scroll_to_cursor();
+    }
+
+    public void
+    focus_first() {
+        this.focus_first_async.begin((_, res) => {
+            try {
+                this.focus_first_async.end(res);
+            } catch(GLib.IOError.CANCELLED err) {
+            } catch(Error err) {
+                warning("Error: %s\n", err.message);
+            }
+        });
+    }
+
+    public void
+    find_next() {
+        Gtk.TextIter start_at;
+        Gtk.TextIter match_start;
+        Gtk.TextIter match_end;
+        bool found;
+
+        this.wait_focus_first();
+
+        this.source_buffer.get_selection_bounds(null, out start_at);
+
+        found = this.search_context.forward(start_at, out match_start, out match_end, null);
+        if (found) {
+            this.source_buffer.select_range(match_start, match_end);
+            this.reset_search_start_mark();
+            this.scroll_to_cursor();
+        }
+    }
+
+    public void
+    find_prev() {
+
+    }
+
+    public void
+    replace(string replacement) {
+
+    }
+
+    public void
+    replace_all(string replacement) {
+
+    }
+
+    public void
+    clear_search() {
+        if (this.search_cancellable != null) {
+            this.search_cancellable.cancel();
+        }
+        this.search_cancellable = null;
+
+        this.search_context = null;
+    }
+
+    private void
+    search_init() {
+        this.set_search_start_mark();
+
+        this.source_buffer.mark_set.connect((loc, mark) => {
+            if (mark == this.source_buffer.get_insert()) {
+                this.reset_search_start_mark();
+            }
+        });
+        this.source_buffer.changed.connect(() => {
+            this.reset_search_start_mark();
+        });
     }
 }

@@ -11,8 +11,12 @@ public sealed class Searchbar : Gtk.Widget {
 
     public bool search_active { get; private set; }
     public bool replace_active { get; private set; }
+    public string query { get; private set; }
     public bool regex { get; set; }
     public bool case_sensitive { get; set; }
+    public Bedit.Document? document { get; set; }
+
+
 
     static construct {
         typeof (Brk.ButtonGroup).ensure();
@@ -21,29 +25,24 @@ public sealed class Searchbar : Gtk.Widget {
     }
 
     /*
-    private bool
-    search_entry_on_key_press_event(Gtk.Widget search_entry, Gdk.KeyEvent event) {
+       private bool
+       search_entry_on_key_press_event(Gtk.Widget search_entry, Gdk.KeyEvent event) {
         assert(search_entry == this.search_entry);
         return true;
-    }
-    */
+       }
+     */
 
     private void
     search_entry_on_activate(Gtk.Entry search_entry) {
         assert(search_entry == this.search_entry);
     }
 
-    private void
-    search_entry_on_changed(Gtk.Editable search_entry) {
-        assert(search_entry == this.search_entry);
-    }
-
     /*
-    private void
-    search_entry_on_escaped(Gtk.Entry search_entry) {
+       private void
+       search_entry_on_escaped(Gtk.Entry search_entry) {
         assert(search_entry == this.search_entry);
-    }
-    */
+       }
+     */
 
     private void
     replace_entry_on_activate(Gtk.Entry replace_entry) {
@@ -51,11 +50,11 @@ public sealed class Searchbar : Gtk.Widget {
     }
 
     /*
-    private void
-    replace_entry_on_escaped(Gtk.Entry replace_entry) {
+       private void
+       replace_entry_on_escaped(Gtk.Entry replace_entry) {
         assert(replace_entry == this.replace_entry);
-    }
-    */
+       }
+     */
 
 
     public GLib.SimpleActionGroup search_actions = new GLib.SimpleActionGroup();
@@ -101,6 +100,45 @@ public sealed class Searchbar : Gtk.Widget {
         search_actions_set_action_enabled("replace-all", this.replace_active);
     }
 
+    private void
+    update_search() {
+        bool search_active = true;
+        bool replace_active = true;
+        string search_text;
+
+        if (this.document == null) {
+            search_active = false;
+            replace_active = false;
+        }
+
+        // TODO: `if mode == HIDDEN`
+
+
+        search_text = this.search_entry.text;
+        if (search_text == null || search_text[0] == '\0') {
+            search_active = false;
+            replace_active = false;
+        }
+
+        this.search_active = search_active;
+        this.replace_active = replace_active;
+
+        if (this.document != null) {
+            if (this.search_active) {
+                this.document.find(this.search_entry.text, this.regex, this.case_sensitive);
+            } else {
+                this.document.clear_search();
+            }
+        }
+    }
+
+    private void
+    focus_first() {
+        if (this.document != null) {
+            this.document.focus_first();
+        }
+    }
+
     construct {
         this.search_actions.add_action_entries(search_action_entries, this);
         this.search_actions.add_action(new GLib.PropertyAction("case-sensitive", this, "case-sensitive"));
@@ -108,14 +146,20 @@ public sealed class Searchbar : Gtk.Widget {
 
         this.insert_action_group("search", this.search_actions);
 
-        this.notify["search-active"].connect((d, pspec) => { this.search_actions_update(); });
-        this.notify["replace-active"].connect((d, pspec) => { this.search_actions_update(); });
+        this.notify["search-active"].connect((s, pspec) => { this.search_actions_update(); });
+        this.notify["replace-active"].connect((s, pspec) => { this.search_actions_update(); });
         this.search_actions_update();
 
+        this.notify["document"].connect((s, pspec) => {
+                this.update_search();
+            });
 
 //        this.search_entry.connect("key-press-event", this.search_entry_on_key_press_event);
         this.search_entry.activate.connect(this.search_entry_on_activate);
-        this.search_entry.changed.connect(this.search_entry_on_changed);
+        this.search_entry.changed.connect((_) => {
+                this.update_search();
+                this.focus_first();
+            });
         //this.search_entry.escaped.connect(this.search_entry_on_escaped);
 
         this.replace_entry.activate.connect(this.replace_entry_on_activate);
