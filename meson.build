@@ -127,7 +127,6 @@ bedit_sources = [
   'bedit/bedit-application.vala',
   'bedit/bedit-close-confirmation-dialog.vala',
   'bedit/bedit-document.vala',
-  'bedit/bedit-searchbar.vala',
   'bedit/bedit-window.vala',
   bedit_resources.get(0),
   bedit_resources.get(1),
