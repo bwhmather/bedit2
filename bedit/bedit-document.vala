@@ -185,6 +185,7 @@ public sealed class Bedit.Document : Gtk.Widget {
     private GtkSource.SearchContext? search_context;
     private GLib.Cancellable? search_cancellable;
     private Gtk.TextMark? search_start_mark;
+    private bool search_start_mark_reset_blocked;
 
     private void
     clear_search_start_mark() {
@@ -205,8 +206,10 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     private void
     reset_search_start_mark() {
-        this.clear_search_start_mark();
-        this.set_search_start_mark();
+        if (!this.search_start_mark_reset_blocked) {
+            this.clear_search_start_mark();
+            this.set_search_start_mark();
+        }
     }
 
     public void
@@ -252,8 +255,9 @@ public sealed class Bedit.Document : Gtk.Widget {
         found = this.search_context.forward(start_at, out match_start, out match_end, null);
 
         if (found) {
-            // TODO block updating of start mark.
+            this.search_start_mark_reset_blocked = true;
             this.source_buffer.select_range(match_start, match_end);
+            this.search_start_mark_reset_blocked = false;
 
         } else {
             this.source_buffer.select_range(start_at, start_at);
@@ -284,8 +288,9 @@ public sealed class Bedit.Document : Gtk.Widget {
         );
 
         if (found) {
-            // TODO block updating of start mark.
+            this.search_start_mark_reset_blocked = true;
             this.source_buffer.select_range(match_start, match_end);
+            this.search_start_mark_reset_blocked = false;
 
         } else {
             this.source_buffer.select_range(start_at, start_at);
