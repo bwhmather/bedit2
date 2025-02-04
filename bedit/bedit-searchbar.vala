@@ -134,7 +134,7 @@ public sealed class Searchbar : Gtk.Widget {
 
     private void
     focus_first() {
-        if (this.document != null) {
+        if (this.document != null && this.search_active) {
             this.document.focus_first();
         }
     }
