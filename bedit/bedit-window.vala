@@ -408,19 +408,40 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     public bool regex { get; set; }
     public bool case_sensitive { get; set; }
 
+    private bool
+    search_entry_on_key_press_event(Gtk.EventControllerKey controller, uint keyval, uint keycode, Gdk.ModifierType modifiers) {
+        if ((keyval == Gdk.Key.ISO_Enter || keyval == Gdk.Key.KP_Enter || keyval == Gdk.Key.Return) && modifiers == 0){
+            // WARNING: This is shadowed by the search entry activate binding and so will never actually
+            // be triggered.
+            if (this.active_document != null) {
+                this.active_document.find_next();
+            }
+            return Gdk.EVENT_STOP;
+        }
 
+        if ((keyval == Gdk.Key.ISO_Enter || keyval == Gdk.Key.KP_Enter || keyval == Gdk.Key.Return) && modifiers == Gdk.ModifierType.SHIFT_MASK){
+            if (this.active_document != null) {
+                this.active_document.find_prev();
+            }
+            return Gdk.EVENT_STOP;
+        }
 
-    /*
-       private bool
-       search_entry_on_key_press_event(Gtk.Widget search_entry, Gdk.KeyEvent event) {
-        assert(search_entry == this.search_entry);
-        return true;
-       }
-     */
+        if (keyval == Gdk.Key.Tab && modifiers == 0) {
+            this.replace_visible = true;
+            this.replace_entry.grab_focus();
+            this.replace_entry.select_region(0, -1);
+            return Gdk.EVENT_STOP;
+        }
+
+        return Gdk.EVENT_PROPAGATE;
+    }
 
     private void
     search_entry_on_activate(Gtk.Entry search_entry) {
         assert(search_entry == this.search_entry);
+        if (this.active_document != null) {
+            this.active_document.find_next();
+        }
     }
 
     private void
@@ -569,13 +590,17 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private void
     search_init() {
+        Gtk.EventControllerKey event_controller;
+
         this.search_actions.add_action_entries(search_action_entries, this);
         this.search_actions.add_action(new GLib.PropertyAction("case-sensitive", this, "case-sensitive"));
         this.search_actions.add_action(new GLib.PropertyAction("regex", this, "regex"));
 
         this.insert_action_group("search", this.search_actions);
 
-//        this.search_entry.connect("key-press-event", this.search_entry_on_key_press_event);
+        event_controller = new Gtk.EventControllerKey();
+        event_controller.key_pressed.connect(search_entry_on_key_press_event);
+        this.search_entry.add_controller(event_controller);
         this.search_entry.activate.connect(this.search_entry_on_activate);
         this.search_entry.changed.connect((_) => {
             this.update_search();
