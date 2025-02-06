@@ -128,122 +128,130 @@
             <property name="reveal-child" bind-source="BeditWindow" bind-property="search-visible" bind-flags="sync-create"/>
             <property name="transition-type">slide-up</property>
             <child>
-              <object class="GtkGrid">
+              <object class="GtkBox">
                 <child>
-                  <object class="GtkEntry" id="search_entry">
-                    <property name="hexpand">true</property>
-                    <property name="tooltip-text">Search pattern</property>
-                    <property name="primary-icon-name">edit-find</property>
-                    <property name="primary-icon-tooltip-text">Search pattern</property>
-                    <property name="secondary-icon-name">edit-clear</property>
-                    <property name="secondary-icon-tooltip-text">Clear search pattern</property>
-                    <layout>
-                      <property name="column">0</property>
-                      <property name="row">0</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkEntry" id="replace_entry">
-                    <property name="visible" bind-source="BeditWindow" bind-property="replace-visible" bind-flags="sync-create"/>
-                    <property name="hexpand">true</property>
-                    <property name="tooltip-text">Search replacement text</property>
-                    <property name="primary-icon-name">edit-find-replace</property>
-                    <property name="primary-icon-tooltip-text">Search replacement text</property>
-                    <property name="secondary-icon-name">edit-clear</property>
-                    <property name="secondary-icon-tooltip-text">Clear search replacement text</property>
-                    <layout>
-                      <property name="column">0</property>
-                      <property name="row">1</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="BrkButtonGroup">
-                    <property name="halign">fill</property>
+                  <object class="GtkGrid">
                     <child>
-                      <object class="GtkButton" id="prev_button">
+                      <object class="GtkEntry" id="search_entry">
                         <property name="hexpand">true</property>
-                        <property name="icon-name">go-up</property>
-                        <property name="tooltip-text">Previous match (Ctrl+Shift+G)</property>
-                        <property name="action-name">search.find-previous</property>
+                        <property name="tooltip-text">Search pattern</property>
+                        <property name="primary-icon-name">edit-find</property>
+                        <property name="primary-icon-tooltip-text">Search pattern</property>
+                        <property name="secondary-icon-name">edit-clear</property>
+                        <property name="secondary-icon-tooltip-text">Clear search pattern</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">0</property>
+                        </layout>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkButton" id="next_button">
+                      <object class="GtkEntry" id="replace_entry">
+                        <property name="visible" bind-source="BeditWindow" bind-property="replace-visible" bind-flags="sync-create"/>
                         <property name="hexpand">true</property>
-                        <property name="icon-name">go-down</property>
-                        <property name="tooltip-text">Next match (Ctrl+G)</property>
-                        <property name="action-name">search.find-next</property>
+                        <property name="tooltip-text">Search replacement text</property>
+                        <property name="primary-icon-name">edit-find-replace</property>
+                        <property name="primary-icon-tooltip-text">Search replacement text</property>
+                        <property name="secondary-icon-name">edit-clear</property>
+                        <property name="secondary-icon-tooltip-text">Clear search replacement text</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">1</property>
+                        </layout>
                       </object>
                     </child>
-                    <layout>
-                      <property name="column">1</property>
-                      <property name="row">0</property>
-                    </layout>
                   </object>
                 </child>
                 <child>
-                  <object class="BrkButtonGroup">
-                    <property name="halign">fill</property>
+                  <object class="GtkGrid">
                     <child>
-                      <object class="GtkToggleButton" id="case_sensitive_toggle">
-                        <property name="hexpand">true</property>
-                        <property name="label">Aa</property>
-                        <property name="tooltip-text">Match case</property>
-                        <property name="action-name">search.case-sensitive</property>
+                      <object class="BrkButtonGroup">
+                        <property name="halign">fill</property>
+                        <child>
+                          <object class="GtkButton" id="prev_button">
+                            <property name="hexpand">true</property>
+                            <property name="icon-name">go-up</property>
+                            <property name="tooltip-text">Previous match (Ctrl+Shift+G)</property>
+                            <property name="action-name">search.find-previous</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkButton" id="next_button">
+                            <property name="hexpand">true</property>
+                            <property name="icon-name">go-down</property>
+                            <property name="tooltip-text">Next match (Ctrl+G)</property>
+                            <property name="action-name">search.find-next</property>
+                          </object>
+                        </child>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">0</property>
+                        </layout>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkToggleButton" id="regex_toggle">
-                        <property name="hexpand">true</property>
-                        <property name="label">.*</property>
-                        <property name="tooltip-text">Use regular expressions (Ctrl+.)</property>
-                        <property name="action-name">search.regex</property>
+                      <object class="BrkButtonGroup">
+                        <property name="halign">fill</property>
+                        <child>
+                          <object class="GtkToggleButton" id="case_sensitive_toggle">
+                            <property name="hexpand">true</property>
+                            <property name="label">Aa</property>
+                            <property name="tooltip-text">Match case</property>
+                            <property name="action-name">search.case-sensitive</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkToggleButton" id="regex_toggle">
+                            <property name="hexpand">true</property>
+                            <property name="label">.*</property>
+                            <property name="tooltip-text">Use regular expressions (Ctrl+.)</property>
+                            <property name="action-name">search.regex</property>
+                          </object>
+                        </child>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">0</property>
+                        </layout>
                       </object>
                     </child>
-                    <layout>
-                      <property name="column">2</property>
-                      <property name="row">0</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkButton" id="replace_button">
-                    <property name="visible" bind-source="BeditWindow" bind-property="replace-visible" bind-flags="sync-create"/>
-                    <property name="halign">fill</property>
-                    <property name="label">Replace</property>
-                    <property name="tooltip-text">Replace currently highlighted instance (Ctrl+R)</property>
-                    <property name="action-name">search.replace</property>
-                    <layout>
-                      <property name="column">1</property>
-                      <property name="row">1</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkButton" id="replace_all_button">
-                    <property name="visible" bind-source="BeditWindow" bind-property="replace-visible" bind-flags="sync-create"/>
-                    <property name="halign">fill</property>
-                    <property name="label">Replace All</property>
-                    <property name="tooltip-text">Replace all instances (Ctrl+Alt+R)</property>
-                    <property name="action-name">search.replace-all</property>
-                    <layout>
-                      <property name="column">2</property>
-                      <property name="row">1</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkButton">
-                    <property name="halign">fill</property>
-                    <property name="label">Hide</property>
-                    <property name="tooltip-text">Hide the search bar (Escape)</property>
-                    <property name="action-name">search.hide</property>
-                    <layout>
-                      <property name="column">3</property>
-                      <property name="row">0</property>
-                    </layout>
+                    <child>
+                      <object class="GtkButton" id="replace_button">
+                        <property name="visible" bind-source="BeditWindow" bind-property="replace-visible" bind-flags="sync-create"/>
+                        <property name="halign">fill</property>
+                        <property name="label">Replace</property>
+                        <property name="tooltip-text">Replace currently highlighted instance (Ctrl+R)</property>
+                        <property name="action-name">search.replace</property>
+                        <layout>
+                          <property name="column">0</property>
+                          <property name="row">1</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="replace_all_button">
+                        <property name="visible" bind-source="BeditWindow" bind-property="replace-visible" bind-flags="sync-create"/>
+                        <property name="halign">fill</property>
+                        <property name="label">Replace All</property>
+                        <property name="tooltip-text">Replace all instances (Ctrl+Alt+R)</property>
+                        <property name="action-name">search.replace-all</property>
+                        <layout>
+                          <property name="column">1</property>
+                          <property name="row">1</property>
+                        </layout>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="halign">fill</property>
+                        <property name="label">Hide</property>
+                        <property name="tooltip-text">Hide the search bar (Escape)</property>
+                        <property name="action-name">search.hide</property>
+                        <layout>
+                          <property name="column">2</property>
+                          <property name="row">0</property>
+                        </layout>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
