@@ -447,6 +447,11 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     private void
     replace_entry_on_activate(Gtk.Entry replace_entry) {
         assert(replace_entry == this.replace_entry);
+        if (this.active_document != null) {
+            try {
+                this.active_document.replace(this.replace_entry.text.compress());
+            } catch(Error err) {}
+        }
     }
 
     public GLib.SimpleActionGroup search_actions = new GLib.SimpleActionGroup();
@@ -511,7 +516,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private void
     action_search_replace_all() {
-
+        try {
+            this.active_document.replace_all(this.replace_entry.text.compress());
+        } catch(Error err) {}
     }
 
     private void

@@ -373,8 +373,10 @@ public sealed class Bedit.Document : Gtk.Widget {
     }
 
     public void
-    replace_all(string replacement) {
+    replace_all(string replacement) throws Error {
+        return_if_fail(this.search_context != null);
 
+        this.search_context.replace_all(replacement, -1);
     }
 
     public void
