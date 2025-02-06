@@ -2,68 +2,68 @@ class Bedit.Application : Gtk.Application {
     private GLib.Settings settings = new GLib.Settings("com.bwhmather.Bedit2");
 
     private void
-    on_new() {
+    action_new() {
         var window = new Bedit.Window(this);
         window.present();
     }
 
     private void
-    on_close() {
+    action_close() {
     }
 
     private void
-    on_preferences() {
+    action_preferences() {
     }
 
     private void
-    on_increase_text_size() {
+    action_increase_text_size() {
     }
 
     private void
-    on_decrease_text_size() {
+    action_decrease_text_size() {
     }
 
     private void
-    on_reset_text_size() {
+    action_reset_text_size() {
     }
 
     private void
-    on_open_check_spelling() {
+    action_open_check_spelling() {
     }
 
     private void
-    on_open_set_language() {
+    action_open_set_language() {
     }
 
     private void
-    on_open_document_statistics() {
+    action_open_document_statistics() {
     }
 
     private void
-    on_help() {
+    action_help() {
     }
 
     private void
-    on_keyboard_shortcuts() {
+    action_keyboard_shortcuts() {
     }
 
     private void
-    on_about() {
+    action_about() {
     }
 
     const GLib.ActionEntry[] action_entries = {
-        {"new", on_new},
-        {"close", on_close},
-        {"preferences", on_preferences},
-        {"increase-text-size", on_increase_text_size},
-        {"decrease-text-size", on_decrease_text_size},
-        {"reset-text-size", on_reset_text_size},
-        {"open-check-spelling", on_open_check_spelling},
-        {"open-set-language", on_open_set_language},
-        {"open-document-statistics", on_open_document_statistics},
-        {"help", on_help},
-        {"keyboard-shortcuts", on_keyboard_shortcuts},
-        {"about", on_about},
+        {"new", action_new},
+        {"close", action_close},
+        {"preferences", action_preferences},
+        {"increase-text-size", action_increase_text_size},
+        {"decrease-text-size", action_decrease_text_size},
+        {"reset-text-size", action_reset_text_size},
+        {"open-check-spelling", action_open_check_spelling},
+        {"open-set-language", action_open_set_language},
+        {"open-document-statistics", action_open_document_statistics},
+        {"help", action_help},
+        {"keyboard-shortcuts", action_keyboard_shortcuts},
+        {"about", action_about},
     };
 
     public override void
