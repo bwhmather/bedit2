@@ -151,33 +151,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.active_document.redo();
     }
 
-    /* --- Clipboard -------------------------------------------------------------------------------------- */
-
-    private void
-    action_doc_cut() {
-        return_if_fail(this.active_document != null);
-        return_if_fail(this.active_document.can_cut);
-
-        this.active_document.cut();
-
-    }
-
-    private void
-    action_doc_copy() {
-        return_if_fail(this.active_document != null);
-        return_if_fail(this.active_document.can_copy);
-
-        this.active_document.copy();
-    }
-
-    private void
-    action_doc_paste() {
-        return_if_fail(this.active_document != null);
-        return_if_fail(this.active_document.can_paste);
-
-        this.active_document.paste();
-    }
-
     /* --- Selection -------------------------------------------------------------------------------------- */
 
     private void
@@ -247,9 +220,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         {"close", action_doc_close},
         {"undo", action_doc_undo},
         {"redo", action_doc_redo},
-        {"cut", action_doc_cut},
-        {"copy", action_doc_copy},
-        {"paste", action_doc_paste},
         {"select-all", action_doc_select_all},
         {"comment", action_doc_comment},
         {"uncomment", action_doc_uncomment},
@@ -274,9 +244,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         bool has_file = exists && this.active_document.file != null;
         bool can_undo = exists && this.active_document.can_undo;
         bool can_redo = exists && this.active_document.can_redo;
-        bool can_cut = exists && this.active_document.can_cut;
-        bool can_copy = exists && this.active_document.can_copy;
-        bool can_paste = exists && this.active_document.can_paste;
 
         document_actions_set_action_enabled("save", exists && idle && has_file);
         document_actions_set_action_enabled("save-as", exists && idle);
@@ -286,9 +253,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         document_actions_set_action_enabled("close", exists && idle);
         document_actions_set_action_enabled("undo", exists && idle && can_undo);
         document_actions_set_action_enabled("redo", exists && idle && can_redo);
-        document_actions_set_action_enabled("cut", exists && idle && can_cut);
-        document_actions_set_action_enabled("copy", exists && idle && can_copy);
-        document_actions_set_action_enabled("paste", exists && idle && can_paste);
         document_actions_set_action_enabled("select-all", exists && idle);
         document_actions_set_action_enabled("comment", exists && idle);
         document_actions_set_action_enabled("uncomment", exists && idle);
@@ -328,9 +292,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
         this.document_actions_update_on_notify("can-undo");
         this.document_actions_update_on_notify("can-redo");
-        this.document_actions_update_on_notify("can-cut");
-        this.document_actions_update_on_notify("can-copy");
-        this.document_actions_update_on_notify("can-paste");
         this.document_actions_update_on_notify("file");
         this.document_actions_update_on_notify("loading");
         this.document_actions_update_on_notify("saving");
@@ -340,6 +301,99 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         });
 
         this.document_actions_update();
+    }
+
+    /* === Clipboard ====================================================================================== */
+
+    private GLib.SimpleActionGroup clipboard_actions = new GLib.SimpleActionGroup();
+
+    private void
+    action_clipboard_cut() {
+        return_if_fail(this.active_document != null);
+        return_if_fail(this.active_document.can_cut);
+
+        this.active_document.cut();
+    }
+
+    private void
+    action_clipboard_copy() {
+        return_if_fail(this.active_document != null);
+        return_if_fail(this.active_document.can_copy);
+
+        this.active_document.copy();
+    }
+
+    private void
+    action_clipboard_paste() {
+        return_if_fail(this.active_document != null);
+        return_if_fail(this.active_document.can_paste);
+
+        this.active_document.paste();
+    }
+
+
+    /* --- Clipboard Action State ------------------------------------------------------------------------- */
+
+    const GLib.ActionEntry[] clipboard_action_entries = {
+        {"cut", action_clipboard_cut},
+        {"copy", action_clipboard_copy},
+        {"paste", action_clipboard_paste},
+    };
+
+    private void
+    clipboard_actions_set_action_enabled(string name, bool enabled) {
+        var action = this.clipboard_actions.lookup_action(name) as GLib.SimpleAction;
+        action.set_enabled(enabled);
+    }
+
+    private void
+    clipboard_actions_update() {
+        bool exists = this.active_document != null;
+        bool idle = exists && !this.active_document.busy;
+        bool can_cut = exists && this.active_document.can_cut;
+        bool can_copy = exists && this.active_document.can_copy;
+        bool can_paste = exists && this.active_document.can_paste;
+
+        clipboard_actions_set_action_enabled("cut", exists && idle && can_cut);
+        clipboard_actions_set_action_enabled("copy", exists && idle && can_copy);
+        clipboard_actions_set_action_enabled("paste", exists && idle && can_paste);
+    }
+
+    private void
+    clipboard_actions_update_on_notify(string name) {
+        ulong handle = 0;
+        Bedit.Document? current;
+
+        if (this.active_document != null) {
+            handle = this.active_document.notify[name].connect((d, pspec) => { this.clipboard_actions_update(); });
+        }
+        current = this.active_document;
+
+        this.notify["active-document"].connect((da, pspec) => {
+            if (current != null) {
+                current.disconnect(handle);
+            }
+            if (this.active_document != null) {
+                handle = this.active_document.notify[name].connect((d, pspec) => { this.clipboard_actions_update(); });
+            }
+            current = this.active_document;
+        });
+    }
+
+    private void
+    clipboard_actions_init() {
+        this.clipboard_actions.add_action_entries(clipboard_action_entries,this);
+        this.insert_action_group("clipboard", this.clipboard_actions);
+
+        this.clipboard_actions_update_on_notify("can-cut");
+        this.clipboard_actions_update_on_notify("can-copy");
+        this.clipboard_actions_update_on_notify("can-paste");
+
+        this.notify["active-document"].connect((da, pspec) => {
+            this.clipboard_actions_update();
+        });
+
+        this.clipboard_actions_update();
     }
 
     /* === Window Actions ================================================================================= */
@@ -682,6 +736,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
         this.window_actions_init();
         this.document_actions_init();
+        this.clipboard_actions_init();
         this.search_init();
     }
 

@@ -69,21 +69,21 @@
               <object class="GtkButton">
                 <property name="icon-name">edit-cut</property>
                 <property name="tooltip-text">Cut (Ctrl+X)</property>
-                <property name="action-name">doc.cut</property>
+                <property name="action-name">clipboard.cut</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">edit-copy</property>
                 <property name="tooltip-text">Copy (Ctrl+C)</property>
-                <property name="action-name">doc.copy</property>
+                <property name="action-name">clipboard.copy</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">edit-paste</property>
                 <property name="tooltip-text">Paste (Ctrl+V)</property>
-                <property name="action-name">doc.paste</property>
+                <property name="action-name">clipboard.paste</property>
               </object>
             </child>
 

@@ -72,15 +72,15 @@
       <section>
         <item>
           <attribute name="label" translatable="yes">Cut</attribute>
-          <attribute name="action">doc.cut</attribute>
+          <attribute name="action">clipboard.cut</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Copy</attribute>
-          <attribute name="action">doc.copy</attribute>
+          <attribute name="action">clipboard.copy</attribute>
         </item>
         <item>
           <attribute name="label" translatable="yes">Paste</attribute>
-          <attribute name="action">doc.paste</attribute>
+          <attribute name="action">clipboard.paste</attribute>
         </item>
       </section>
       <section>
