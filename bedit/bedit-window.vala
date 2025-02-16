@@ -18,6 +18,31 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     public Bedit.Document? active_document { get; private set; }
 
+    delegate void ActiveDocumentNotifyCallback();
+
+    private void
+    active_document_notify_connect(string name, ActiveDocumentNotifyCallback callback) {
+        ulong handle = 0;
+        Bedit.Document? current;
+
+        if (this.active_document != null) {
+            handle = this.active_document.notify[name].connect((d, pspec) => { callback(); });
+        }
+        current = this.active_document;
+
+        this.notify["active-document"].connect((da, pspec) => {
+            if (current != null) {
+                current.disconnect(handle);
+            }
+            if (this.active_document != null) {
+                handle = this.active_document.notify[name].connect((d, pspec) => { callback(); });
+            }
+            current = this.active_document;
+
+            callback();
+        });
+    }
+
     [GtkChild]
     private unowned Bedit.Statusbar status_bar;
 
@@ -268,36 +293,15 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     }
 
     private void
-    document_actions_update_on_notify(string name) {
-        ulong handle = 0;
-        Bedit.Document? current;
-
-        if (this.active_document != null) {
-            handle = this.active_document.notify[name].connect((d, pspec) => { this.document_actions_update(); });
-        }
-        current = this.active_document;
-
-        this.notify["active-document"].connect((da, pspec) => {
-            if (current != null) {
-                current.disconnect(handle);
-            }
-            if (this.active_document != null) {
-                handle = this.active_document.notify[name].connect((d, pspec) => { this.document_actions_update(); });
-            }
-            current = this.active_document;
-        });
-    }
-
-    private void
     document_actions_init() {
         this.document_actions.add_action_entries(document_action_entries,this);
         this.insert_action_group("doc", this.document_actions);
 
-        this.document_actions_update_on_notify("can-undo");
-        this.document_actions_update_on_notify("can-redo");
-        this.document_actions_update_on_notify("file");
-        this.document_actions_update_on_notify("loading");
-        this.document_actions_update_on_notify("saving");
+        this.active_document_notify_connect("can-undo", this.document_actions_update);
+        this.active_document_notify_connect("can-redo", this.document_actions_update);
+        this.active_document_notify_connect("file", this.document_actions_update);
+        this.active_document_notify_connect("loading", this.document_actions_update);
+        this.active_document_notify_connect("saving", this.document_actions_update);
 
         this.notify["active-document"].connect((da, pspec) => {
             this.document_actions_update();
@@ -363,34 +367,13 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     }
 
     private void
-    clipboard_actions_update_on_notify(string name) {
-        ulong handle = 0;
-        Bedit.Document? current;
-
-        if (this.active_document != null) {
-            handle = this.active_document.notify[name].connect((d, pspec) => { this.clipboard_actions_update(); });
-        }
-        current = this.active_document;
-
-        this.notify["active-document"].connect((da, pspec) => {
-            if (current != null) {
-                current.disconnect(handle);
-            }
-            if (this.active_document != null) {
-                handle = this.active_document.notify[name].connect((d, pspec) => { this.clipboard_actions_update(); });
-            }
-            current = this.active_document;
-        });
-    }
-
-    private void
     clipboard_actions_init() {
         this.clipboard_actions.add_action_entries(clipboard_action_entries,this);
         this.insert_action_group("clipboard", this.clipboard_actions);
 
-        this.clipboard_actions_update_on_notify("can-cut");
-        this.clipboard_actions_update_on_notify("can-copy");
-        this.clipboard_actions_update_on_notify("can-paste");
+        this.active_document_notify_connect("can-cut", this.clipboard_actions_update);
+        this.active_document_notify_connect("can-copy", this.clipboard_actions_update);
+        this.active_document_notify_connect("can-paste", this.clipboard_actions_update);
 
         this.notify["active-document"].connect((da, pspec) => {
             this.clipboard_actions_update();
