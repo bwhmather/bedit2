@@ -258,6 +258,10 @@
             </child>
           </object>
         </child>
+        <child type="bottom">
+          <object class="BeditStatusbar" id="status_bar">
+          </object>
+        </child>
       </object>
     </child>
   </template>

@@ -3,6 +3,7 @@
   <gresource prefix="/com/bwhmather/Bedit">
     <file preprocess="xml-stripblanks">ui/bedit-close-confirmation-dialog.ui</file>
     <file preprocess="xml-stripblanks">ui/bedit-document.ui</file>
+    <file preprocess="xml-stripblanks">ui/bedit-statusbar.ui</file>
     <file preprocess="xml-stripblanks">ui/bedit-window.ui</file>
     <file preprocess="xml-stripblanks">gtk/menus.ui</file>
   </gresource>

@@ -18,6 +18,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     public Bedit.Document? active_document { get; private set; }
 
+    [GtkChild]
+    private unowned Bedit.Statusbar status_bar;
+
     /* === Document Operations ============================================================================ */
 
     private async bool
@@ -718,6 +721,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         typeof (Brk.TabView).ensure();
         typeof (Brk.ToolbarView).ensure();
         typeof (Brk.Toolbar).ensure();
+        typeof (Bedit.Statusbar).ensure();
         typeof (Bedit.Document).ensure();
     }
 
