@@ -179,16 +179,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.active_document.redo();
     }
 
-    /* --- Selection -------------------------------------------------------------------------------------- */
-
-    private void
-    action_doc_select_all() {
-        return_if_fail(this.active_document != null);
-        return_if_fail(!this.active_document.busy);
-
-        this.active_document.select_all();
-    }
-
     /* --- Commenting and Uncommenting -------------------------------------------------------------------- */
 
     private void
@@ -248,7 +238,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         {"close", action_doc_close},
         {"undo", action_doc_undo},
         {"redo", action_doc_redo},
-        {"select-all", action_doc_select_all},
         {"comment", action_doc_comment},
         {"uncomment", action_doc_uncomment},
         {"insert-date-and-time", action_doc_insert_date_and_time},
@@ -281,7 +270,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         document_actions_set_action_enabled("close", exists && idle);
         document_actions_set_action_enabled("undo", exists && idle && can_undo);
         document_actions_set_action_enabled("redo", exists && idle && can_redo);
-        document_actions_set_action_enabled("select-all", exists && idle);
         document_actions_set_action_enabled("comment", exists && idle);
         document_actions_set_action_enabled("uncomment", exists && idle);
         document_actions_set_action_enabled("insert-date-and-time", exists && idle);
@@ -379,6 +367,51 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         });
 
         this.clipboard_actions_update();
+    }
+
+    /* === Selection Actions ============================================================================== */
+
+    private GLib.SimpleActionGroup selection_actions = new GLib.SimpleActionGroup();
+
+    private void
+    action_selection_select_all() {
+        return_if_fail(this.active_document != null);
+        return_if_fail(!this.active_document.busy);
+
+        this.active_document.select_all();
+    }
+
+
+    /* --- Selection Action State ------------------------------------------------------------------------- */
+
+    const GLib.ActionEntry[] selection_action_entries = {
+        {"select-all", action_selection_select_all},
+    };
+
+    private void
+    selection_actions_set_action_enabled(string name, bool enabled) {
+        var action = this.selection_actions.lookup_action(name) as GLib.SimpleAction;
+        action.set_enabled(enabled);
+    }
+
+    private void
+    selection_actions_update() {
+        bool exists = this.active_document != null;
+        bool idle = exists && !this.active_document.busy;
+
+        selection_actions_set_action_enabled("select-all", exists && idle);
+    }
+
+    private void
+    selection_actions_init() {
+        this.selection_actions.add_action_entries(selection_action_entries,this);
+        this.insert_action_group("selection", this.selection_actions);
+
+        this.notify["active-document"].connect((da, pspec) => {
+            this.selection_actions_update();
+        });
+
+        this.selection_actions_update();
     }
 
     /* === Window Actions ================================================================================= */
@@ -762,6 +795,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.window_actions_init();
         this.document_actions_init();
         this.clipboard_actions_init();
+        this.selection_actions_init();
         this.search_init();
     }
 

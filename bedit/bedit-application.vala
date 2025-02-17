@@ -148,7 +148,7 @@ class Bedit.Application : Gtk.Application {
         this.set_accels_for_action("clipboard.paste", {"<Control>P"});
         this.set_accels_for_action("doc.delete", {"<Control>D"});
         this.set_accels_for_action("doc.duplicate", {"<Control><Shift>D"});
-        this.set_accels_for_action("doc.select-all", {"<Control>A"});
+        this.set_accels_for_action("selection.select-all", {"<Control>A"});
         this.set_accels_for_action("doc.comment", {"<Control>slash"});
         this.set_accels_for_action("doc.uncomment", {"<Control><Shift>slash"});
         this.set_accels_for_action("doc.insert-date-and-time", {"F5"});

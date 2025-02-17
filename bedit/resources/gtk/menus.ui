@@ -86,7 +86,7 @@
       <section>
         <item>
           <attribute name="label" translatable="yes">Select All</attribute>
-          <attribute name="action">doc.select-all</attribute>
+          <attribute name="action">selection.select-all</attribute>
         </item>
       </section>
       <section>
