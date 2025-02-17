@@ -143,9 +143,9 @@ class Bedit.Application : Gtk.Application {
         // Edit.
         this.set_accels_for_action("doc.undo", {"<Control>Z"});
         this.set_accels_for_action("doc.redo", {"<Control><Shift>Z", "<Control>Y"});
-        this.set_accels_for_action("doc.cut", {"<Control>X"});
-        this.set_accels_for_action("doc.copy", {"<Control>C"});
-        this.set_accels_for_action("doc.paste", {"<Control>P"});
+        this.set_accels_for_action("clipboard.cut", {"<Control>X"});
+        this.set_accels_for_action("clipboard.copy", {"<Control>C"});
+        this.set_accels_for_action("clipboard.paste", {"<Control>P"});
         this.set_accels_for_action("doc.delete", {"<Control>D"});
         this.set_accels_for_action("doc.duplicate", {"<Control><Shift>D"});
         this.set_accels_for_action("doc.select-all", {"<Control>A"});

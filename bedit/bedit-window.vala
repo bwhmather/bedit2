@@ -338,7 +338,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.active_document.paste();
     }
 
-
     /* --- Clipboard Action State ------------------------------------------------------------------------- */
 
     const GLib.ActionEntry[] clipboard_action_entries = {
