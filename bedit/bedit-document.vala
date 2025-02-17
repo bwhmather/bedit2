@@ -187,6 +187,9 @@ public sealed class Bedit.Document : Gtk.Widget {
     private Gtk.TextMark? search_start_mark;
     private bool search_start_mark_reset_blocked;
 
+    public int num_search_occurrences { get; private set; }
+    public int selected_search_occurrence { get; private set; }
+
     private void
     clear_search_start_mark() {
         if (search_start_mark != null) {
@@ -212,10 +215,38 @@ public sealed class Bedit.Document : Gtk.Widget {
         }
     }
 
+    private void
+    update_search_occurrences() {
+        int count = -1;
+        int position = -1;
+        Gtk.TextIter selection_start;
+        Gtk.TextIter selection_end;
+
+        if (this.search_context != null) {
+            count = this.search_context.get_occurrences_count();
+            if (count == -1) {
+                // Search not finished yet.  Leave previous state in place to
+                // avoid flashing.
+                return;
+            }
+
+            this.source_buffer.get_selection_bounds(out selection_start, out selection_end);
+            position = this.search_context.get_occurrence_position(selection_start, selection_end);
+        }
+
+        this.freeze_notify();
+        this.num_search_occurrences = count;
+        this.selected_search_occurrence = position;
+        this.thaw_notify();
+    }
+
     public void
     find(string query, bool regex, bool case_sensitive) {
         if (this.search_context == null) {
             this.search_context = new GtkSource.SearchContext(this.source_buffer, null);
+            this.search_context.notify["occurrences-count"].connect((sc, pspec) => {
+                this.update_search_occurrences();
+            });
         }
 
         var settings = this.search_context.settings;
@@ -387,6 +418,8 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.search_cancellable = null;
 
         this.search_context = null;
+
+        this.update_search_occurrences();
     }
 
     public string?
@@ -410,6 +443,10 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.source_buffer.mark_set.connect((loc, mark) => {
             if (mark == this.source_buffer.get_insert()) {
                 this.reset_search_start_mark();
+            }
+
+            if (mark == this.source_buffer.get_insert() || mark == this.source_buffer.get_selection_bound()) {
+                this.update_search_occurrences();
             }
         });
         this.source_buffer.changed.connect(() => {

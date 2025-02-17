@@ -635,6 +635,42 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         }
     }
 
+    uint status_bar_search_context_id = 0;
+
+    private void
+    status_bar_update_update_search() {
+        int count;
+        int selected;
+        string message = null;
+
+        if (this.active_document != null) {
+            count = this.active_document.num_search_occurrences;
+            selected = this.active_document.selected_search_occurrence;
+
+            if (count == 0) {
+                message = "No matches found";
+            } else if (count == 1 && selected > 0) {
+                message = "%i of %i match".printf(selected, count);
+            } else if (count > 1 && selected > 0) {
+                message = "%i of %i matches".printf(selected, count);
+            } else if (count == 1) {
+                message = "%i match".printf(count);
+            } else if (count > 1) {
+                message = "%i matches".printf(count);
+            }
+        }
+
+        if (this.status_bar_search_context_id == 0) {
+            this.status_bar_search_context_id = this.status_bar.new_context_id();
+        }
+
+        // TODO only remove if changed.
+        this.status_bar.remove_all(this.status_bar_search_context_id);
+        if (message != null) {
+            this.status_bar.push(this.status_bar_search_context_id, message);
+        }
+    }
+
     private void
     search_init() {
         Gtk.EventControllerKey event_controller;
@@ -662,6 +698,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
         this.notify["search-active"].connect((s, pspec) => { this.search_actions_update(); });
         this.notify["replace-active"].connect((s, pspec) => { this.search_actions_update(); });
+
+        this.active_document_notify_connect("num-search-occurrences", this.status_bar_update_update_search);
+        this.active_document_notify_connect("selected-search-occurrence", this.status_bar_update_update_search);
 
         this.search_actions_update();
     }

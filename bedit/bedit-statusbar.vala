@@ -40,7 +40,7 @@ public sealed class Bedit.Statusbar : Gtk.Widget {
      * Returns a new context id that can be used for managing messages.
      */
     public uint
-    get_context_id() {
+    new_context_id() {
         uint context_id = this.next_context_id;
         this.next_context_id += 1;
 
