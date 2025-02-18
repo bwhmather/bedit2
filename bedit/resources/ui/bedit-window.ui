@@ -7,6 +7,7 @@
 
         <child type="top">
           <object class="BrkToolbar">
+            <property name="visible" bind-source="BeditWindow" bind-property="show-toolbar" bind-flags="sync-create"/>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">document-new</property>
@@ -260,6 +261,7 @@
         </child>
         <child type="bottom">
           <object class="BeditStatusbar" id="status_bar">
+            <property name="visible" bind-source="BeditWindow" bind-property="show-statusbar" bind-flags="sync-create"/>
           </object>
         </child>
       </object>

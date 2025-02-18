@@ -11,6 +11,8 @@ document_wait_idle(Bedit.Document document) {
 
 [GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-window.ui")]
 public sealed class Bedit.Window : Gtk.ApplicationWindow {
+    private GLib.Settings settings = new GLib.Settings("com.bwhmather.Bedit2");
+
     private GLib.Cancellable cancellable = new GLib.Cancellable();
 
     [GtkChild]
@@ -45,6 +47,31 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     [GtkChild]
     private unowned Bedit.Statusbar status_bar;
+
+    /* === Menubar ======================================================================================== */
+
+    private void
+    menubar_init() {
+        this.settings.bind("show-menubar", this, "show-menubar", GET);
+    }
+
+    /* === Toolbar ======================================================================================== */
+
+    public bool show_toolbar { get; set; }
+
+    private void
+    toolbar_init() {
+        this.settings.bind("show-toolbar", this, "show-toolbar", GET);
+    }
+
+    /* === Statusbar ====================================================================================== */
+
+    public bool show_statusbar { get; set; }
+
+    private void
+    statusbar_init() {
+        this.settings.bind("show-statusbar", this, "show-statusbar", GET);
+    }
 
     /* === Document Operations ============================================================================ */
 
@@ -792,6 +819,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
             cancellable.cancel();
         });
 
+        this.menubar_init();
+        this.toolbar_init();
+        this.statusbar_init();
         this.window_actions_init();
         this.document_actions_init();
         this.clipboard_actions_init();
