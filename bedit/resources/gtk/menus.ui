@@ -148,7 +148,7 @@
         </item>
         <item>
           <attribute name="label" translatable="yes">Overview Map</attribute>
-          <attribute name="action">app.show-overview-maps</attribute>
+          <attribute name="action">app.show-overview-map</attribute>
         </item>
       </section>
       <section>

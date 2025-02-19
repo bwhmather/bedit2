@@ -16,7 +16,7 @@
       <description>Whether Bedit should display the statusbar at the bottom of the screen.</description>
     </key>
     <key name="show-overview-map" type="b">
-      <default>true</default>
+      <default>false</default>
       <summary>Show Overview Map</summary>
       <description>Whether Bedit should display a mini map of the document at the side of the screen.</description>
     </key>

@@ -4,12 +4,21 @@
     <child>
       <object class="GtkOverlay">
         <child>
-          <object class="GtkScrolledWindow">
-            <property name="hexpand">true</property>
-            <property name="vexpand">true</property>
-            <property name="overlay-scrolling">true</property>
+          <object class="GtkBox">
             <child>
-              <object class="GtkSourceView" id="source_view">
+              <object class="GtkScrolledWindow" id="scrolled_window">
+                <property name="hexpand">true</property>
+                <property name="vexpand">true</property>
+                <property name="overlay-scrolling">true</property>
+                <child>
+                  <object class="GtkSourceView" id="source_view">
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSourceMap" id="overview_map">
+                <property name="view">source_view</property>
               </object>
             </child>
           </object>

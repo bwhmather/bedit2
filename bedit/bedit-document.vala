@@ -1,5 +1,7 @@
 [GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-document.ui")]
 public sealed class Bedit.Document : Gtk.Widget {
+    private GLib.Settings settings = new GLib.Settings("com.bwhmather.Bedit2");
+
     private GLib.Cancellable cancellable = new GLib.Cancellable();
 
     [GtkChild]
@@ -59,6 +61,8 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.notify["loading"].connect((_, pspec) => { this.update_busy(); });
         this.notify["saving"].connect((_, pspec) => { this.update_busy(); });
 
+        word_wrap_init();
+        overview_map_init();
         search_init();
 
         if (file != null) {
@@ -178,6 +182,54 @@ public sealed class Bedit.Document : Gtk.Widget {
 
             this.source_view.scroll_mark_onscreen(this.source_buffer.get_insert());
         }
+    }
+
+    /* === Word Wrap ====================================================================================== */
+
+    public bool word_wrap { get; set; }
+
+    private void
+    update_word_wrap() {
+        if (this.word_wrap) {
+            this.source_view.wrap_mode = WORD_CHAR;
+        } else {
+            this.source_view.wrap_mode = NONE;
+        }
+    }
+
+    private void
+    word_wrap_init() {
+        this.settings.bind("word-wrap", this, "word-wrap", GET);
+        this.notify["word-wrap"].connect((d, pspec) => { this.update_word_wrap(); });
+        this.update_word_wrap();
+    }
+
+    /* === Overview Map =================================================================================== */
+
+    [GtkChild]
+    private unowned GtkSource.Map overview_map;
+
+    [GtkChild]
+    private unowned Gtk.ScrolledWindow scrolled_window;
+
+    public bool show_overview_map { get; set; }
+
+    private void
+    update_show_overview_map() {
+        if (this.show_overview_map) {
+            this.overview_map.visible = true;
+            this.scrolled_window.vscrollbar_policy = EXTERNAL;
+        } else {
+            this.overview_map.visible = false;
+            this.scrolled_window.vscrollbar_policy = ALWAYS;
+        }
+    }
+
+    private void
+    overview_map_init() {
+        this.settings.bind("show-overview-map", this, "show-overview-map", GET);
+        this.notify["show-overview-map"].connect((d, pspec) => { this.update_show_overview_map(); });
+        this.update_show_overview_map();
     }
 
     /* === Search and Replace ============================================================================= */
