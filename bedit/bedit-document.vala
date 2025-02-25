@@ -64,6 +64,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         word_wrap_init();
         overview_map_init();
         highlight_current_line_init();
+        line_numbers_init();
         search_init();
 
         if (file != null) {
@@ -206,12 +207,23 @@ public sealed class Bedit.Document : Gtk.Widget {
     }
 
     /* === Highlight Current Line ========================================================================= */
+
     public bool highlight_current_line { get; set; }
 
     private void
     highlight_current_line_init() {
         this.settings.bind("highlight-current-line", this, "highlight-current-line", GET);
         this.bind_property("highlight-current-line", this.source_view, "highlight-current-line", SYNC_CREATE);
+    }
+
+    /* === Line Numbers =================================================================================== */
+
+    public bool show_line_numbers { get; set; }
+
+    private void
+    line_numbers_init() {
+        this.settings.bind("show-line-numbers", this, "show-line-numbers", GET);
+        this.bind_property("show-line-numbers", this.source_view, "show-line-numbers", SYNC_CREATE);
     }
 
     /* === Overview Map =================================================================================== */

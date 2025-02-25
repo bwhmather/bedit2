@@ -188,6 +188,10 @@
           <attribute name="label" translatable="yes">Highlight Current Line</attribute>
           <attribute name="action">app.highlight-current-line</attribute>
         </item>
+        <item>
+          <attribute name="label" translatable="yes">Show Line Numbers</attribute>
+          <attribute name="action">app.show-line-numbers</attribute>
+        </item>
       </section>
     </submenu>
 
