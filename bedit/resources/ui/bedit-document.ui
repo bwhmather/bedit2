@@ -12,6 +12,7 @@
                 <property name="overlay-scrolling">true</property>
                 <child>
                   <object class="GtkSourceView" id="source_view">
+                    <property name="smart-home-end">after</property>
                   </object>
                 </child>
               </object>
