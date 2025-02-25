@@ -124,6 +124,7 @@ class Bedit.Application : Gtk.Application {
         this.add_action(settings.create_action("show-statusbar"));
         this.add_action(settings.create_action("show-overview-map"));
         this.add_action(settings.create_action("highlight-selection"));
+        this.add_action(settings.create_action("highlight-current-line"));
         this.add_action(settings.create_action("word-wrap"));
         this.add_action(settings.create_action("auto-check-spelling"));
 
@@ -167,6 +168,7 @@ class Bedit.Application : Gtk.Application {
         this.set_accels_for_action("app.decrease-text-size", {"<Control>minus"});
         this.set_accels_for_action("app.reset-text-size", {"<Control>0"});
         this.set_accels_for_action("app.highlight-selection", {});
+        this.set_accels_for_action("app.highlight-current-line", {});
 
         // Search.
         this.set_accels_for_action("search.find", {"<Control>F"});

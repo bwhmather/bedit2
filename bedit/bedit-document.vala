@@ -63,6 +63,7 @@ public sealed class Bedit.Document : Gtk.Widget {
 
         word_wrap_init();
         overview_map_init();
+        highlight_current_line_init();
         search_init();
 
         if (file != null) {
@@ -202,6 +203,15 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.settings.bind("word-wrap", this, "word-wrap", GET);
         this.notify["word-wrap"].connect((d, pspec) => { this.update_word_wrap(); });
         this.update_word_wrap();
+    }
+
+    /* === Highlight Current Line ========================================================================= */
+    public bool highlight_current_line { get; set; }
+
+    private void
+    highlight_current_line_init() {
+        this.settings.bind("highlight-current-line", this, "highlight-current-line", GET);
+        this.bind_property("highlight-current-line", this.source_view, "highlight-current-line", SYNC_CREATE);
     }
 
     /* === Overview Map =================================================================================== */
