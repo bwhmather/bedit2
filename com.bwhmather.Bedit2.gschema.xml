@@ -27,7 +27,7 @@
     </key>
     <key name="highlight-selection" type="b">
       <default>true</default>
-      <summary>Highlight Mode</summary>
+      <summary>Highlight Text Matching Selection</summary>
       <description>Whether Bedit should highlight areas that match the current selection.</description>
     </key>
     <key name="auto-check-spelling" type="b">
