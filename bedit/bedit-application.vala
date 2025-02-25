@@ -166,7 +166,7 @@ class Bedit.Application : Gtk.Application {
         this.set_accels_for_action("app.increase-text-size", {"<Control>plus"});
         this.set_accels_for_action("app.decrease-text-size", {"<Control>minus"});
         this.set_accels_for_action("app.reset-text-size", {"<Control>0"});
-        this.set_accels_for_action("app.highlight-mode", {});
+        this.set_accels_for_action("app.highlight-selection", {});
 
         // Search.
         this.set_accels_for_action("search.find", {"<Control>F"});

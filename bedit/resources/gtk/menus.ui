@@ -180,7 +180,7 @@
       <section>
         <item>
           <attribute name="label" translatable="yes">Highlight Text Matching Selection</attribute>
-          <attribute name="action">app.highlight-mode</attribute>
+          <attribute name="action">app.highlight-selection</attribute>
         </item>
       </section>
     </submenu>
