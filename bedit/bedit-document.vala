@@ -65,6 +65,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         overview_map_init();
         highlight_current_line_init();
         line_numbers_init();
+        start_mark_init();
         search_init();
 
         if (file != null) {
@@ -254,40 +255,63 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.update_show_overview_map();
     }
 
-    /* === Search and Replace ============================================================================= */
+    /* === Navigation ===================================================================================== */
 
-    private GtkSource.SearchContext? search_context;
-    private GLib.Cancellable? search_cancellable;
-    private Gtk.TextMark? search_start_mark;
-    private bool search_start_mark_reset_blocked;
-
-    public int num_search_occurrences { get; private set; }
-    public int selected_search_occurrence { get; private set; }
+    private Gtk.TextMark? start_mark;
+    private bool start_mark_reset_blocked;
 
     private void
-    clear_search_start_mark() {
-        if (search_start_mark != null) {
-            this.source_buffer.delete_mark(this.search_start_mark);
-            this.search_start_mark = null;
+    scroll_to_cursor() {
+        this.source_view.scroll_to_mark(this.source_buffer.get_insert(), 0.25, false, 0.0, 0.0);
+    }
+
+    private void
+    clear_start_mark() {
+        if (start_mark != null) {
+            this.source_buffer.delete_mark(this.start_mark);
+            this.start_mark = null;
         }
     }
 
     private void
-    set_search_start_mark() {
-        return_if_fail(this.search_start_mark == null);
+    set_start_mark() {
+        return_if_fail(this.start_mark == null);
 
         Gtk.TextIter start_iter;
         this.source_buffer.get_selection_bounds(out start_iter, null);
-        this.search_start_mark = this.source_buffer.create_mark(null, start_iter, false);
+        this.start_mark = this.source_buffer.create_mark(null, start_iter, false);
     }
 
     private void
-    reset_search_start_mark() {
-        if (!this.search_start_mark_reset_blocked) {
-            this.clear_search_start_mark();
-            this.set_search_start_mark();
+    reset_start_mark() {
+        if (!this.start_mark_reset_blocked) {
+            this.clear_start_mark();
+            this.set_start_mark();
         }
     }
+
+
+    private void
+    start_mark_init() {
+        this.set_start_mark();
+
+        this.source_buffer.mark_set.connect((loc, mark) => {
+            if (mark == this.source_buffer.get_insert()) {
+                this.reset_start_mark();
+            }
+        });
+        this.source_buffer.changed.connect(() => {
+            this.reset_start_mark();
+        });
+    }
+
+    /* --- Search and Replace ----------------------------------------------------------------------------- */
+
+    private GtkSource.SearchContext? search_context;
+    private GLib.Cancellable? search_cancellable;
+
+    public int num_search_occurrences { get; private set; }
+    public int selected_search_occurrence { get; private set; }
 
     private void
     update_search_occurrences() {
@@ -331,11 +355,6 @@ public sealed class Bedit.Document : Gtk.Widget {
     }
 
     private void
-    scroll_to_cursor() {
-        this.source_view.scroll_to_mark(this.source_buffer.get_insert(), 0.25, false, 0.0, 0.0);
-    }
-
-    private void
     wait_focus_first() {
         Gtk.TextIter start_at;
         Gtk.TextIter match_start;
@@ -347,7 +366,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         }
 
         return_if_fail(this.search_context != null);
-        return_if_fail(this.search_start_mark != null);
+        return_if_fail(this.start_mark != null);
 
         // TODO it would be nice if there was a way to block on the current run
         // of bedit_searchbar_focus_first() instead of killing it and starting
@@ -355,14 +374,14 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.search_cancellable.cancel();
         this.search_cancellable = null;
 
-        this.source_buffer.get_iter_at_mark(out start_at, this.search_start_mark);
+        this.source_buffer.get_iter_at_mark(out start_at, this.start_mark);
 
         found = this.search_context.forward(start_at, out match_start, out match_end, null);
 
         if (found) {
-            this.search_start_mark_reset_blocked = true;
+            this.start_mark_reset_blocked = true;
             this.source_buffer.select_range(match_start, match_end);
-            this.search_start_mark_reset_blocked = false;
+            this.start_mark_reset_blocked = false;
 
         } else {
             this.source_buffer.select_range(start_at, start_at);
@@ -379,23 +398,23 @@ public sealed class Bedit.Document : Gtk.Widget {
         bool found;
 
         assert(this.search_context != null);
-        assert(this.search_start_mark != null);
+        assert(this.start_mark != null);
 
         if (this.cancellable!= null) {
             this.search_cancellable.cancel();
         }
         this.search_cancellable = new GLib.Cancellable();
 
-        this.source_buffer.get_iter_at_mark(out start_at, this.search_start_mark);
+        this.source_buffer.get_iter_at_mark(out start_at, this.start_mark);
 
         found = yield this.search_context.forward_async(
             start_at, this.search_cancellable, out match_start, out match_end, null
         );
 
         if (found) {
-            this.search_start_mark_reset_blocked = true;
+            this.start_mark_reset_blocked = true;
             this.source_buffer.select_range(match_start, match_end);
-            this.search_start_mark_reset_blocked = false;
+            this.start_mark_reset_blocked = false;
 
         } else {
             this.source_buffer.select_range(start_at, start_at);
@@ -434,7 +453,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         found = this.search_context.forward(start_at, out match_start, out match_end, null);
         if (found) {
             this.source_buffer.select_range(match_start, match_end);
-            this.reset_search_start_mark();
+            this.reset_start_mark();
             this.scroll_to_cursor();
         }
     }
@@ -457,7 +476,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         found = this.search_context.backward(start_at, out match_start, out match_end, null);
         if (found) {
             this.source_buffer.select_range(match_start, match_end);
-            this.reset_search_start_mark();
+            this.reset_start_mark();
             this.scroll_to_cursor();
         }
     }
@@ -512,19 +531,10 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     private void
     search_init() {
-        this.set_search_start_mark();
-
         this.source_buffer.mark_set.connect((loc, mark) => {
-            if (mark == this.source_buffer.get_insert()) {
-                this.reset_search_start_mark();
-            }
-
             if (mark == this.source_buffer.get_insert() || mark == this.source_buffer.get_selection_bound()) {
                 this.update_search_occurrences();
             }
-        });
-        this.source_buffer.changed.connect(() => {
-            this.reset_search_start_mark();
         });
     }
 }
