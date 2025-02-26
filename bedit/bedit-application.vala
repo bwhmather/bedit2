@@ -180,7 +180,7 @@ class Bedit.Application : Gtk.Application {
         this.set_accels_for_action("search.replace", {"<Control>R"});
         this.set_accels_for_action("search.replace-all", {"<Control><Alt>R"});
         this.set_accels_for_action("search.hide", {"Escape"});
-        this.set_accels_for_action("win.go-to-line", {"<Control>I"});
+        this.set_accels_for_action("doc.show-go-to-line", {"<Control>I"});
 
         // Tools.
         this.set_accels_for_action("app.open-check-spelling", {"<Shift>F7"});

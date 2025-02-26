@@ -25,25 +25,22 @@
           </object>
         </child>
         <child type="overlay">
-          <object class="GtkRevealer">
-            <property name="visible">true</property>
+          <object class="GtkRevealer" id="go_to_line_revealer">
             <property name="halign">end</property>
             <property name="valign">start</property>
             <property name="margin-end">12</property>
-            <property name="reveal-child">true</property>
             <child>
               <object class="GtkFrame">
                 <style>
                   <class name="app-notification"/>
                 </style>
                 <child>
-                  <object class="GtkEntry">
+                  <object class="GtkEntry" id="go_to_line_entry">
                     <property name="width-request">160</property>
-                    <property name="visible">true</property>
                     <property name="primary-icon-activatable">false</property>
                     <property name="primary-icon-sensitive">false</property>
                     <property name="primary-icon-name">go-jump</property>
-                    <property name="tooltip-text" translatable="yes">Line you want to move the cursor to</property>
+                    <property name="tooltip-text" translatable="yes">Line you want to move the cursor to.  Prefix with + or - to move relative to current line.  Append a column offset with :.</property>
                   </object>
                 </child>
               </object>

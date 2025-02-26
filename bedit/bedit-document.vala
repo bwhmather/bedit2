@@ -67,6 +67,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         line_numbers_init();
         start_mark_init();
         search_init();
+        go_to_line_init();
 
         if (file != null) {
             reload_async.begin(null);
@@ -535,6 +536,158 @@ public sealed class Bedit.Document : Gtk.Widget {
             if (mark == this.source_buffer.get_insert() || mark == this.source_buffer.get_selection_bound()) {
                 this.update_search_occurrences();
             }
+        });
+    }
+
+    /* --- Go To Line ------------------------------------------------------------------------------------- */
+
+    [GtkChild]
+    private unowned Gtk.Revealer go_to_line_revealer;
+
+    [GtkChild]
+    private unowned Gtk.Entry go_to_line_entry;
+
+    uint go_to_line_timeout_id;
+
+    private void
+    go_to_line_commit() {
+        this.reset_start_mark();
+    }
+
+    private void
+    go_to_line_hide() {
+        Gtk.TextIter start_iter;
+
+        if (!this.go_to_line_revealer.reveal_child) {
+            return;
+        }
+        this.go_to_line_revealer.reveal_child = false;
+
+        if (this.go_to_line_timeout_id != 0) {
+            GLib.Source.remove(this.go_to_line_timeout_id);
+            this.go_to_line_timeout_id = 0;
+        }
+
+        this.source_buffer.get_iter_at_mark(out start_iter, this.start_mark);
+        this.source_buffer.place_cursor(start_iter);
+        this.scroll_to_cursor();
+    }
+
+    private void
+    go_to_line_update() {
+        string text;
+        string line_text;
+        string column_text;
+        Gtk.TextIter start_at;
+        int line;
+        int column;
+
+        text = go_to_line_entry.get_text();
+        this.source_buffer.get_iter_at_mark(out start_at, this.start_mark);
+
+        if (text[0] == '\0') {
+            this.source_buffer.place_cursor(start_at);
+            this.scroll_to_cursor();
+
+            // TODO clear error.
+
+            return;
+        }
+
+        var components = text.split(":", 2);
+        line_text = components[0];
+        column_text = components[1];
+
+        line = 0;
+        switch (text[0]) {
+        case '\0':
+            line = start_at.get_line();
+            break;
+
+        case '-':
+            int curr_line = start_at.get_line();
+
+            int offset = 0;
+            if (text[1] != '\0') {
+                bool ok = int.try_parse(text[1:], out offset);
+                if (!ok) {
+                    // Assume overflow.  Snap to first number that will trigger out of bounds and set error
+                    // on input.
+                    offset = curr_line + 1;
+                }
+            }
+            line = curr_line - offset;
+            break;
+
+        case '+':
+            int curr_line = start_at.get_line();
+
+            int offset = 0;
+            if (text[1] != '\0') {
+                bool ok = int.try_parse(text[1:], out offset);
+                if (!ok) {
+                    // Assume overflow.  Snap to offset that is (almost) guaranteed to be out of bounds to set
+                    // error on input..
+                    offset = int.MAX - line;
+                }
+            }
+
+            line = curr_line + offset;
+            break;
+
+        default:
+            bool ok = int.try_parse(text, out line);
+            if (!ok) {
+                line = int.MAX;
+            }
+            line -= 1;
+            break;
+        }
+
+        column = 0;
+        if (column_text != null && column_text[0] != '\0') {
+            column = int.parse(column_text);
+        }
+
+        Gtk.TextIter iter;
+        this.source_buffer.get_iter_at_line_offset(out iter, line, column);
+        this.start_mark_reset_blocked = true;
+        this.source_buffer.place_cursor(iter);
+        this.start_mark_reset_blocked = false;
+        this.scroll_to_cursor();
+
+        if (iter.get_line() != line || iter.get_line_offset() != column) {
+            // TODO set error.
+        } else {
+            // TODO clear error.
+        }
+    }
+
+    public void
+    go_to_line_show() {
+        Gtk.TextIter iter;
+
+        this.go_to_line_revealer.reveal_child = true;
+
+        var cursor = this.source_buffer.get_insert();
+        this.source_buffer.get_iter_at_mark(out iter, cursor);
+        this.go_to_line_entry.text = iter.get_line().to_string();
+        this.go_to_line_entry.select_region(0, -1);
+
+        this.go_to_line_entry.grab_focus();
+    }
+
+    private void
+    go_to_line_init() {
+        this.go_to_line_entry.changed.connect((e) => { this.go_to_line_update(); });
+
+        var focus_controller = new Gtk.EventControllerFocus();
+        focus_controller.leave.connect((ec) => { this.go_to_line_hide(); });
+        this.go_to_line_entry.add_controller(focus_controller);
+
+        this.go_to_line_entry.activate.connect((e) => {
+            this.go_to_line_commit();
+            this.go_to_line_hide();
         });
     }
 }

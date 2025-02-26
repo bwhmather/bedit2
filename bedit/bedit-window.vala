@@ -252,6 +252,8 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private void
     action_doc_show_go_to_line() {
+        return_if_fail(this.active_document != null);
+        this.active_document.go_to_line_show();
     }
 
     /* --- Document Action State -------------------------------------------------------------------------- */

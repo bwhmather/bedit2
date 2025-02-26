@@ -224,7 +224,7 @@
       <section>
         <item>
           <attribute name="label" translatable="yes">Go to Line</attribute>
-          <attribute name="action">win.go-to-line</attribute>
+          <attribute name="action">doc.show-go-to-line</attribute>
         </item>
       </section>
     </submenu>
