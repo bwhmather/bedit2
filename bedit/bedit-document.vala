@@ -685,6 +685,13 @@ public sealed class Bedit.Document : Gtk.Widget {
         focus_controller.leave.connect((ec) => { this.go_to_line_hide(); });
         this.go_to_line_entry.add_controller(focus_controller);
 
+        var shortcut_controller = new Gtk.ShortcutController();
+        shortcut_controller.add_shortcut(new Gtk.Shortcut(
+            Gtk.ShortcutTrigger.parse_string("Escape"),
+            new Gtk.CallbackAction((w, a) =>{ this.go_to_line_hide();  return true; })
+        ));
+        this.go_to_line_entry.add_controller(shortcut_controller);
+
         this.go_to_line_entry.activate.connect((e) => {
             this.go_to_line_commit();
             this.go_to_line_hide();

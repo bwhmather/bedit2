@@ -806,6 +806,11 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         typeof (Brk.Toolbar).ensure();
         typeof (Bedit.Statusbar).ensure();
         typeof (Bedit.Document).ensure();
+
+        add_shortcut(new Gtk.Shortcut(
+            Gtk.ShortcutTrigger.parse_string("Escape"),
+            new Gtk.NamedAction("search.hide")
+        ));
     }
 
     construct {
