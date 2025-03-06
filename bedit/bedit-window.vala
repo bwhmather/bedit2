@@ -745,6 +745,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         Gtk.EventControllerKey event_controller;
 
         this.search_actions.add_action_entries(search_action_entries, this);
+
         this.search_actions.add_action(new GLib.PropertyAction("case-sensitive", this, "case-sensitive"));
         this.search_actions.add_action(new GLib.PropertyAction("regex", this, "regex"));
 
@@ -762,6 +763,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.bind_property("search-visible", this.search_revealer, "reveal-child", SYNC_CREATE);
 
         this.replace_entry.activate.connect(this.replace_entry_on_activate);
+
+        this.notify["case-sensitive"].connect((s, pspec) => { this.update_search(); });
+        this.notify["regex"].connect((s, pspec) => { this.update_search(); });
 
         this.notify["active-document"].connect((s, pspec) => { this.update_search(); });
         this.notify["search-visible"].connect((s, pspec) => {this.update_search();});
