@@ -555,7 +555,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         assert(replace_entry == this.replace_entry);
         if (this.active_document != null) {
             try {
-                this.active_document.replace(this.replace_entry.text.compress());
+                this.active_document.replace(this.replace_entry.text);
             } catch(Error err) {}
         }
     }
@@ -616,14 +616,14 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     private void
     action_search_replace() {
         try {
-            this.active_document.replace(this.replace_entry.text.compress());
+            this.active_document.replace(this.replace_entry.text);
         } catch(Error err) {}
     }
 
     private void
     action_search_replace_all() {
         try {
-            this.active_document.replace_all(this.replace_entry.text.compress());
+            this.active_document.replace_all(this.replace_entry.text);
         } catch(Error err) {}
     }
 
