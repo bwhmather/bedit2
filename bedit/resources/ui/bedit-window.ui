@@ -219,7 +219,7 @@
                         <property name="visible" bind-source="BeditWindow" bind-property="replace-visible" bind-flags="sync-create"/>
                         <property name="halign">fill</property>
                         <property name="label">Replace</property>
-                        <property name="tooltip-text">Replace currently highlighted instance (Ctrl+R)</property>
+                        <property name="tooltip-text">Replace first instance (Ctrl+R)</property>
                         <property name="action-name">search.replace</property>
                         <layout>
                           <property name="column">0</property>
