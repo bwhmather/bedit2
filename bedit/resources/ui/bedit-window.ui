@@ -125,8 +125,7 @@
           </object>
         </property>
         <child type="bottom">
-          <object class="GtkRevealer">
-            <property name="reveal-child" bind-source="BeditWindow" bind-property="search-visible" bind-flags="sync-create"/>
+          <object class="GtkRevealer" id="search_revealer">
             <property name="transition-type">slide-up</property>
             <child>
               <object class="GtkBox">

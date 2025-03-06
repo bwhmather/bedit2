@@ -451,6 +451,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     action_win_new() {
         var document = new Bedit.Document();
         this.add_document(document);
+        document.grab_focus();
     }
 
     private async void
@@ -460,6 +461,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
         var document = new Bedit.Document.for_file(file);
         this.add_document(document);
+        document.grab_focus();
     }
 
     private void
@@ -494,6 +496,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     }
 
     /* === Search ========================================================================================= */
+
+    [GtkChild]
+    unowned Gtk.Revealer search_revealer;
 
     [GtkChild]
     unowned Gtk.Entry search_entry;
@@ -624,6 +629,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private void
     action_search_hide() {
+        if (this.active_document != null && this.get_focus().is_ancestor(this.search_revealer))  {
+            this.active_document.grab_focus();
+        }
         this.freeze_notify();
         this.search_visible = false;
         this.replace_visible = false;
@@ -750,6 +758,8 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
             this.update_search();
             this.focus_first();
         });
+
+        this.bind_property("search-visible", this.search_revealer, "reveal-child", SYNC_CREATE);
 
         this.replace_entry.activate.connect(this.replace_entry_on_activate);
 

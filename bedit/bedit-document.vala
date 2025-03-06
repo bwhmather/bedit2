@@ -82,6 +82,11 @@ public sealed class Bedit.Document : Gtk.Widget {
         Object(file: file);
     }
 
+    public override bool
+    grab_focus() {
+        return this.source_view.grab_focus();
+    }
+
     public async void
     save_async(GLib.File file) throws Error {
         return_val_if_fail(!loading, false);
