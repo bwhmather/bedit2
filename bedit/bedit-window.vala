@@ -512,7 +512,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     public bool replace_active { get; private set; }
     public string query { get; private set; }
     public bool regex { get; set; }
-    public bool case_sensitive { get; set; }
+    public bool case_sensitive { get; set; default=true; }
 
     private bool
     search_entry_on_key_press_event(Gtk.EventControllerKey controller, uint keyval, uint keycode, Gdk.ModifierType modifiers) {
