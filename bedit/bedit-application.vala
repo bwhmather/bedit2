@@ -4,6 +4,7 @@ class Bedit.Application : Gtk.Application {
     private void
     action_new() {
         var window = new Bedit.Window(this);
+        window.open_new();
         window.present();
     }
 
@@ -101,6 +102,7 @@ class Bedit.Application : Gtk.Application {
     public override int
     command_line(GLib.ApplicationCommandLine cmdline) {
         var window = new Bedit.Window(this);
+        window.open_new();
         window.present();
 
         return 0;

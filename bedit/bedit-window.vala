@@ -447,21 +447,30 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     /* --- Creating New Documents and Opening Existing Ones ----------------------------------------------- */
 
-    private void
-    action_win_new() {
+    public void
+    open_new() {
         var document = new Bedit.Document();
         this.add_document(document);
         document.grab_focus();
+    }
+
+    public void
+    open_file(GLib.File file) {
+        var document = new Bedit.Document.for_file(file);
+        this.add_document(document);
+        document.grab_focus();
+    }
+
+    private void
+    action_win_new() {
+        this.open_new();
     }
 
     private async void
     do_open() throws Error {
         var file_dialog = new Gtk.FileDialog();
         var file = yield file_dialog.open(this, this.cancellable);
-
-        var document = new Bedit.Document.for_file(file);
-        this.add_document(document);
-        document.grab_focus();
+        this.open_file(file);
     }
 
     private void
