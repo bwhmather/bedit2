@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="BeditPreferencesWindow" parent="GtkWindow">
+    <property name="title">Bedit Preferences</property>
+    <child>
+      <object class="GtkNotebook">
+        <child>
+          <object class="GtkLabel">
+            <property name="label">View settings</property>
+          </object>
+        </child>
+        <child type="tab">
+          <object class="GtkLabel">
+            <property name="label">View</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>
+
