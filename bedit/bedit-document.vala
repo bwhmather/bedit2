@@ -117,6 +117,8 @@ public sealed class Bedit.Document : Gtk.Widget {
         return true;
     }
 
+    /* === Editing ======================================================================================== */
+
     public void
     undo() {
         this.source_buffer.undo();
@@ -193,7 +195,9 @@ public sealed class Bedit.Document : Gtk.Widget {
         }
     }
 
-    /* === Word Wrap ====================================================================================== */
+    /* === Appearance ===================================================================================== */
+
+    /* --- Word Wrap -------------------------------------------------------------------------------------- */
 
     public bool word_wrap { get; set; }
 
@@ -213,7 +217,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.update_word_wrap();
     }
 
-    /* === Highlight Current Line ========================================================================= */
+    /* --- Highlight Current Line ------------------------------------------------------------------------- */
 
     public bool highlight_current_line { get; set; }
 
@@ -223,7 +227,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.bind_property("highlight-current-line", this.source_view, "highlight-current-line", SYNC_CREATE);
     }
 
-    /* === Line Numbers =================================================================================== */
+    /* --- Line Numbers ----------------------------------------------------------------------------------- */
 
     public bool show_line_numbers { get; set; }
 
@@ -233,7 +237,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.bind_property("show-line-numbers", this.source_view, "show-line-numbers", SYNC_CREATE);
     }
 
-    /* === Overview Map =================================================================================== */
+    /* --- Overview Map ----------------------------------------------------------------------------------- */
 
     [GtkChild]
     private unowned GtkSource.Map overview_map;
