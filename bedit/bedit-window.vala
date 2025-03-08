@@ -253,7 +253,12 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     private void
     action_doc_show_go_to_line() {
         return_if_fail(this.active_document != null);
-        this.active_document.go_to_line_show();
+        // Focus will change repeatedly as stack unwinds if triggered from
+        // menu.  This will cause the go-to-line widget to close.  Delay and
+        // trigger from main loop instead.
+        GLib.Idle.add_once(() => {
+            this.active_document.go_to_line_show();
+        });
     }
 
     /* --- Document Action State -------------------------------------------------------------------------- */
