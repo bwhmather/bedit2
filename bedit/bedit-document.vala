@@ -41,12 +41,6 @@ public sealed class Bedit.Document : Gtk.Widget {
     on_location_changed() {
         if (this.file != null) {
             this.title = this.file.get_basename();
-            var language_manager = GtkSource.LanguageManager.get_default();
-            var language = language_manager.guess_language(this.file.get_path(), null);
-            if (language != null) {
-                // Don't clear language if already set.
-                this.source_buffer.language = language;
-            }
         }
     }
 
@@ -73,6 +67,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.notify["loading"].connect((_, pspec) => { this.update_busy(); });
         this.notify["saving"].connect((_, pspec) => { this.update_busy(); });
 
+        language_init();
         word_wrap_init();
         overview_map_init();
         highlight_current_line_init();
@@ -206,6 +201,34 @@ public sealed class Bedit.Document : Gtk.Widget {
 
             this.source_view.scroll_mark_onscreen(this.source_buffer.get_insert());
         }
+    }
+
+    /* === Language ======================================================================================= */
+
+    public GtkSource.Language language { get; set; }
+
+    private void
+    language_update() {
+        if (this.file == null) {
+            return;
+        }
+
+        var language_manager = GtkSource.LanguageManager.get_default();
+        var language = language_manager.guess_language(this.file.get_path(), null);
+        if (language == null) {
+            // Don't clear language if already set.
+            return;
+        }
+
+        this.language = language;
+    }
+
+    private void
+    language_init() {
+        this.bind_property("language", this.source_buffer, "language", SYNC_CREATE);
+
+        this.source_file.notify["location"].connect((sf, pspec) => { this.language_update(); });
+        this.language_update();
     }
 
     /* === Appearance ===================================================================================== */
