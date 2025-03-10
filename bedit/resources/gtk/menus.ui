@@ -189,6 +189,10 @@
           <attribute name="action">app.highlight-current-line</attribute>
         </item>
         <item>
+          <attribute name="label" translatable="yes">Highlight Syntax</attribute>
+          <attribute name="action">app.highlight-syntax</attribute>
+        </item>
+        <item>
           <attribute name="label" translatable="yes">Show Line Numbers</attribute>
           <attribute name="action">app.show-line-numbers</attribute>
         </item>

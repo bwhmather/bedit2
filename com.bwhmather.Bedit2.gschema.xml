@@ -35,6 +35,11 @@
       <summary>Highlight Current Line</summary>
       <description>Whether Bedit should highlight the whole of the line containing the cursor</description>
     </key>
+    <key name="highlight-syntax" type="b">
+      <default>true</default>
+      <summary>Highlight Syntax</summary>
+      <description>Whether Bedit should apply syntax highlighting</description>
+    </key>
     <key name="show-line-numbers" type="b">
       <default>true</default>
       <summary>Show Line Numbers</summary>

@@ -7,10 +7,13 @@ public sealed class Bedit.Document : Gtk.Widget {
     [GtkChild]
     private unowned GtkSource.View source_view;
     private unowned GtkSource.Buffer source_buffer;
-    private GtkSource.File source_file;
+    private GtkSource.File source_file = new GtkSource.File();
 
     public string title { get; private set; }
-    public unowned GLib.File? file { get; construct; }
+    public unowned GLib.File? file {
+        get { return this.source_file.location; }
+        construct { this.source_file.location = value; }
+    }
     public bool modified { get; private set; }
 
     public bool loading { get; private set; }
@@ -34,6 +37,19 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.busy = this.loading || this.saving;
     }
 
+    private void
+    on_location_changed() {
+        if (this.file != null) {
+            this.title = this.file.get_basename();
+            var language_manager = GtkSource.LanguageManager.get_default();
+            var language = language_manager.guess_language(this.file.get_path(), null);
+            if (language != null) {
+                // Don't clear language if already set.
+                this.source_buffer.language = language;
+            }
+        }
+    }
+
     construct {
         this.source_buffer = source_view.get_buffer() as GtkSource.Buffer;
         this.source_buffer.notify["can-undo"].connect((sb, pspec) => {
@@ -42,7 +58,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.source_buffer.notify["can-redo"].connect((sb, pspec) => {
             this.can_redo = source_buffer.can_redo;
         });
-        this.source_buffer.notify["has-selection"].connect((db, pspec) => {
+        this.source_buffer.notify["has-selection"].connect((sb, pspec) => {
             bool has_selection = this.source_buffer.has_selection;
             this.can_cut = has_selection;
             this.can_copy = has_selection;
@@ -51,12 +67,8 @@ public sealed class Bedit.Document : Gtk.Widget {
             this.modified = this.source_buffer.get_modified();
         });
 
-        this.source_file = new GtkSource.File();
-        this.source_file.set_location(file);
-        this.source_file.notify["location"].connect((sf, pspec) => {
-            this.file = this.source_file.location;
-            this.title = this.file.get_basename();
-        });
+        this.source_file.notify["location"].connect((sf, pspec) => { this.on_location_changed(); });
+        this.on_location_changed();
 
         this.notify["loading"].connect((_, pspec) => { this.update_busy(); });
         this.notify["saving"].connect((_, pspec) => { this.update_busy(); });
@@ -64,6 +76,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         word_wrap_init();
         overview_map_init();
         highlight_current_line_init();
+        highlight_syntax_init();
         line_numbers_init();
         start_mark_init();
         search_init();
@@ -225,6 +238,16 @@ public sealed class Bedit.Document : Gtk.Widget {
     highlight_current_line_init() {
         this.settings.bind("highlight-current-line", this, "highlight-current-line", GET);
         this.bind_property("highlight-current-line", this.source_view, "highlight-current-line", SYNC_CREATE);
+    }
+
+    /* --- Highlight Current Line ------------------------------------------------------------------------- */
+
+    public bool highlight_syntax { get; set; }
+
+    private void
+    highlight_syntax_init() {
+        this.settings.bind("highlight-syntax", this, "highlight-syntax", GET);
+        this.bind_property("highlight-syntax", this.source_buffer, "highlight-syntax", SYNC_CREATE);
     }
 
     /* --- Line Numbers ----------------------------------------------------------------------------------- */

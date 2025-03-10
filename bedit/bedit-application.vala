@@ -133,6 +133,7 @@ class Bedit.Application : Gtk.Application {
         this.add_action(settings.create_action("show-overview-map"));
         this.add_action(settings.create_action("highlight-selection"));
         this.add_action(settings.create_action("highlight-current-line"));
+        this.add_action(settings.create_action("highlight-syntax"));
         this.add_action(settings.create_action("show-line-numbers"));
         this.add_action(settings.create_action("word-wrap"));
         this.add_action(settings.create_action("auto-check-spelling"));
