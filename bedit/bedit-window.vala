@@ -456,14 +456,12 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     open_new() {
         var document = new Bedit.Document();
         this.add_document(document);
-        document.grab_focus();
     }
 
     public void
     open_file(GLib.File file) {
         var document = new Bedit.Document.for_file(file);
         this.add_document(document);
-        document.grab_focus();
     }
 
     private void
@@ -873,7 +871,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     public void
     add_document(Bedit.Document document) {
-        Brk.TabPage page = tab_view.append(document);
+        Brk.TabPage page = this.tab_view.append(document);
         document.bind_property("title", page, "title", SYNC_CREATE);
+        this.tab_view.set_selected_page(page);
+        this.tab_view.grab_focus();
     }
 }
