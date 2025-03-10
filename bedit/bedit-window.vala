@@ -869,7 +869,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         );
     }
 
-    public void
+    private void
     add_document(Bedit.Document document) {
         Brk.TabPage page = this.tab_view.append(document);
         document.bind_property("title", page, "title", SYNC_CREATE);
