@@ -3,15 +3,37 @@
   <template class="BeditPreferencesWindow" parent="GtkWindow">
     <property name="title">Bedit Preferences</property>
     <child>
-      <object class="GtkNotebook">
+      <object class="GtkBox">
         <child>
-          <object class="GtkLabel">
-            <property name="label">View settings</property>
+          <object class="GtkStackSidebar">
+            <property name="stack">stack</property>
           </object>
         </child>
-        <child type="tab">
-          <object class="GtkLabel">
-            <property name="label">View</property>
+
+        <child>
+          <object class="GtkStack" id="stack">
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">view</property>
+                <property name="title">View</property>
+                <property name="child">
+                  <object class="GtkLabel">
+                    <property name="label">View settings</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStackPage">
+                <property name="name">theme</property>
+                <property name="title">Theme</property>
+                <property name="child">
+                  <object class="GtkLabel">
+                    <property name="label">Theme settings</property>
+                  </object>
+                </property>
+              </object>
+            </child>
           </object>
         </child>
       </object>
