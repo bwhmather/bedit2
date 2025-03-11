@@ -46,6 +46,13 @@
                 <property name="action-name">doc.print</property>
               </object>
             </child>
+            <child>
+              <object class="GtkButton">
+                <property name="icon-name">document-print-preview</property>
+                <property name="tooltip-text">Print Preview (Ctrl+Shift+P)</property>
+                <property name="action-name">doc.print</property>
+              </object>
+            </child>
 
             <child><object class="GtkSeparator"></object></child>
 
