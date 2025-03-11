@@ -261,6 +261,10 @@
         <child type="bottom">
           <object class="BeditStatusbar" id="status_bar">
             <property name="visible" bind-source="BeditWindow" bind-property="show-statusbar" bind-flags="sync-create"/>
+            <child>
+              <object class="GtkLabel" id="language_label">
+              </object>
+            </child>
           </object>
         </child>
       </object>

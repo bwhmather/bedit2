@@ -68,9 +68,22 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     public bool show_statusbar { get; set; }
 
+    [GtkChild]
+    private unowned Gtk.Label language_label;
+
+    private void
+    language_update() {
+        if (this.active_document == null || this.active_document.language == null) {
+            this.language_label.label = "";
+        } else {
+            this.language_label.label = this.active_document.language.name;
+        }
+    }
+
     private void
     statusbar_init() {
         this.settings.bind("show-statusbar", this, "show-statusbar", GET);
+        this.active_document_notify_connect("language", this.language_update);
     }
 
     /* === Document Operations ============================================================================ */
