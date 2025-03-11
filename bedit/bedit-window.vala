@@ -817,11 +817,20 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         }
     }
 
+    private bool closing = false;
+
     private bool
     on_window_close_request(Gtk.Window window) {
+        this.closing = true;
 
-        return false;
+        if (this.tab_view.selected_page != null) {
+            this.tab_view.close_page(this.tab_view.selected_page);
+            return Gdk.EVENT_STOP;
+        }
+
+        return Gdk.EVENT_PROPAGATE;
     }
+
 
     private bool
     on_tab_view_close_page_request(Brk.TabView view, Brk.TabPage page) {
@@ -830,6 +839,18 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
             try {
                 var should_close = this.document_confirm_close_async.end(res);
                 view.close_page_finish(page, should_close);
+
+                if (!should_close) {
+                    this.closing = false;
+                }
+                if (this.closing){
+                    if (this.tab_view.selected_page != null) {
+                        this.tab_view.close_page(this.tab_view.selected_page);
+                    } else {
+                        GLib.Idle.add_once(this.close);
+                    }
+                }
+
             } catch (Error err) {
                 warning("Error: %s\n", err.message);
             }
