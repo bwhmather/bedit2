@@ -37,13 +37,6 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.busy = this.loading || this.saving;
     }
 
-    private void
-    on_location_changed() {
-        if (this.file != null) {
-            this.title = this.file.get_basename();
-        }
-    }
-
     construct {
         this.source_buffer = source_view.get_buffer() as GtkSource.Buffer;
         this.source_buffer.notify["can-undo"].connect((sb, pspec) => {
@@ -61,12 +54,10 @@ public sealed class Bedit.Document : Gtk.Widget {
             this.modified = this.source_buffer.get_modified();
         });
 
-        this.source_file.notify["location"].connect((sf, pspec) => { this.on_location_changed(); });
-        this.on_location_changed();
-
         this.notify["loading"].connect((_, pspec) => { this.update_busy(); });
         this.notify["saving"].connect((_, pspec) => { this.update_busy(); });
 
+        title_init();
         language_init();
         word_wrap_init();
         overview_map_init();
@@ -84,6 +75,8 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     ~Document() {
         assert(!this.busy);
+
+        title_deinit();
     }
 
     public Document.for_file(GLib.File file) {
@@ -203,7 +196,65 @@ public sealed class Bedit.Document : Gtk.Widget {
         }
     }
 
-    /* === Language ======================================================================================= */
+    /* === Metadata ======================================================================================= */
+
+    /* --- Title ------------------------------------------------------------------------------------------ */
+
+    private static bool[] title_allocated_draft_numbers = new bool[16];
+
+    private uint title_draft_number;
+
+    private void
+    title_acquire_draft_number() {
+        if (this.title_draft_number == 0) {
+            while (true) {
+                this.title_draft_number++;
+
+                if (this.title_draft_number >= title_allocated_draft_numbers.length) {
+                    title_allocated_draft_numbers.resize(title_allocated_draft_numbers.length + 1);
+                    title_allocated_draft_numbers[this.title_draft_number] = true;
+                    break;
+                }
+
+                if (!title_allocated_draft_numbers[this.title_draft_number]) {
+                    title_allocated_draft_numbers[this.title_draft_number] = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    private void
+    title_release_draft_number() {
+        if (this.title_draft_number != 0) {
+            title_allocated_draft_numbers[this.title_draft_number] = false;
+            this.title_draft_number = 0;
+        }
+    }
+
+    private void
+    title_update() {
+        if (this.file == null) {
+            this.title_acquire_draft_number();
+            this.title = "Untitled Document %u".printf(this.title_draft_number);
+        } else {
+            this.title_release_draft_number();
+            this.title = this.file.get_basename();
+        }
+    }
+
+    private void
+    title_init() {
+        this.source_file.notify["location"].connect((sf, pspec) => { this.title_update(); });
+        this.title_update();
+    }
+
+    private void
+    title_deinit() {
+        this.title_release_draft_number();
+    }
+
+    /* --- Language --------------------------------------------------------------------------------------- */
 
     public GtkSource.Language language { get; set; }
 
