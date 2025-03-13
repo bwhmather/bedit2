@@ -119,13 +119,7 @@
             <property name="vexpand">true</property>
             <property name="valign">fill</property>
             <child>
-              <object class="BrkTabBar">
-                <property name="view">tab_view</property>
-                <property name="expand-tabs">false</property>
-              </object>
-            </child>
-            <child>
-              <object class="BrkTabView" id="tab_view">
+              <object class="BeditTabView" id="tab_view">
                 <property name="vexpand">true</property>
               </object>
             </child>
