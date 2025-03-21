@@ -230,14 +230,9 @@ private class Bedit.TabPageStack : Gtk.Widget {
             }
         }
     }
-    internal bool is_transferring_page { get; private set; }
 
-    public signal bool close_page(Bedit.TabPage page);
-    public signal unowned Bedit.TabPageStack? create_window();
-    public signal void indicator_activated(Bedit.TabPage page);
     public signal void page_attached(Bedit.TabPage page);
     public signal void page_detached(Bedit.TabPage page);
-    public signal void setup_menu(Bedit.TabPage? page);
 
     static construct {
         set_layout_manager_type(typeof (Gtk.BinLayout));
@@ -311,10 +306,8 @@ private class Bedit.TabPageStack : Gtk.Widget {
     }
 
     internal unowned Bedit.TabPage
-    add_page(Gtk.Widget child, Bedit.TabPage? parent) {
-        return_val_if_fail(child.parent == null, null);
-
-        var page = new Bedit.TabPage(child);
+    add_page(Bedit.TabPage page, Bedit.TabPage? parent) {
+        return_val_if_fail(page.bin.parent == null, null);
 
         // TODO position should depend on parent, on the existing children of
         // the parent, and probably on lots of other subtle things.
@@ -332,11 +325,6 @@ private class Bedit.TabPageStack : Gtk.Widget {
 
         unowned Bedit.TabPage reference = page;
         return reference;
-    }
-
-    public void
-    transfer_page(Bedit.TabPage page, Bedit.TabPageStack other_stack) {
-
     }
 }
 
@@ -372,11 +360,6 @@ private sealed class Bedit.TabBar : Gtk.Widget {
 
     construct {
         this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.HORIZONTAL, -1);
-
-        this.pages.selection_model.items_changed.connect((position, removed, added) => {
-
-
-        });
     }
 
     public TabBar(Bedit.TabPageStack stack) {
@@ -485,12 +468,12 @@ public class Bedit.TabView : Gtk.Widget {
 
     public unowned Bedit.TabPage
     add_page(Gtk.Widget child, Bedit.TabPage? parent) {
-        return this.stack.add_page(child, parent);
+        var page = new Bedit.TabPage(child);
+        return this.stack.add_page(page, parent);
     }
 
     public void
     transfer_page(Bedit.TabPage page, Bedit.TabView other_view) {
-        this.stack.transfer_page(page, other_view.stack);
     }
 
     public void
