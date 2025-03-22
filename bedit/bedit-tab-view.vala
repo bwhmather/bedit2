@@ -35,25 +35,24 @@ public enum Bedit.TabViewShortcuts {
     ALL_SHORTCUTS
 }
 
-private class Bedit.TabPageBin : Gtk.Widget {
-    Gtk.Widget? _child;
-    public Gtk.Widget? child {
-        get { return this._child; }
-        set {
-            return_if_fail(value == null || value.parent == null);
+[GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-tab.ui")]
+private sealed class Bedit.Tab : Gtk.Widget {
+    public unowned Bedit.TabPage page { get; construct; }
 
-            if (value == this._child) {
-                return;
-            }
+    [GtkChild]
+    private unowned Gtk.Label label;
 
-            if (this._child != null) {
-                this._child.unparent();
-            }
-
-            this._child = value;
-            this._child.set_parent(this);
-        }
+    construct {
+        this.page.bind_property("title", this.label, "label", SYNC_CREATE);
     }
+
+    internal Tab(Bedit.TabPage page) {
+        Object(page: page);
+    }
+}
+
+private class Bedit.TabPageBin : Gtk.Widget {
+    public unowned Bedit.TabPage page { get; construct; }
 
     static construct {
         set_layout_manager_type(typeof (Gtk.BinLayout));
@@ -63,41 +62,36 @@ private class Bedit.TabPageBin : Gtk.Widget {
 
     construct {
         this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.HORIZONTAL, -1);
+        this.page.child.set_parent(this);
     }
 
     public override void
     compute_expand_internal(out bool hexpand, out bool vexpand) {
-        hexpand = false;
-        vexpand = false;
-        if (this.child != null) {
-            hexpand = this.child.compute_expand(Gtk.Orientation.HORIZONTAL);
-            vexpand = this.child.compute_expand(Gtk.Orientation.VERTICAL);
-        }
+        hexpand = this.page.child.compute_expand(Gtk.Orientation.HORIZONTAL);
+        vexpand = this.page.child.compute_expand(Gtk.Orientation.VERTICAL);
     }
 
     public override bool
     focus(Gtk.DirectionType direction) {
-        if (this.child == null) {
-            return false;
-        }
+        return this.page.child.focus(direction);
+    }
 
-        return this.child.focus(direction);
+    internal TabPageBin(Bedit.TabPage page) {
+        Object(page: page);
     }
 }
 
 
 public class Bedit.TabPage : GLib.Object {
-    //internal Bedit.Tab tab = new Bedit.Tab();
-    internal Bedit.TabPageBin bin = new Bedit.TabPageBin();
+    internal Bedit.Tab tab;
+    internal Bedit.TabPageBin bin;
+
 //    internal GLib.WeakRef last_focus;
 
     /**
      * The child widget that this page wraps.
      */
-    public Gtk.Widget child {
-        get { return this.bin.child; }
-        construct { this.bin.child = value; }
-    }
+    public Gtk.Widget child { get; construct; }
 
     /**
      * The tab that this page was created from.
@@ -152,7 +146,7 @@ public class Bedit.TabPage : GLib.Object {
      * If [property@TabPage:indicator-activatable] is set to `TRUE`, the
      * indicator icon can act as a button.
      */
-    public GLib.Icon indicator_icon { get; set; }
+    public GLib.Icon? indicator_icon { get; set; }
 
     /**
      * Human readable tooltip that will be displayed when a user mouses over
@@ -180,6 +174,11 @@ public class Bedit.TabPage : GLib.Object {
      * of the tab bar will be highlighted.
      */
     public bool needs_attention { get; set; }
+
+    construct {
+        this.tab = new Bedit.Tab(this);
+        this.bin = new Bedit.TabPageBin(this);
+    }
 
     internal TabPage(Gtk.Widget child) {
         Object(child: child);
@@ -229,6 +228,11 @@ private class Bedit.TabPageStack : Gtk.Widget {
                 }
             }
         }
+    }
+
+    public Bedit.TabPage
+    get_page(uint index) {
+        return this.children.get_item(index) as Bedit.TabPage;
     }
 
     public signal void page_attached(Bedit.TabPage page);
@@ -329,28 +333,47 @@ private class Bedit.TabPageStack : Gtk.Widget {
 }
 
 
-[GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-tab.ui")]
-private sealed class Bedit.Tab : Gtk.Widget {
-//    [GtkChild]
-//    private unowned Gtk.Label label;
-}
 
-public class Bedit.Tabs : Gtk.Widget {
+private sealed class Bedit.Tabs : Gtk.Widget {
+    public Bedit.TabPageStack stack { get; construct; }
+
     static construct {
         set_layout_manager_type(typeof (Gtk.BoxLayout));
         set_css_name("tabs");
         set_accessible_role(GROUP);
     }
 
+    public void
+    sync() {
+        int i;
+        Bedit.TabPage page;
+        Bedit.Tab? prev = null;
+
+        for (i = 0; i < this.stack.n_pages; i++) {
+            page = this.stack.get_page(i);
+            page.tab.insert_after(this, prev);
+        }
+
+        while (this.get_last_child() != prev) {
+            this.get_last_child().unparent();
+        }
+    }
+
     construct {
         this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.HORIZONTAL, -1);
+        sync();
+    }
+
+    public Tabs(Bedit.TabPageStack stack) {
+        Object(stack: stack);
     }
 }
 
 
 private sealed class Bedit.TabBar : Gtk.Widget {
-
     public Bedit.TabPageStack stack { get; construct; }
+
+    private Bedit.Tabs tabs;
 
     static construct {
         set_layout_manager_type(typeof (Gtk.BoxLayout));
@@ -360,12 +383,11 @@ private sealed class Bedit.TabBar : Gtk.Widget {
 
     construct {
         this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.HORIZONTAL, -1);
+        this.tabs = new Bedit.Tabs(this.stack);
     }
 
     public TabBar(Bedit.TabPageStack stack) {
-        Object(
-            stack: stack
-        );
+        Object(stack: stack);
     }
 }
 

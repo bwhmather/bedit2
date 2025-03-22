@@ -2,14 +2,9 @@
 <interface>
   <template class="BeditTab" parent="GtkWidget">
     <child>
-      <object class="GtkLabel" id="title">
+      <object class="GtkLabel" id="label">
         <property name="margin-start">4</property>
         <property name="margin-end">4</property>
-        <binding name="label">
-          <lookup name="title" type="BeditTabPage">
-            <lookup name="page">BeditTab</lookup>
-          </lookup>
-        </binding>
         <style>
           <class name="tab-title"/>
         </style>
