@@ -186,11 +186,7 @@ public class Bedit.TabPage : GLib.Object {
 }
 
 private class Bedit.TabViewStack : Gtk.Widget {
-    private GLib.ListStore children = new GLib.ListStore(typeof(Bedit.TabPage));
-
-    internal int n_pages { get; internal set; }
-
-    internal Gtk.SelectionModel pages { owned get; private set; }
+    public unowned Bedit.TabView view { get; construct; }
 
     private Bedit.TabPage? _selected_page;
     internal Bedit.TabPage? selected_page {
@@ -230,21 +226,13 @@ private class Bedit.TabViewStack : Gtk.Widget {
         }
     }
 
-    public Bedit.TabPage
-    get_page(uint index) {
-        return this.children.get_item(index) as Bedit.TabPage;
-    }
-
-    public signal void page_attached(Bedit.TabPage page);
-    public signal void page_detached(Bedit.TabPage page);
-
     static construct {
         set_layout_manager_type(typeof (Gtk.BinLayout));
         set_css_name("tabpages");
     }
 
-    construct {
-        this.children.bind_property("n-items", this, "n-pages", SYNC_CREATE);
+    internal TabViewStack(Bedit.TabView view) {
+        Object(view: view);
     }
 
     public override bool
@@ -262,8 +250,8 @@ private class Bedit.TabViewStack : Gtk.Widget {
         minimum = 0;
         natural = 0;
 
-        for (var i = 0; i < this.children.get_n_items(); i++) {
-            var page = this.children.get_item(i) as Bedit.TabPage;
+        for (var i = 0; i < this.view.children.get_n_items(); i++) {
+            var page = this.view.children.get_item(i) as Bedit.TabPage;
 
             int child_minimum, child_natural;
             page.bin.measure(orientation, for_size, out child_minimum, out child_natural, null, null);
@@ -282,8 +270,8 @@ private class Bedit.TabViewStack : Gtk.Widget {
 
     public override void
     size_allocate (int width, int height, int baseline) {
-        for (var i = 0; i < this.children.get_n_items(); i++) {
-            var page = this.children.get_item(i) as Bedit.TabPage;
+        for (var i = 0; i < this.view.children.get_n_items(); i++) {
+            var page = this.view.children.get_item(i) as Bedit.TabPage;
 
             if (page.bin.get_child_visible()) {
                 page.bin.allocate(width, height, baseline, null);
@@ -315,15 +303,15 @@ private class Bedit.TabViewStack : Gtk.Widget {
 
         // TODO position should depend on parent, on the existing children of
         // the parent, and probably on lots of other subtle things.
-        uint index = this.children.n_items;
+        uint index = this.view.children.n_items;
 
-        this.children.insert(index, page);
+        this.view.children.insert(index, page);
 
         page.bin.set_parent(this);
         page.bin.set_child_visible(false);
         this.queue_resize();
 
-        if (this.n_pages == 1) {
+        if (this.view.children.n_items == 1) {
             this.selected_page = page;
         }
 
@@ -332,10 +320,8 @@ private class Bedit.TabViewStack : Gtk.Widget {
     }
 }
 
-
-
 private sealed class Bedit.Tabs : Gtk.Widget {
-    public Bedit.TabViewStack stack { get; construct; }
+    public unowned Bedit.TabView view { get; construct; }
 
     static construct {
         set_layout_manager_type(typeof (Gtk.BoxLayout));
@@ -345,12 +331,10 @@ private sealed class Bedit.Tabs : Gtk.Widget {
 
     public void
     sync() {
-        int i;
-        Bedit.TabPage page;
         Bedit.TabPageTab? prev = null;
 
-        for (i = 0; i < this.stack.n_pages; i++) {
-            page = this.stack.get_page(i);
+        for (var i = 0; i < this.view.children.get_n_items(); i++) {
+            var page = this.view.children.get_item(i) as Bedit.TabPage;
             page.tab.insert_after(this, prev);
         }
 
@@ -364,14 +348,14 @@ private sealed class Bedit.Tabs : Gtk.Widget {
         sync();
     }
 
-    public Tabs(Bedit.TabViewStack stack) {
-        Object(stack: stack);
+    public Tabs(Bedit.TabView view) {
+        Object(view: view);
     }
 }
 
 
 private sealed class Bedit.TabBar : Gtk.Widget {
-    public Bedit.TabViewStack stack { get; construct; }
+    public unowned Bedit.TabView view { get; construct; }
 
     private Bedit.Tabs tabs;
 
@@ -383,15 +367,17 @@ private sealed class Bedit.TabBar : Gtk.Widget {
 
     construct {
         this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.HORIZONTAL, -1);
-        this.tabs = new Bedit.Tabs(this.stack);
+        this.tabs = new Bedit.Tabs(this.view);
     }
 
-    public TabBar(Bedit.TabViewStack stack) {
-        Object(stack: stack);
+    public TabBar(Bedit.TabView view) {
+        Object(view: view);
     }
 }
 
 public class Bedit.TabView : Gtk.Widget {
+    internal GLib.ListStore children = new GLib.ListStore(typeof(Bedit.TabPage));
+
     private Bedit.TabViewStack stack;
     private Bedit.TabBar bar;
 
@@ -481,10 +467,10 @@ public class Bedit.TabView : Gtk.Widget {
     construct {
         this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.VERTICAL, -1);
 
-        this.stack = new Bedit.TabViewStack();
+        this.stack = new Bedit.TabViewStack(this);
         this.stack.insert_after(this, null);
 
-        this.bar = new Bedit.TabBar(stack);
+        this.bar = new Bedit.TabBar(this);
         this.bar.insert_after(this, null);
     }
 
