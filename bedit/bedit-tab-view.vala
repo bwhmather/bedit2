@@ -35,8 +35,8 @@ public enum Bedit.TabViewShortcuts {
     ALL_SHORTCUTS
 }
 
-[GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-tab.ui")]
-private sealed class Bedit.Tab : Gtk.Widget {
+[GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-tab-page-tab.ui")]
+private sealed class Bedit.TabPageTab : Gtk.Widget {
     public unowned Bedit.TabPage page { get; construct; }
 
     [GtkChild]
@@ -46,7 +46,7 @@ private sealed class Bedit.Tab : Gtk.Widget {
         this.page.bind_property("title", this.label, "label", SYNC_CREATE);
     }
 
-    internal Tab(Bedit.TabPage page) {
+    internal TabPageTab(Bedit.TabPage page) {
         Object(page: page);
     }
 }
@@ -83,7 +83,7 @@ private class Bedit.TabPageBin : Gtk.Widget {
 
 
 public class Bedit.TabPage : GLib.Object {
-    internal Bedit.Tab tab;
+    internal Bedit.TabPageTab tab;
     internal Bedit.TabPageBin bin;
 
 //    internal GLib.WeakRef last_focus;
@@ -176,7 +176,7 @@ public class Bedit.TabPage : GLib.Object {
     public bool needs_attention { get; set; }
 
     construct {
-        this.tab = new Bedit.Tab(this);
+        this.tab = new Bedit.TabPageTab(this);
         this.bin = new Bedit.TabPageBin(this);
     }
 
@@ -347,7 +347,7 @@ private sealed class Bedit.Tabs : Gtk.Widget {
     sync() {
         int i;
         Bedit.TabPage page;
-        Bedit.Tab? prev = null;
+        Bedit.TabPageTab? prev = null;
 
         for (i = 0; i < this.stack.n_pages; i++) {
             page = this.stack.get_page(i);
