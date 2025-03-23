@@ -329,23 +329,26 @@ private sealed class Bedit.Tabs : Gtk.Widget {
         set_accessible_role(GROUP);
     }
 
-    public void
-    sync() {
-        Bedit.TabPageTab? prev = null;
-
-        for (var i = 0; i < this.view.children.get_n_items(); i++) {
-            var page = this.view.children.get_item(i) as Bedit.TabPage;
-            page.tab.insert_after(this, prev);
-        }
-
-        while (this.get_last_child() != prev) {
-            this.get_last_child().unparent();
-        }
-    }
-
     construct {
         this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.HORIZONTAL, -1);
-        sync();
+
+        this.view.children.items_changed.connect((position, removed, added) => {
+            Gtk.Widget? next = this.get_first_child();
+            for (var i = 0; i < position; i++) {
+                next = next.get_next_sibling();
+            }
+
+            for (var i = 0; i < removed; i++) {
+                var target = next;
+                next = next.get_next_sibling();
+                target.unparent();
+            }
+
+            for (var i = 0; i < added; i++) {
+                var page = this.view.children.get_item(position + i) as Bedit.TabPage;
+                page.tab.insert_before(this, next);
+            }
+        });
     }
 
     public Tabs(Bedit.TabView view) {
@@ -367,7 +370,9 @@ private sealed class Bedit.TabBar : Gtk.Widget {
 
     construct {
         this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.HORIZONTAL, -1);
+
         this.tabs = new Bedit.Tabs(this.view);
+        this.tabs.insert_after(this, null);
     }
 
     public TabBar(Bedit.TabView view) {
