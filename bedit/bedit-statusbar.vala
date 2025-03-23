@@ -150,18 +150,21 @@ public sealed class Bedit.Statusbar : Gtk.Widget {
         return_if_fail(context_id < this.next_context_id);
 
         unowned Bedit.StatusbarMessage? prev = null;
-        unowned Bedit.StatusbarMessage? curr = null;
+        unowned Bedit.StatusbarMessage? curr = this.messages;
 
-        for (curr = this.messages; curr != null; curr = curr.next) {
+        while (curr != null) {
             if (curr.context_id != context_id) {
                 prev = curr;
+                curr = prev.next;
                 continue;
             }
 
             if (prev == null) {
                 this.messages = (owned) curr.next;
+                curr = this.messages;
             } else {
                 prev.next = (owned) curr.next;
+                curr = prev.next;
             }
         }
 
