@@ -185,7 +185,7 @@ public class Bedit.TabPage : GLib.Object {
     }
 }
 
-private sealed class Bedit.Tabs : Gtk.Widget {
+private sealed class Bedit.TabViewTabs : Gtk.Widget {
     public unowned Bedit.TabView view { get; construct; }
 
     static construct {
@@ -216,16 +216,16 @@ private sealed class Bedit.Tabs : Gtk.Widget {
         });
     }
 
-    public Tabs(Bedit.TabView view) {
+    public TabViewTabs(Bedit.TabView view) {
         Object(view: view);
     }
 }
 
 
-private sealed class Bedit.TabBar : Gtk.Widget {
+private sealed class Bedit.TabViewBar : Gtk.Widget {
     public unowned Bedit.TabView view { get; construct; }
 
-    private Bedit.Tabs tabs;
+    private Bedit.TabViewTabs tabs;
 
     static construct {
         set_layout_manager_type(typeof (Gtk.BoxLayout));
@@ -236,11 +236,11 @@ private sealed class Bedit.TabBar : Gtk.Widget {
     construct {
         this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.HORIZONTAL, -1);
 
-        this.tabs = new Bedit.Tabs(this.view);
+        this.tabs = new Bedit.TabViewTabs(this.view);
         this.tabs.insert_after(this, null);
     }
 
-    public TabBar(Bedit.TabView view) {
+    public TabViewBar(Bedit.TabView view) {
         Object(view: view);
     }
 }
@@ -381,7 +381,7 @@ private class Bedit.TabViewStack : Gtk.Widget {
 public class Bedit.TabView : Gtk.Widget {
     internal GLib.ListStore children = new GLib.ListStore(typeof(Bedit.TabPage));
 
-    private Bedit.TabBar bar;
+    private Bedit.TabViewBar bar;
     private Bedit.TabViewStack stack;
 
     /**
@@ -470,7 +470,7 @@ public class Bedit.TabView : Gtk.Widget {
     construct {
         this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.VERTICAL, -1);
 
-        this.bar = new Bedit.TabBar(this);
+        this.bar = new Bedit.TabViewBar(this);
         this.bar.insert_before(this, null);
 
         this.stack = new Bedit.TabViewStack(this);
