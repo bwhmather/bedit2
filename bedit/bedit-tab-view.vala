@@ -248,44 +248,6 @@ private sealed class Bedit.TabViewBar : Gtk.Widget {
 private sealed class Bedit.TabViewStack : Gtk.Widget {
     public unowned Bedit.TabView view { get; construct; }
 
-    private Bedit.TabPage? _selected_page;
-    internal Bedit.TabPage? selected_page {
-        get { return this._selected_page; }
-        set {
-            return_if_fail(value == null || value.bin.parent == this);
-
-            var contains_focus = false;
-
-            var old_value = this.selected_page;
-
-            if (old_value == value) {
-                return;
-            }
-
-            if (old_value != null) {
-                if (!old_value.bin.in_destruction() && old_value.bin.has_focus) {
-                    // TODO save focus.
-                    contains_focus = false;
-                }
-
-                old_value.bin.set_child_visible(false);
-            }
-
-            this._selected_page = value;
-
-            if (value != null) {
-                if (!this.in_destruction()) {
-                    value.bin.set_child_visible(true);
-
-                    if (contains_focus) {
-                        // TODO restore focus.
-                    }
-                    this.queue_allocate();
-                }
-            }
-        }
-    }
-
     static construct {
         set_layout_manager_type(typeof (Gtk.BinLayout));
         set_css_name("tabpages");
@@ -309,6 +271,18 @@ private sealed class Bedit.TabViewStack : Gtk.Widget {
                 page.bin.insert_before(this, next);
             }
         });
+
+        this.view.notify["selected-page"].connect((v, pspec) => {
+            if (this.in_destruction()) {
+                return;
+            }
+
+            for (var child = this.get_first_child(); child != null; child = child.get_next_sibling()) {
+                this.view.selected_page.bin.set_child_visible(child == this.view.selected_page.bin);
+            }
+
+            this.queue_allocate();
+        });
     }
 
     internal TabViewStack(Bedit.TabView view) {
@@ -317,12 +291,12 @@ private sealed class Bedit.TabViewStack : Gtk.Widget {
 
     public override bool
     focus(Gtk.DirectionType direction) {
-        if (this.selected_page == null) {
+        if (this.view.selected_page == null) {
             return false;
         }
 
         // TODO restore focus.
-        return this.selected_page.bin.focus(direction);
+        return this.view.selected_page.bin.focus(direction);
     }
 
     public override void
@@ -361,8 +335,8 @@ private sealed class Bedit.TabViewStack : Gtk.Widget {
 
     public override void
     snapshot(Gtk.Snapshot snapshot) {
-        if (this.selected_page != null) {
-            this.snapshot_child(this.selected_page.bin, snapshot);
+        if (this.view.selected_page != null) {
+            this.snapshot_child(this.view.selected_page.bin, snapshot);
         }
     }
 
@@ -491,7 +465,7 @@ public sealed class Bedit.TabView : Gtk.Widget {
         this.children.insert(index, page);
 
         if (this.children.n_items == 1) {
-            this.stack.selected_page = page;
+            this.selected_page = page;
         }
 
         unowned Bedit.TabPage reference = page;
