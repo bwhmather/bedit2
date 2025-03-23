@@ -231,6 +231,26 @@ private class Bedit.TabViewStack : Gtk.Widget {
         set_css_name("tabpages");
     }
 
+    construct {
+        this.view.children.items_changed.connect((position, removed, added) => {
+            Gtk.Widget? next = this.get_first_child();
+            for (var i = 0; i < position; i++) {
+                next = next.get_next_sibling();
+            }
+
+            for (var i = 0; i < removed; i++) {
+                var target = next;
+                next = next.get_next_sibling();
+                target.unparent();
+            }
+
+            for (var i = 0; i < added; i++) {
+                var page = this.view.children.get_item(position + i) as Bedit.TabPage;
+                page.bin.insert_before(this, next);
+            }
+        });
+    }
+
     internal TabViewStack(Bedit.TabView view) {
         Object(view: view);
     }
@@ -295,28 +315,6 @@ private class Bedit.TabViewStack : Gtk.Widget {
     compute_expand_internal(out bool hexpand, out bool vexpand) {
         hexpand = true;
         vexpand = true;
-    }
-
-    internal unowned Bedit.TabPage
-    add_page(Bedit.TabPage page, Bedit.TabPage? parent) {
-        return_val_if_fail(page.bin.parent == null, null);
-
-        // TODO position should depend on parent, on the existing children of
-        // the parent, and probably on lots of other subtle things.
-        uint index = this.view.children.n_items;
-
-        this.view.children.insert(index, page);
-
-        page.bin.set_parent(this);
-        page.bin.set_child_visible(false);
-        this.queue_resize();
-
-        if (this.view.children.n_items == 1) {
-            this.selected_page = page;
-        }
-
-        unowned Bedit.TabPage reference = page;
-        return reference;
     }
 }
 
@@ -481,8 +479,22 @@ public class Bedit.TabView : Gtk.Widget {
 
     public unowned Bedit.TabPage
     add_page(Gtk.Widget child, Bedit.TabPage? parent) {
+        return_val_if_fail(child.parent == null, null);
+
         var page = new Bedit.TabPage(child);
-        return this.stack.add_page(page, parent);
+
+        // TODO position should depend on parent, on the existing children of
+        // the parent, and probably on lots of other subtle things.
+        uint index = this.children.n_items;
+
+        this.children.insert(index, page);
+
+        if (this.children.n_items == 1) {
+            this.stack.selected_page = page;
+        }
+
+        unowned Bedit.TabPage reference = page;
+        return reference;
     }
 
     public void
