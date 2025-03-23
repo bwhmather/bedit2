@@ -51,7 +51,7 @@ private sealed class Bedit.TabPageTab : Gtk.Widget {
     }
 }
 
-private class Bedit.TabPageBin : Gtk.Widget {
+private sealed class Bedit.TabPageBin : Gtk.Widget {
     public unowned Bedit.TabPage page { get; construct; }
 
     static construct {
@@ -82,7 +82,7 @@ private class Bedit.TabPageBin : Gtk.Widget {
 }
 
 
-public class Bedit.TabPage : GLib.Object {
+public sealed class Bedit.TabPage : GLib.Object {
     internal Bedit.TabPageTab tab;
     internal Bedit.TabPageBin bin;
 
@@ -245,7 +245,7 @@ private sealed class Bedit.TabViewBar : Gtk.Widget {
     }
 }
 
-private class Bedit.TabViewStack : Gtk.Widget {
+private sealed class Bedit.TabViewStack : Gtk.Widget {
     public unowned Bedit.TabView view { get; construct; }
 
     private Bedit.TabPage? _selected_page;
@@ -378,7 +378,7 @@ private class Bedit.TabViewStack : Gtk.Widget {
     }
 }
 
-public class Bedit.TabView : Gtk.Widget {
+public sealed class Bedit.TabView : Gtk.Widget {
     internal GLib.ListStore children = new GLib.ListStore(typeof(Bedit.TabPage));
 
     private Bedit.TabViewBar bar;
