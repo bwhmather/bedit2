@@ -375,7 +375,7 @@ public sealed class Bedit.TabView : Gtk.Widget {
     /**
      * The currently visible page.
      */
-    public Bedit.TabPage selected_page { get; set; }
+    public Bedit.TabPage? selected_page { get; set; }
 
     /**
      * Whether a page is being transferred.
