@@ -83,14 +83,14 @@ class Bedit.Application : Gtk.Application {
     public override int
     handle_local_options(GLib.VariantDict options) {
         bool print_version = false;
-        options.lookup("version", "b", print_version);
+        options.lookup("version", "b", out print_version);
         if (print_version) {
             warning("TODO");
             return 0;
         }
 
         bool standalone = false;
-        options.lookup("standalone", "b", standalone);
+        options.lookup("standalone", "b", out standalone);
         if (standalone) {
             this.flags |= NON_UNIQUE;
             options.remove("standalone");
