@@ -444,6 +444,9 @@ public sealed class Bedit.TabView : Gtk.Widget {
     construct {
         this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.VERTICAL, -1);
 
+        var layout_manager = this.layout_manager as Gtk.BoxLayout;
+        layout_manager.orientation = VERTICAL;
+
         this.bar = new Bedit.TabViewBar(this);
         this.bar.insert_before(this, null);
 
