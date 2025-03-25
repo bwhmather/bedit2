@@ -42,6 +42,12 @@ private sealed class Bedit.TabPageTab : Gtk.Widget {
     [GtkChild]
     private unowned Gtk.Label label;
 
+    static construct {
+        set_layout_manager_type(typeof (Gtk.BoxLayout));
+        set_css_name("tab");
+        set_accessible_role(TAB);
+    }
+
     construct {
         this.page.bind_property("title", this.label, "label", SYNC_CREATE);
     }
@@ -191,7 +197,7 @@ private sealed class Bedit.TabViewTabs : Gtk.Widget {
     static construct {
         set_layout_manager_type(typeof (Gtk.BoxLayout));
         set_css_name("tabs");
-        set_accessible_role(GROUP);
+        set_accessible_role(TAB_LIST);
     }
 
     construct {
