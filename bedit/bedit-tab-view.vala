@@ -452,12 +452,51 @@ public sealed class Bedit.TabView : Gtk.Widget {
     public signal void page_detached(Bedit.TabPage page);
     public signal void setup_menu(Bedit.TabPage? page);
 
+    private void
+    select_prev_page() {
+        if (this.page_list.n_items == 0) {
+            return;
+        }
+        var target = this.page_selection.selected;
+        if (target == 0) {
+            target = this.page_list.n_items;
+        }
+        target -= 1;
+        this.page_selection.selected = target;
+    }
+
+    private void
+    select_next_page() {
+        if (this.page_list.n_items == 0) {
+            return;
+        }
+        var target = this.page_selection.selected;
+        target += 1;
+        if (target >= this.page_list.n_items) {
+            target = 0;
+        }
+        this.page_selection.selected = target;
+    }
+
     static construct {
         set_layout_manager_type(typeof (Gtk.BoxLayout));
         set_css_name("tabview");
     }
 
     construct {
+        var shortcut_controller = new Gtk.ShortcutController();
+        shortcut_controller.propagation_phase = CAPTURE;
+        shortcut_controller.scope = GLOBAL;
+        shortcut_controller.add_shortcut(new Gtk.Shortcut(
+            Gtk.ShortcutTrigger.parse_string("<Control><Shift>Tab"),
+            new Gtk.CallbackAction((v, args) => { this.select_prev_page(); return true; })
+        ));
+        shortcut_controller.add_shortcut(new Gtk.Shortcut(
+            Gtk.ShortcutTrigger.parse_string("<Control>Tab"),
+            new Gtk.CallbackAction((v, args) => { this.select_next_page(); return true; })
+        ));
+        this.add_controller(shortcut_controller);
+
         this.page_list = new GLib.ListStore(typeof(Bedit.TabPage));
         this.page_list.notify["n-items"].connect((l, pspec) => { this.n_pages = this.page_list.n_items; });
 
@@ -476,7 +515,6 @@ public sealed class Bedit.TabView : Gtk.Widget {
 
         this.stack = new Bedit.TabViewStack(this);
         this.stack.insert_before(this, null);
-
     }
 
     public unowned Bedit.TabPage
@@ -498,6 +536,8 @@ public sealed class Bedit.TabView : Gtk.Widget {
         unowned Bedit.TabPage reference = page;
         return reference;
     }
+
+
 
     public void
     transfer_page(Bedit.TabPage page, Bedit.TabView other_view) {
