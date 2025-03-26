@@ -203,7 +203,7 @@ private sealed class Bedit.TabViewTabs : Gtk.Widget {
     construct {
         this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.HORIZONTAL, -1);
 
-        this.view.children.items_changed.connect((position, removed, added) => {
+        this.view.pages.items_changed.connect((position, removed, added) => {
             Gtk.Widget? next = this.get_first_child();
             for (var i = 0; i < position; i++) {
                 next = next.get_next_sibling();
@@ -216,7 +216,7 @@ private sealed class Bedit.TabViewTabs : Gtk.Widget {
             }
 
             for (var i = 0; i < added; i++) {
-                var page = this.view.children.get_item(position + i) as Bedit.TabPage;
+                var page = this.view.pages.get_item(position + i) as Bedit.TabPage;
                 page.tab.insert_before(this, next);
             }
         });
@@ -260,7 +260,7 @@ private sealed class Bedit.TabViewStack : Gtk.Widget {
     }
 
     construct {
-        this.view.children.items_changed.connect((position, removed, added) => {
+        this.view.pages.items_changed.connect((position, removed, added) => {
             Gtk.Widget? next = this.get_first_child();
             for (var i = 0; i < position; i++) {
                 next = next.get_next_sibling();
@@ -273,7 +273,7 @@ private sealed class Bedit.TabViewStack : Gtk.Widget {
             }
 
             for (var i = 0; i < added; i++) {
-                var page = this.view.children.get_item(position + i) as Bedit.TabPage;
+                var page = this.view.pages.get_item(position + i) as Bedit.TabPage;
                 page.bin.insert_before(this, next);
             }
         });
@@ -310,8 +310,8 @@ private sealed class Bedit.TabViewStack : Gtk.Widget {
         minimum = 0;
         natural = 0;
 
-        for (var i = 0; i < this.view.children.get_n_items(); i++) {
-            var page = this.view.children.get_item(i) as Bedit.TabPage;
+        for (var i = 0; i < this.view.pages.get_n_items(); i++) {
+            var page = this.view.pages.get_item(i) as Bedit.TabPage;
 
             int child_minimum, child_natural;
             page.bin.measure(orientation, for_size, out child_minimum, out child_natural, null, null);
@@ -330,8 +330,8 @@ private sealed class Bedit.TabViewStack : Gtk.Widget {
 
     public override void
     size_allocate (int width, int height, int baseline) {
-        for (var i = 0; i < this.view.children.get_n_items(); i++) {
-            var page = this.view.children.get_item(i) as Bedit.TabPage;
+        for (var i = 0; i < this.view.pages.get_n_items(); i++) {
+            var page = this.view.pages.get_item(i) as Bedit.TabPage;
 
             if (page.bin.get_child_visible()) {
                 page.bin.allocate(width, height, baseline, null);
@@ -359,7 +359,8 @@ private sealed class Bedit.TabViewStack : Gtk.Widget {
 }
 
 public sealed class Bedit.TabView : Gtk.Widget {
-    internal GLib.ListStore children = new GLib.ListStore(typeof(Bedit.TabPage));
+    private GLib.ListStore page_list;
+    private Gtk.SingleSelection page_selection;
 
     private Bedit.TabViewBar bar;
     private Bedit.TabViewStack stack;
@@ -367,7 +368,7 @@ public sealed class Bedit.TabView : Gtk.Widget {
     /**
      * The number of pages in the tab view.
      */
-    public int n_pages { get; private set; }
+    public uint n_pages { get; private set; }
 
     /**
      * A selection model with the tab view's pages.
@@ -376,12 +377,21 @@ public sealed class Bedit.TabView : Gtk.Widget {
      * [iface@Gtk.SelectionModel] and can be used to track and change the selected
      * page.
      */
-    public Gtk.SelectionModel pages { owned get; private set; }
+    public Gtk.SelectionModel pages { get { return page_selection; } }
 
     /**
      * The currently visible page.
      */
-    public Bedit.TabPage? selected_page { get; set; }
+    public Bedit.TabPage? selected_page {
+        get {
+            return this.page_selection.selected_item as Bedit.TabPage?;
+        }
+        set {
+            uint position;
+            return_if_fail(this.page_list.find(value, out position));
+            this.page_selection.selected = position;
+        }
+    }
 
     /**
      * Whether a page is being transferred.
@@ -448,6 +458,14 @@ public sealed class Bedit.TabView : Gtk.Widget {
     }
 
     construct {
+        this.page_list = new GLib.ListStore(typeof(Bedit.TabPage));
+        this.page_list.notify["n-items"].connect((l, pspec) => { this.n_pages = this.page_list.n_items; });
+
+        this.page_selection = new Gtk.SingleSelection(this.page_list);
+        this.page_selection.can_unselect = false;
+        this.page_selection.autoselect = true;
+        this.page_selection.selection_changed.connect((s, p, n) => {this.notify_property("selected-page");});
+
         this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.VERTICAL, -1);
 
         var layout_manager = this.layout_manager as Gtk.BoxLayout;
@@ -469,11 +487,11 @@ public sealed class Bedit.TabView : Gtk.Widget {
 
         // TODO position should depend on parent, on the existing children of
         // the parent, and probably on lots of other subtle things.
-        uint index = this.children.n_items;
+        uint index = this.page_list.n_items;
 
-        this.children.insert(index, page);
+        this.page_list.insert(index, page);
 
-        if (this.children.n_items == 1) {
+        if (this.page_list.n_items == 1) {
             this.selected_page = page;
         }
 
