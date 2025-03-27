@@ -60,6 +60,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         title_init();
         language_init();
         word_wrap_init();
+        indentation_init();
         overview_map_init();
         highlight_current_line_init();
         highlight_syntax_init();
@@ -280,6 +281,20 @@ public sealed class Bedit.Document : Gtk.Widget {
 
         this.source_file.notify["location"].connect((sf, pspec) => { this.language_update(); });
         this.language_update();
+    }
+
+    /* === Indentation ===================================================================================== */
+
+    public uint tab_width { get; set; }
+    public bool insert_spaces_instead_of_tabs { get; set; }
+
+    private void
+    indentation_init() {
+        this.settings.bind("tab-width", this, "tab-width", GET);
+        this.bind_property("tab-width", this.source_view, "tab-width", SYNC_CREATE);
+
+        this.settings.bind("insert-spaces-instead-of-tabs", this, "insert-spaces-instead-of-tabs", GET);
+        this.bind_property("insert-spaces-instead-of-tabs", this.source_view, "insert-spaces-instead-of-tabs", SYNC_CREATE);
     }
 
     /* === Appearance ===================================================================================== */

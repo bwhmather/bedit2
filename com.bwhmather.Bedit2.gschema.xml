@@ -50,5 +50,15 @@
       <summary>Auto-check Spelling</summary>
       <description>Whether Bedit should check files for spelling errors in real time.</description>
     </key>
+    <key name="insert-spaces-instead-of-tabs" type="b">
+      <default>true</default>
+      <summary>Insert Spaces Instead of Tabs</summary>
+      <description>Whether Bedit should insert spaces instead of tabs when the tab key is pressed.</description>
+    </key>
+    <key name="tab-width" type="u">
+      <default>4</default>
+      <summary>Tab Width</summary>
+      <description>The width of a tabulation in characters.</description>
+    </key>
   </schema>
 </schemalist>
