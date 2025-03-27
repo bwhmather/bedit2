@@ -255,7 +255,6 @@ private sealed class Bedit.TabViewStack : Gtk.Widget {
     public unowned Bedit.TabView view { get; construct; }
 
     static construct {
-        set_layout_manager_type(typeof (Gtk.BinLayout));
         set_css_name("tabpages");
     }
 
@@ -284,7 +283,7 @@ private sealed class Bedit.TabViewStack : Gtk.Widget {
             }
 
             for (var child = this.get_first_child(); child != null; child = child.get_next_sibling()) {
-                this.view.selected_page.bin.set_child_visible(child == this.view.selected_page.bin);
+                child.set_child_visible(child == this.view.selected_page.bin);
             }
 
             this.queue_allocate();
@@ -310,11 +309,13 @@ private sealed class Bedit.TabViewStack : Gtk.Widget {
         minimum = 0;
         natural = 0;
 
-        for (var i = 0; i < this.view.pages.get_n_items(); i++) {
-            var page = this.view.pages.get_item(i) as Bedit.TabPage;
-
+        for (var child = this.get_first_child(); child != null; child = child.get_next_sibling()) {
             int child_minimum, child_natural;
-            page.bin.measure(orientation, for_size, out child_minimum, out child_natural, null, null);
+            child.measure(
+                orientation, for_size,
+                out child_minimum, out child_natural,
+                null, null
+            );
 
             if (child_minimum > minimum) {
                 minimum = child_minimum;
@@ -323,18 +324,15 @@ private sealed class Bedit.TabViewStack : Gtk.Widget {
                 natural = child_natural;
             }
         }
-
-        minimum_baseline = 0;
-        natural_baseline = 0;
+        minimum_baseline = -1;
+        natural_baseline = -1;
     }
 
     public override void
     size_allocate (int width, int height, int baseline) {
-        for (var i = 0; i < this.view.pages.get_n_items(); i++) {
-            var page = this.view.pages.get_item(i) as Bedit.TabPage;
-
-            if (page.bin.get_child_visible()) {
-                page.bin.allocate(width, height, baseline, null);
+        for (var child = this.get_first_child(); child != null; child = child.get_next_sibling()) {
+            if (child.get_child_visible()) {
+                child.allocate(width, height, baseline, null);
             }
         }
     }
