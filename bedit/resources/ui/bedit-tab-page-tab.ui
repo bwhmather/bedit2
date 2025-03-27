@@ -10,6 +10,17 @@
         </style>
       </object>
     </child>
+    <child>
+      <object class="GtkButton" id="close_button">
+        <property name="can-focus">false</property>
+        <property name="valign">center</property>
+        <property name="icon-name">window-close</property>
+        <style>
+          <class name="flat"/>
+          <class name="tab-close-button"/>
+        </style>
+      </object>
+    </child>
   </template>
 </interface>
 
