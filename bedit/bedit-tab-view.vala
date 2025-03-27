@@ -543,14 +543,14 @@ public sealed class Bedit.TabView : Gtk.Widget {
 
     public void
     close_page_finish(Bedit.TabPage page, bool should_close) {
-	uint position;
-	return_if_fail(this.page_list.find(page, out position));
+        uint position;
+        return_if_fail(this.page_list.find(page, out position));
 
-	page.closing = false;
-	if (!should_close) {
-		return;
-	}
+        page.closing = false;
+        if (!should_close) {
+                return;
+        }
 
-	this.page_list.remove(position);
+        this.page_list.remove(position);
     }
 }
