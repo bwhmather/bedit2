@@ -138,6 +138,8 @@ public sealed class Bedit.TabPage : GLib.Object {
      */
     public bool loading { get; set; }
 
+    public bool closing { get; internal set; }
+
     /**
      * An indicator icon for the page.
      *
@@ -535,14 +537,20 @@ public sealed class Bedit.TabView : Gtk.Widget {
         return reference;
     }
 
-
-
     public void
     transfer_page(Bedit.TabPage page, Bedit.TabView other_view) {
     }
 
     public void
     close_page_finish(Bedit.TabPage page, bool should_close) {
+	uint position;
+	return_if_fail(this.page_list.find(page, out position));
 
+	page.closing = false;
+	if (!should_close) {
+		return;
+	}
+
+	this.page_list.remove(position);
     }
 }
