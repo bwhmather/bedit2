@@ -53,6 +53,9 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.source_buffer.modified_changed.connect((tb) => {
             this.modified = this.source_buffer.get_modified();
         });
+        this.source_buffer.end_user_action.connect((tb) => {
+            this.source_view.scroll_mark_onscreen(this.source_buffer.get_insert());
+        });
 
         this.notify["loading"].connect((_, pspec) => { this.update_busy(); });
         this.notify["saving"].connect((_, pspec) => { this.update_busy(); });
