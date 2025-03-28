@@ -503,7 +503,7 @@ public sealed class Bedit.TabView : Gtk.Widget {
         this.page_selection = new Gtk.SingleSelection(this.page_list);
         this.page_selection.can_unselect = false;
         this.page_selection.autoselect = true;
-        this.page_selection.selection_changed.connect((s, p, n) => {this.notify_property("selected-page");});
+        this.page_selection.notify["selected"].connect((s, pspec) => {this.notify_property("selected-page");});
 
         this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.VERTICAL, -1);
 
