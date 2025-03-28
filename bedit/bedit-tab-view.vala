@@ -50,6 +50,13 @@ private sealed class Bedit.TabPageTab : Gtk.Widget {
 
     construct {
         this.page.bind_property("title", this.label, "label", SYNC_CREATE);
+        this.page.notify["selected"].connect((p, pspec) => {
+            if (this.page.selected) {
+                this.add_css_class("selected");
+            } else {
+                this.remove_css_class("selected");
+            }
+        });
     }
 
     internal TabPageTab(Bedit.TabPage page) {
@@ -110,7 +117,7 @@ public sealed class Bedit.TabPage : GLib.Object {
 
     /**
      */
-    public bool selected { get; }
+    public bool selected { get; internal set; }
 
     /**
      * Human readable title that will be displayed in the page's tab.
@@ -368,7 +375,7 @@ public sealed class Bedit.TabView : Gtk.Widget {
     /**
      * The number of pages in the tab view.
      */
-    public uint n_pages { get; private set; }
+    public uint n_pages { get { return this.page_list.n_items; } }
 
     /**
      * A selection model with the tab view's pages.
@@ -378,6 +385,11 @@ public sealed class Bedit.TabView : Gtk.Widget {
      * page.
      */
     public Gtk.SelectionModel pages { get { return page_selection; } }
+
+    public Bedit.TabPage
+    get_page(uint i) {
+        return this.page_list.get_item(i) as Bedit.TabPage;
+    }
 
     /**
      * The currently visible page.
@@ -498,12 +510,19 @@ public sealed class Bedit.TabView : Gtk.Widget {
         this.add_controller(shortcut_controller);
 
         this.page_list = new GLib.ListStore(typeof(Bedit.TabPage));
-        this.page_list.notify["n-items"].connect((l, pspec) => { this.n_pages = this.page_list.n_items; });
+        this.page_list.notify["n-items"].connect((l, pspec) => { this.notify_property("n-pages"); });
 
         this.page_selection = new Gtk.SingleSelection(this.page_list);
         this.page_selection.can_unselect = false;
         this.page_selection.autoselect = true;
         this.page_selection.notify["selected"].connect((s, pspec) => {this.notify_property("selected-page");});
+
+        this.notify["selected-page"].connect((s, pspec) => {
+            for (var i = 0; i < this.n_pages; i++) {
+                var page = this.get_page(i);
+                page.selected = page == this.selected_page;
+            }
+        });
 
         this.update_property(Gtk.AccessibleProperty.ORIENTATION, Gtk.Orientation.VERTICAL, -1);
 
