@@ -85,6 +85,11 @@ private sealed class Bedit.TabPageBin : Gtk.Widget {
     }
 
     public override void
+    dispose() {
+        this.page.child.unparent();
+    }
+
+    public override void
     compute_expand_internal(out bool hexpand, out bool vexpand) {
         hexpand = this.page.child.compute_expand(Gtk.Orientation.HORIZONTAL);
         vexpand = this.page.child.compute_expand(Gtk.Orientation.VERTICAL);
