@@ -127,6 +127,8 @@ public sealed class Bedit.TabPage : GLib.Object {
     public Bedit.TabPage parent { get; construct; }
 
     /**
+     * Will be set if this tab page is the currently selected page in its containing
+     * view.
      */
     public bool selected { get; internal set; }
 
@@ -581,10 +583,25 @@ public sealed class Bedit.TabView : Gtk.Widget {
         return reference;
     }
 
+    /**
+     * Transfers @page from @self to @other_view.
+     *
+     * The @page object will be reused.
+     */
     public void
     transfer_page(Bedit.TabPage page, Bedit.TabView other_view) {
     }
 
+    /**
+     * Completes a [method:@TabView.close_page] call for @page.
+     *
+     * If @confirm is `TRUE`, @page will be closed.  If it's `FALSE`, it will be
+     * reverted to its previous state and [method@TabView.close_page] can be called
+     * for it again.
+     *
+     * This functions should not be called unless a custom handler for
+     * [signal@TabView::close-page] is used.
+     */
     public void
     close_page_finish(Bedit.TabPage page, bool should_close) {
         uint position;
