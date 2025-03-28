@@ -42,6 +42,9 @@ private sealed class Bedit.TabPageTab : Gtk.Widget {
     [GtkChild]
     private unowned Gtk.Label label;
 
+    [GtkChild]
+    private unowned Gtk.Button close_button;
+
     static construct {
         set_layout_manager_type(typeof (Gtk.BoxLayout));
         set_css_name("tab");
@@ -56,6 +59,9 @@ private sealed class Bedit.TabPageTab : Gtk.Widget {
             } else {
                 this.remove_css_class("selected");
             }
+        });
+        this.close_button.clicked.connect((b) => {
+            this.page.close();
         });
     }
 
@@ -189,6 +195,8 @@ public sealed class Bedit.TabPage : GLib.Object {
      * of the tab bar will be highlighted.
      */
     public bool needs_attention { get; set; }
+
+    internal signal void close();
 
     construct {
         this.tab = new Bedit.TabPageTab(this);
@@ -536,6 +544,17 @@ public sealed class Bedit.TabView : Gtk.Widget {
         this.stack.insert_before(this, null);
     }
 
+    private void
+    bind_page(Bedit.TabPage page) {
+        page.close.connect((p) => this.close_page(p));
+    }
+
+    private void
+    unbind_page(Bedit.TabPage page) {
+        page.selected = false;
+        GLib.SignalHandler.disconnect_by_data(page, this);
+    }
+
     public unowned Bedit.TabPage
     add_page(Gtk.Widget child, Bedit.TabPage? parent) {
         return_val_if_fail(child.parent == null, null);
@@ -547,6 +566,7 @@ public sealed class Bedit.TabView : Gtk.Widget {
         uint index = this.page_list.n_items;
 
         this.page_list.insert(index, page);
+        this.bind_page(page);
 
         if (this.page_list.n_items == 1) {
             this.selected_page = page;
@@ -567,9 +587,10 @@ public sealed class Bedit.TabView : Gtk.Widget {
 
         page.closing = false;
         if (!should_close) {
-                return;
+            return;
         }
 
+        this.unbind_page(page);
         this.page_list.remove(position);
     }
 }
