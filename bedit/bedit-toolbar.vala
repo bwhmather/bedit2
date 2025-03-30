@@ -28,6 +28,13 @@ public class Bedit.Toolbar : Gtk.Widget {
         this.add_css_class("toolbar");
     }
 
+    public override void
+    dispose() {
+        while (this.get_last_child() != null) {
+            this.get_last_child().unparent();
+        }
+    }
+
     public void
     append(Gtk.Widget child) {
         return_if_fail(child.parent == null);

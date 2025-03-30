@@ -97,6 +97,11 @@ public sealed class Bedit.Document : Gtk.Widget {
         }
     }
 
+    public override void
+    dispose() {
+        this.dispose_template(typeof(Bedit.Document));
+    }
+
     ~Document() {
         assert(!this.busy);
 

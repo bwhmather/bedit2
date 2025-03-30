@@ -83,6 +83,11 @@ private sealed class Bedit.TabPageTab : Gtk.Widget {
         });
     }
 
+    public override void
+    dispose() {
+        this.dispose_template(typeof(Bedit.TabPageTab));
+    }
+
     internal TabPageTab(Bedit.TabPage page) {
         Object(page: page);
     }
@@ -104,7 +109,9 @@ private sealed class Bedit.TabPageBin : Gtk.Widget {
 
     public override void
     dispose() {
-        this.page.child.unparent();
+        while (this.get_last_child() != null) {
+            this.get_last_child().unparent();
+        }
     }
 
     public override void
@@ -228,6 +235,12 @@ public sealed class Bedit.TabPage : GLib.Object {
         this.bin = new Bedit.TabPageBin(this);
     }
 
+    public override void
+    dispose() {
+        this.tab = null;
+        this.bin = null;
+    }
+
     internal TabPage(Gtk.Widget child) {
         Object(child: child);
     }
@@ -268,7 +281,6 @@ private sealed class Bedit.TabViewTabs : Gtk.Widget {
         Object(view: view);
     }
 }
-
 
 private sealed class Bedit.TabViewBar : Gtk.Widget {
     public unowned Bedit.TabView view { get; construct; }

@@ -914,6 +914,11 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.search_init();
     }
 
+    public override void
+    dispose() {
+        this.dispose_template(typeof(Bedit.Window));
+    }
+
     public Window(Gtk.Application application) {
         Object(
             application: application,

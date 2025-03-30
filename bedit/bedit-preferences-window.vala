@@ -20,6 +20,12 @@
 public sealed class Bedit.PreferencesWindow : Gtk.Window {
 //    private GLib.Settings settings = new GLib.Settings("com.bwhmather.Bedit2");
 
+
+    public override void
+    dispose() {
+        this.dispose_template(typeof(Bedit.PreferencesWindow));
+    }
+
     public PreferencesWindow(Gtk.Application application) {
         Object(application: application);
     }

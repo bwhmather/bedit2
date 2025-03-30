@@ -53,6 +53,10 @@ public sealed class Bedit.Statusbar : Gtk.Widget {
         this.add_css_class("statusbar");
     }
 
+    public override void
+    dispose() {
+        this.dispose_template(typeof(Bedit.Statusbar));
+    }
 
     /**
      * Returns a new context id that can be used for managing messages.

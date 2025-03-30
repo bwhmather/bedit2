@@ -65,6 +65,11 @@ public sealed class Bedit.CloseConfirmationDialog : Gtk.Window {
         this.transient_for.get_group().add_window(this);
     }
 
+    public override void
+    dispose() {
+        this.dispose_template(typeof(Bedit.CloseConfirmationDialog));
+    }
+
     public static async Bedit.CloseAction
     run_async(GLib.Cancellable? cancellable, Gtk.Window window, Bedit.Document document) throws Error {
         int status = Bedit.CloseAction.CANCEL;
