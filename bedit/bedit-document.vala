@@ -1,6 +1,7 @@
 [GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-document.ui")]
 public sealed class Bedit.Document : Gtk.Widget {
     private GLib.Settings settings = new GLib.Settings("com.bwhmather.Bedit2");
+    private GLib.Settings settings_desktop = new GLib.Settings("org.gnome.desktop.interface");
 
     private GLib.Cancellable cancellable = new GLib.Cancellable();
 
@@ -62,6 +63,7 @@ public sealed class Bedit.Document : Gtk.Widget {
 
         title_init();
         language_init();
+        font_init();
         word_wrap_init();
         indentation_init();
         overview_map_init();
@@ -301,6 +303,40 @@ public sealed class Bedit.Document : Gtk.Widget {
     }
 
     /* === Appearance ===================================================================================== */
+
+    /* --- Font ------------------------------------------------------------------------------------------- */
+
+    private Gtk.CssProvider font_css_provider;
+
+    public bool use_default_font { get; set; }
+    public string editor_font { get; set; }
+
+    private void
+    update_font() {
+        string font_name;
+        if (this.use_default_font) {
+            font_name = settings_desktop.get_string("monospace-font-name");
+        } else {
+            font_name = this.editor_font;
+        }
+        var font_desc = Pango.FontDescription.from_string(font_name);
+        var font_css = Bedit.font_description_to_css(font_desc);
+        font_css_provider.load_from_string("textview { %s }".printf(font_css));
+    }
+
+
+    private void
+    font_init() {
+        this.font_css_provider = new Gtk.CssProvider();
+        this.source_view.get_style_context().add_provider(this.font_css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+        this.settings.bind("use-default-font", this, "use-default-font", GET);
+        this.settings.bind("editor-font", this, "editor-font", GET);
+
+        this.notify["use-default-font"].connect((d, pspec) => { this.update_font(); });
+        this.notify["editor-font"].connect((d, pspec) => { this.update_font(); });
+        this.update_font();
+    }
 
     /* --- Word Wrap -------------------------------------------------------------------------------------- */
 

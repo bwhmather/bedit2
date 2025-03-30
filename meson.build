@@ -16,6 +16,7 @@ add_project_arguments(
   '--gresources', meson.current_source_dir() / 'bedit/resources/bedit.gresources.xml',
   '--vapidir=' + meson.project_build_root() / 'subprojects/libbricks-1/src/',
   '--pkg', 'libbricks-1',
+  '--enable-deprecated',
   language: 'vala'
 )
 
@@ -29,11 +30,13 @@ datadir = get_option('datadir')
 
 bricks_proj = subproject('libbricks-1')
 
+m_dep = cc.find_library('m', required: false)
 bricks_dep = bricks_proj.get_variable('libbricks_dep')
 gtk_dep = dependency('gtk4', include_type: 'system')
 gtksourceview_dep = dependency('gtksourceview-5', version: '>= 5.10.0', include_type: 'system')
 
 bedit_deps = [
+  m_dep,
   bricks_dep,
   gtk_dep,
   gtksourceview_dep,
@@ -127,6 +130,7 @@ bedit_sources = [
   'bedit/bedit-application.vala',
   'bedit/bedit-close-confirmation-dialog.vala',
   'bedit/bedit-document.vala',
+  'bedit/bedit-fonts.vala',
   'bedit/bedit-preferences-window.vala',
   'bedit/bedit-statusbar.vala',
   'bedit/bedit-window.vala',
