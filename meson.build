@@ -5,6 +5,7 @@ project(
   meson_version: '>=1.3',
 )
 add_project_arguments(
+  '-include', 'config.h',
   '-Wno-overlength-strings',
   '-Wno-deprecated-declarations',
   '-Wno-pedantic',
@@ -14,8 +15,8 @@ add_project_arguments(
 add_project_arguments(
   '--gresourcesdir', 'resources',
   '--gresources', meson.current_source_dir() / 'bedit/resources/bedit.gresources.xml',
-  '--vapidir=' + meson.project_build_root() / 'subprojects/libbricks-1/src/',
-  '--pkg', 'libbricks-1',
+  '--vapidir=' + meson.source_root() + '/vapi/',
+  '--pkg', 'config',
   '--enable-deprecated',
   language: 'vala'
 )
@@ -28,16 +29,13 @@ prefix = get_option('prefix')
 bindir = get_option('bindir')
 datadir = get_option('datadir')
 
-bricks_proj = subproject('libbricks-1')
 
 m_dep = cc.find_library('m', required: false)
-bricks_dep = bricks_proj.get_variable('libbricks_dep')
 gtk_dep = dependency('gtk4', include_type: 'system')
 gtksourceview_dep = dependency('gtksourceview-5', version: '>= 5.10.0', include_type: 'system')
 
 bedit_deps = [
   m_dep,
-  bricks_dep,
   gtk_dep,
   gtksourceview_dep,
 ]
@@ -49,6 +47,7 @@ config_data.set_quoted('BEDIT_VERSION', meson.project_version())
 config_data.set_quoted('G_LOG_USE_STRUCTURED', meson.project_version())
 config_data.set_quoted('G_LOG_DOMAIN', 'bedit')
 config_data.set_quoted('GETTEXT_PACKAGE', 'bedit2')
+config_data.set_quoted('LOCALEDIR', get_option('prefix') / get_option('localedir'))
 configure_file(output: 'config.h', configuration: config_data)
 
 test_c_args = [
@@ -127,6 +126,7 @@ bedit_resources = gnome.compile_resources(
 )
 
 bedit_sources = [
+  'bedit/brk-main.vala',
   'bedit/bedit-application.vala',
   'bedit/bedit-button-group.vala',
   'bedit/bedit-close-confirmation-dialog.vala',
