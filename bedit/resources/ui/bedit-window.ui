@@ -165,7 +165,7 @@
                 <child>
                   <object class="GtkGrid">
                     <child>
-                      <object class="BrkButtonGroup">
+                      <object class="BeditButtonGroup">
                         <property name="halign">fill</property>
                         <child>
                           <object class="GtkButton" id="prev_button">
@@ -190,7 +190,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="BrkButtonGroup">
+                      <object class="BeditButtonGroup">
                         <property name="halign">fill</property>
                         <child>
                           <object class="GtkToggleButton" id="case_sensitive_toggle">

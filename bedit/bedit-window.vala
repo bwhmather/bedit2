@@ -877,7 +877,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     }
 
     class construct {
-        typeof (Brk.ButtonGroup).ensure();
+        typeof (Bedit.ButtonGroup).ensure();
         typeof (Bedit.ToolbarView).ensure();
         typeof (Bedit.Statusbar).ensure();
         typeof (Bedit.Toolbar).ensure();
