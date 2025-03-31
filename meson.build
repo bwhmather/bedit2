@@ -135,6 +135,7 @@ bedit_sources = [
   'bedit/bedit-statusbar.vala',
   'bedit/bedit-window.vala',
   'bedit/bedit-toolbar.vala',
+  'bedit/bedit-toolbar-view.vala',
   'bedit/bedit-tab-view.vala',
   bedit_resources.get(0),
   bedit_resources.get(1),

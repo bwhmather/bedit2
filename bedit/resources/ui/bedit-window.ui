@@ -2,8 +2,7 @@
 <interface>
   <template class="BeditWindow" parent="GtkApplicationWindow">
     <child>
-      <object class="BrkToolbarView">
-        <property name="top-bar-style">raised-border</property>
+      <object class="BeditToolbarView">
 
         <child type="top">
           <object class="BeditToolbar">
