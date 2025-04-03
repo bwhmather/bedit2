@@ -13,6 +13,7 @@ add_project_arguments(
 )
 
 add_project_arguments(
+  '--define=GETTEXT_PACKAGE=bedit2',
   '--gresourcesdir', 'resources',
   '--gresources', meson.current_source_dir() / 'bedit/resources/bedit.gresources.xml',
   '--vapidir=' + meson.source_root() + '/vapi/',
@@ -29,13 +30,16 @@ prefix = get_option('prefix')
 bindir = get_option('bindir')
 datadir = get_option('datadir')
 
+bricks_proj = subproject('libbricks-1')
 
 m_dep = cc.find_library('m', required: false)
+bricks_dep = bricks_proj.get_variable('libbricks_dep')
 gtk_dep = dependency('gtk4', include_type: 'system')
 gtksourceview_dep = dependency('gtksourceview-5', version: '>= 5.10.0', include_type: 'system')
 
 bedit_deps = [
   m_dep,
+  bricks_dep,
   gtk_dep,
   gtksourceview_dep,
 ]
@@ -126,18 +130,12 @@ bedit_resources = gnome.compile_resources(
 )
 
 bedit_sources = [
-  'bedit/brk-main.vala',
   'bedit/bedit-application.vala',
-  'bedit/bedit-button-group.vala',
   'bedit/bedit-close-confirmation-dialog.vala',
   'bedit/bedit-document.vala',
   'bedit/bedit-fonts.vala',
   'bedit/bedit-preferences-window.vala',
-  'bedit/bedit-statusbar.vala',
   'bedit/bedit-window.vala',
-  'bedit/bedit-toolbar.vala',
-  'bedit/bedit-toolbar-view.vala',
-  'bedit/bedit-tab-view.vala',
   bedit_resources.get(0),
   bedit_resources.get(1),
 ]

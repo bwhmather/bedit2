@@ -3,7 +3,7 @@
   <template class="BeditCloseConfirmationDialog" parent="GtkWindow">
     <property name="modal">true</property>
     <child>
-      <object class="BeditToolbarView">
+      <object class="BrkToolbarView">
         <child type="bottom">
           <object class="GtkActionBar">
             <child type="end">
