@@ -341,6 +341,8 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     /* --- Trim trailing whitespace ----------------------------------------------------------------------- */
 
+    public bool trim_trailing_whitespace { get; set; }
+
     private void
     trim_trailing() {
         this.source_buffer.begin_user_action();
@@ -372,7 +374,13 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     private void
     trim_trailing_init() {
-        this.save.connect((d) => { this.trim_trailing(); });
+        this.settings.bind("trim-trailing-whitespace", this, "trim-trailing-whitespace", GET);
+
+        this.save.connect((d) => {
+            if (this.trim_trailing_whitespace) {
+                this.trim_trailing();
+            }
+        });
     }
 
     /* === Appearance ===================================================================================== */

@@ -70,5 +70,10 @@
       <summary>Tab Width</summary>
       <description>The width of a tabulation in characters.</description>
     </key>
+    <key name="trim-trailing-whitespace" type="b">
+      <default>true</default>
+      <summary>Trim Trailing Whitespace</summary>
+      <description>Strip tabs and spaces from the end of lines before saving.</description>
+    </key>
   </schema>
 </schemalist>
