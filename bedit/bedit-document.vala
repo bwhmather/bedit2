@@ -35,9 +35,16 @@ public sealed class Bedit.Document : Gtk.Widget {
     }
     public bool modified { get; private set; }
 
+    public signal void load();
+    public signal void loaded();
     public bool loading { get; private set; }
+
+    public signal void save();
+    public signal void saved();
     public bool saving { get; private set; }
+
     public bool busy { get; private set; }
+
 
     public signal void closed();
 
@@ -84,6 +91,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         font_init();
         word_wrap_init();
         indentation_init();
+        trim_trailing_init();
         overview_map_init();
         highlight_current_line_init();
         highlight_syntax_init();
@@ -119,31 +127,35 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     public async void
     save_async(GLib.File file) throws Error {
-        return_val_if_fail(!loading, false);
-        return_val_if_fail(!saving, false);
+        return_val_if_fail(!this.loading, false);
+        return_val_if_fail(!this.saving, false);
 
-        saving = true;
+        this.saving = true;
+        this.save();
 
         var source_saver = new GtkSource.FileSaver.with_target(this.source_buffer, this.source_file, file);
         source_saver.flags = IGNORE_INVALID_CHARS | IGNORE_MODIFICATION_TIME;
 
         yield source_saver.save_async(Priority.DEFAULT, this.cancellable, null);
 
-        saving = false;
+        this.saved();
+        this.saving = false;
     }
 
     public async bool
     reload_async(GLib.Cancellable? cancellable) throws Error {
-        return_val_if_fail(file is GLib.File, false);
-        return_val_if_fail(!loading, false);
-        return_val_if_fail(!saving, false);
+        return_val_if_fail(this.file is GLib.File, false);
+        return_val_if_fail(!this.loading, false);
+        return_val_if_fail(!this.saving, false);
 
-        loading = true;
+        this.loading = true;
+        this.load();
 
         var source_loader = new GtkSource.FileLoader(source_buffer, source_file);
         yield source_loader.load_async(Priority.LOW, cancellable, null);
 
-        loading = false;
+        this.loaded();
+        this.loading = false;
         return true;
     }
 
@@ -311,7 +323,9 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.language_update();
     }
 
-    /* === Indentation ===================================================================================== */
+    /* === Whitespace ===================================================================================== */
+
+    /* --- Indentation ------------------------------------------------------------------------------------ */
 
     public uint tab_width { get; set; }
     public bool insert_spaces_instead_of_tabs { get; set; }
@@ -323,6 +337,42 @@ public sealed class Bedit.Document : Gtk.Widget {
 
         this.settings.bind("insert-spaces-instead-of-tabs", this, "insert-spaces-instead-of-tabs", GET);
         this.bind_property("insert-spaces-instead-of-tabs", this.source_view, "insert-spaces-instead-of-tabs", SYNC_CREATE);
+    }
+
+    /* --- Trim trailing whitespace ----------------------------------------------------------------------- */
+
+    private void
+    trim_trailing() {
+        this.source_buffer.begin_user_action();
+
+        Gtk.TextIter iter;
+        this.source_buffer.get_start_iter(out iter);
+        while (!iter.is_end()) {
+            iter.forward_to_line_end();
+            var cursor = iter;
+            while (!cursor.starts_line()) {
+                var lookahead = cursor;
+                lookahead.backward_char();
+
+                var ch = lookahead.get_char();
+                if (ch != ' ' && ch != '\t') {
+                    break;
+                }
+
+                cursor = lookahead;
+            }
+
+            if (!cursor.equal(iter)) {
+                this.source_buffer.@delete(ref cursor, ref iter);
+            }
+        }
+
+        this.source_buffer.end_user_action();
+    }
+
+    private void
+    trim_trailing_init() {
+        this.save.connect((d) => { this.trim_trailing(); });
     }
 
     /* === Appearance ===================================================================================== */
