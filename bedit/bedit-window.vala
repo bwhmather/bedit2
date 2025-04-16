@@ -323,11 +323,10 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     document_actions_update() {
         bool exists = this.active_document != null;
         bool idle = exists && !this.active_document.busy;
-        bool has_file = exists && this.active_document.file != null;
         bool can_undo = exists && this.active_document.can_undo;
         bool can_redo = exists && this.active_document.can_redo;
 
-        document_actions_set_action_enabled("save", exists && idle && has_file);
+        document_actions_set_action_enabled("save", exists && idle);
         document_actions_set_action_enabled("save-as", exists && idle);
         document_actions_set_action_enabled("revert", exists && idle);
         document_actions_set_action_enabled("print-preview", exists && idle);
