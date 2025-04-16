@@ -29,7 +29,7 @@ document_wait_idle(Bedit.Document document) {
 
 [GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-window.ui")]
 public sealed class Bedit.Window : Gtk.ApplicationWindow {
-    private GLib.Settings settings = new GLib.Settings("com.bwhmather.Bedit2");
+    private GLib.Settings settings = new GLib.Settings("com.bwhmather.Bedit");
 
     private GLib.Cancellable cancellable = new GLib.Cancellable();
 

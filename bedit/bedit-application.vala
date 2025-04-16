@@ -17,7 +17,7 @@
  */
 
 class Bedit.Application : Gtk.Application {
-    private GLib.Settings settings = new GLib.Settings("com.bwhmather.Bedit2");
+    private GLib.Settings settings = new GLib.Settings("com.bwhmather.Bedit");
 
     private void
     action_new() {

@@ -18,7 +18,7 @@
 
 [GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-document.ui")]
 public sealed class Bedit.Document : Gtk.Widget {
-    private GLib.Settings settings = new GLib.Settings("com.bwhmather.Bedit2");
+    private GLib.Settings settings = new GLib.Settings("com.bwhmather.Bedit");
     private GLib.Settings settings_desktop = new GLib.Settings("org.gnome.desktop.interface");
 
     private GLib.Cancellable cancellable = new GLib.Cancellable();

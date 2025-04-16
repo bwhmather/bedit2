@@ -1,5 +1,5 @@
 project(
-  'bedit2',
+  'bedit',
   'c', 'vala',
   version: '0.1.0',
   meson_version: '>=1.3',
@@ -13,7 +13,7 @@ add_project_arguments(
 )
 
 add_project_arguments(
-  '--define=GETTEXT_PACKAGE=bedit2',
+  '--define=GETTEXT_PACKAGE=bedit',
   '--gresourcesdir', 'resources',
   '--gresources', meson.current_source_dir() / 'bedit/resources/bedit.gresources.xml',
   '--vapidir=' + meson.source_root() + '/vapi/',
@@ -50,7 +50,7 @@ config_data.set_quoted('BEDIT_APP_ID', 'bedit')
 config_data.set_quoted('BEDIT_VERSION', meson.project_version())
 config_data.set_quoted('G_LOG_USE_STRUCTURED', meson.project_version())
 config_data.set_quoted('G_LOG_DOMAIN', 'bedit')
-config_data.set_quoted('GETTEXT_PACKAGE', 'bedit2')
+config_data.set_quoted('GETTEXT_PACKAGE', 'bedit')
 config_data.set_quoted('LOCALEDIR', get_option('prefix') / get_option('localedir'))
 configure_file(output: 'config.h', configuration: config_data)
 
@@ -141,7 +141,7 @@ bedit_sources = [
 ]
 
 bedit_exe = executable(
-  'bedit2',
+  'bedit',
   bedit_sources,
   install: true,
   dependencies: bedit_deps,
@@ -155,7 +155,7 @@ configure_file(
 )
 
 install_data(
-  'com.bwhmather.Bedit2.gschema.xml',
+  'com.bwhmather.Bedit.gschema.xml',
   install_dir: join_paths(datadir, 'glib-2.0/schemas'),
 )
 gnome.compile_schemas()  # Only for testing.

@@ -1,5 +1,5 @@
 <schemalist>
-  <schema id="com.bwhmather.Bedit2" path="/com/bwhmather/Bedit2/" gettext-domain="bedit2">
+  <schema id="com.bwhmather.Bedit" path="/com/bwhmather/Bedit/" gettext-domain="bedit">
     <key name="use-default-font" type="b">
       <default>true</default>
       <summary>Use Default Font</summary>
