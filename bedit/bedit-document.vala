@@ -21,30 +21,11 @@ public sealed class Bedit.Document : Gtk.Widget {
     private GLib.Settings settings = new GLib.Settings("com.bwhmather.Bedit");
     private GLib.Settings settings_desktop = new GLib.Settings("org.gnome.desktop.interface");
 
-    private GLib.Cancellable cancellable = new GLib.Cancellable();
-
     [GtkChild]
     private unowned GtkSource.View source_view;
     private unowned GtkSource.Buffer source_buffer;
-    private GtkSource.File source_file = new GtkSource.File();
 
     public string title { get; private set; }
-    public unowned GLib.File? file {
-        get { return this.source_file.location; }
-        construct { this.source_file.location = value; }
-    }
-    public bool modified { get; private set; }
-
-    public signal void load();
-    public signal void loaded();
-    public bool loading { get; private set; }
-
-    public signal void save();
-    public signal void saved();
-    public bool saving { get; private set; }
-
-    public bool busy { get; private set; }
-
 
     public signal void closed();
 
@@ -58,10 +39,6 @@ public sealed class Bedit.Document : Gtk.Widget {
         set_layout_manager_type(typeof (Gtk.BinLayout));
     }
 
-    private void
-    update_busy() {
-        this.busy = this.loading || this.saving;
-    }
 
     construct {
         this.source_buffer = source_view.get_buffer() as GtkSource.Buffer;
@@ -76,16 +53,11 @@ public sealed class Bedit.Document : Gtk.Widget {
             this.can_cut = has_selection;
             this.can_copy = has_selection;
         });
-        this.source_buffer.modified_changed.connect((tb) => {
-            this.modified = this.source_buffer.get_modified();
-        });
         this.source_buffer.end_user_action.connect((tb) => {
             this.source_view.scroll_mark_onscreen(this.source_buffer.get_insert());
         });
 
-        this.notify["loading"].connect((_, pspec) => { this.update_busy(); });
-        this.notify["saving"].connect((_, pspec) => { this.update_busy(); });
-
+        filesystem_init();
         title_init();
         language_init();
         font_init();
@@ -99,10 +71,6 @@ public sealed class Bedit.Document : Gtk.Widget {
         start_mark_init();
         search_init();
         go_to_line_init();
-
-        if (file != null) {
-            reload_async.begin(null);
-        }
     }
 
     public override void
@@ -125,6 +93,33 @@ public sealed class Bedit.Document : Gtk.Widget {
         return this.source_view.grab_focus();
     }
 
+    /* === Loading and Saving ============================================================================= */
+
+    private GLib.Cancellable filesystem_cancellable = new GLib.Cancellable();
+
+    private GtkSource.File source_file = new GtkSource.File();
+
+    public unowned GLib.File? file {
+        get { return this.source_file.location; }
+        construct { this.source_file.location = value; }
+    }
+    public bool modified { get; private set; }
+
+    public signal void load();
+    public signal void loaded();
+    public bool loading { get; private set; }
+
+    public signal void save();
+    public signal void saved();
+    public bool saving { get; private set; }
+
+    public bool busy { get; private set; }
+
+    private void
+    update_busy() {
+        this.busy = this.loading || this.saving;
+    }
+
     public async void
     save_async(GLib.File file) throws Error {
         return_val_if_fail(!this.loading, false);
@@ -136,7 +131,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         var source_saver = new GtkSource.FileSaver.with_target(this.source_buffer, this.source_file, file);
         source_saver.flags = IGNORE_INVALID_CHARS | IGNORE_MODIFICATION_TIME;
 
-        yield source_saver.save_async(Priority.DEFAULT, this.cancellable, null);
+        yield source_saver.save_async(Priority.DEFAULT, this.filesystem_cancellable, null);
 
         this.saved();
         this.saving = false;
@@ -157,6 +152,22 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.loaded();
         this.loading = false;
         return true;
+    }
+
+    private void
+    filesystem_init() {
+        this.source_buffer.modified_changed.connect((tb) => {
+            this.modified = this.source_buffer.get_modified();
+        });
+
+        this.notify["loading"].connect((_, pspec) => { this.update_busy(); });
+        this.notify["saving"].connect((_, pspec) => { this.update_busy(); });
+
+        this.source_file.notify["location"].connect((_, pspec) => { this.notify_property("file"); });
+
+        if (file != null) {
+            reload_async.begin(null);
+        }
     }
 
     /* === Editing ======================================================================================== */
@@ -642,7 +653,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         assert(this.search_context != null);
         assert(this.start_mark != null);
 
-        if (this.cancellable!= null) {
+        if (this.search_cancellable!= null) {
             this.search_cancellable.cancel();
         }
         this.search_cancellable = new GLib.Cancellable();
