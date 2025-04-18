@@ -66,6 +66,23 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     [GtkChild]
     private unowned Brk.Statusbar status_bar;
 
+    /* === Title ========================================================================================== */
+
+    private void
+       title_update() {
+        if (this.active_document == null) {
+            this.title = "Bedit";
+        } else {
+            this.title = "Bedit - %s".printf(this.active_document.title);
+        }
+    }
+
+    private void
+    title_init() {
+        this.active_document_notify_connect("title", this.title_update);
+        this.title_update();
+    }
+
     /* === Menubar ======================================================================================== */
 
     private void
@@ -902,6 +919,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
             cancellable.cancel();
         });
 
+        this.title_init();
         this.menubar_init();
         this.toolbar_init();
         this.statusbar_init();
