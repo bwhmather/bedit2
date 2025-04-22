@@ -65,6 +65,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         indentation_init();
         trim_trailing_init();
         overview_map_init();
+        right_margin_init();
         highlight_current_line_init();
         highlight_syntax_init();
         line_numbers_init();
@@ -506,6 +507,21 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.settings.bind("show-overview-map", this, "show-overview-map", GET);
         this.notify["show-overview-map"].connect((d, pspec) => { this.update_show_overview_map(); });
         this.update_show_overview_map();
+    }
+
+    /* --- Right Margin ----------------------------------------------------------------------------------- */
+
+    public bool show_right_margin { get; set; }
+    public uint right_margin_position { get; set; }
+
+    private void
+    right_margin_init() {
+        this.settings.bind("right-margin-position", this, "right-margin_position", GET);
+        this.bind_property("right-margin-position", this.source_view, "right-margin-position", SYNC_CREATE);
+
+        this.settings.bind("show-right-margin", this, "show-right-margin", GET);
+        this.bind_property("show-right-margin", this.source_view, "show-right-margin", SYNC_CREATE);
+
     }
 
     /* === Navigation ===================================================================================== */

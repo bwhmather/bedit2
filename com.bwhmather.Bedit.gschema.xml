@@ -55,6 +55,16 @@
       <summary>Show Line Numbers</summary>
       <description>Wheter Bedit should show line numbers at the side of the screen.</description>
     </key>
+    <key name="show-right-margin" type="b">
+      <default>true</default>
+      <summary>Show Right Margin</summary>
+      <description>Draw a vertical line at fixed offset from the left hand side.</description>
+    </key>
+    <key name="right-margin-position" type="u">
+      <default>80</default>
+      <summary>Right Margin Position</summary>
+      <description>Offset at which to draw the right margin, if enabled.</description>
+    </key>
     <key name="auto-check-spelling" type="b">
       <default>true</default>
       <summary>Auto-check Spelling</summary>
