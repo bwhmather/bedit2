@@ -25,8 +25,6 @@ public sealed class Bedit.Document : Gtk.Widget {
     private unowned GtkSource.View source_view;
     private unowned GtkSource.Buffer source_buffer;
 
-    public signal void closed();
-
     class construct {
         set_layout_manager_type(typeof (Gtk.BinLayout));
     }
