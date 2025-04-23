@@ -63,9 +63,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         });
     }
 
-    [GtkChild]
-    private unowned Brk.Statusbar status_bar;
-
     /* === Title ========================================================================================== */
 
     private void
@@ -102,6 +99,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     /* === Statusbar ====================================================================================== */
 
     public bool show_statusbar { get; set; }
+
+    [GtkChild]
+    private unowned Brk.Statusbar status_bar;
 
     [GtkChild]
     private unowned Gtk.Label language_label;
@@ -763,10 +763,10 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         }
     }
 
-    uint status_bar_search_context_id = 0;
+    uint search_status_bar_context_id = 0;
 
     private void
-    status_bar_update_update_search() {
+    search_update_status_bar() {
         int count;
         int selected;
         string message = null;
@@ -788,14 +788,14 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
             }
         }
 
-        if (this.status_bar_search_context_id == 0) {
-            this.status_bar_search_context_id = this.status_bar.new_context_id();
+        if (this.search_status_bar_context_id == 0) {
+            this.search_status_bar_context_id = this.status_bar.new_context_id();
         }
 
         // TODO only remove if changed.
-        this.status_bar.remove_all(this.status_bar_search_context_id);
+        this.status_bar.remove_all(this.search_status_bar_context_id);
         if (message != null) {
-            this.status_bar.push(this.status_bar_search_context_id, message);
+            this.status_bar.push(this.search_status_bar_context_id, message);
         }
     }
 
@@ -833,8 +833,8 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.notify["search-active"].connect((s, pspec) => { this.search_actions_update(); });
         this.notify["replace-active"].connect((s, pspec) => { this.search_actions_update(); });
 
-        this.active_document_notify_connect("num-search-occurrences", this.status_bar_update_update_search);
-        this.active_document_notify_connect("selected-search-occurrence", this.status_bar_update_update_search);
+        this.active_document_notify_connect("num-search-occurrences", this.search_update_status_bar);
+        this.active_document_notify_connect("selected-search-occurrence", this.search_update_status_bar);
 
         this.search_actions_update();
     }
