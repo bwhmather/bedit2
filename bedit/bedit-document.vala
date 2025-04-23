@@ -25,8 +25,6 @@ public sealed class Bedit.Document : Gtk.Widget {
     private unowned GtkSource.View source_view;
     private unowned GtkSource.Buffer source_buffer;
 
-    public string title { get; private set; }
-
     public signal void closed();
 
     class construct {
@@ -260,6 +258,8 @@ public sealed class Bedit.Document : Gtk.Widget {
     /* === Metadata ======================================================================================= */
 
     /* --- Title ------------------------------------------------------------------------------------------ */
+
+    public string title { get; private set; }
 
     private static bool[] title_allocated_draft_numbers = new bool[16];
 
