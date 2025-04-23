@@ -33,36 +33,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private GLib.Cancellable cancellable = new GLib.Cancellable();
 
-    [GtkChild]
-    private unowned Brk.TabView tab_view;
-
-    public Bedit.Document? active_document { get; private set; }
-
-    delegate void ActiveDocumentNotifyCallback();
-
-    private void
-    active_document_notify_connect(string name, ActiveDocumentNotifyCallback callback) {
-        ulong handle = 0;
-        Bedit.Document? current;
-
-        if (this.active_document != null) {
-            handle = this.active_document.notify[name].connect((d, pspec) => { callback(); });
-        }
-        current = this.active_document;
-
-        this.notify["active-document"].connect((da, pspec) => {
-            if (current != null) {
-                current.disconnect(handle);
-            }
-            if (this.active_document != null) {
-                handle = this.active_document.notify[name].connect((d, pspec) => { callback(); });
-            }
-            current = this.active_document;
-
-            callback();
-        });
-    }
-
     /* === Title ========================================================================================== */
 
     private void
@@ -839,7 +809,37 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.search_actions_update();
     }
 
-    /* === Lifecycle ====================================================================================== */
+    /* === Tab View ======================================================================================= */
+
+    [GtkChild]
+    private unowned Brk.TabView tab_view;
+
+    public Bedit.Document? active_document { get; private set; }
+
+    delegate void ActiveDocumentNotifyCallback();
+
+    private void
+    active_document_notify_connect(string name, ActiveDocumentNotifyCallback callback) {
+        ulong handle = 0;
+        Bedit.Document? current;
+
+        if (this.active_document != null) {
+            handle = this.active_document.notify[name].connect((d, pspec) => { callback(); });
+        }
+        current = this.active_document;
+
+        this.notify["active-document"].connect((da, pspec) => {
+            if (current != null) {
+                current.disconnect(handle);
+            }
+            if (this.active_document != null) {
+                handle = this.active_document.notify[name].connect((d, pspec) => { callback(); });
+            }
+            current = this.active_document;
+
+            callback();
+        });
+    }
 
     private void
     on_tab_view_selected_tab_changed(GLib.Object _, GLib.ParamSpec pspec) {
@@ -864,7 +864,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
         return Gdk.EVENT_PROPAGATE;
     }
-
 
     private bool
     on_tab_view_close_page_request(Brk.TabView view, Brk.TabPage page) {
@@ -892,6 +891,24 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         return Gdk.EVENT_STOP;
     }
 
+    private void
+    add_document(Bedit.Document document) {
+        Brk.TabPage page = this.tab_view.add_page(document, null);
+        document.bind_property("title", page, "title", SYNC_CREATE);
+        this.tab_view.selected_page = page;
+        this.tab_view.grab_focus();
+    }
+
+    private void
+    tab_view_init() {
+        tab_view.notify["selected-page"].connect(on_tab_view_selected_tab_changed);
+        tab_view.close_page.connect(on_tab_view_close_page_request);
+
+        this.close_request.connect(on_window_close_request);
+    }
+
+    /* === Lifecycle ====================================================================================== */
+
     class construct {
         typeof (Brk.ButtonGroup).ensure();
         typeof (Brk.ToolbarView).ensure();
@@ -910,10 +927,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         var window_group = new Gtk.WindowGroup();
         window_group.add_window(this);
 
-        tab_view.notify["selected-page"].connect(on_tab_view_selected_tab_changed);
-        tab_view.close_page.connect(on_tab_view_close_page_request);
-
-        this.close_request.connect(on_window_close_request);
         var w = (this as Gtk.Widget);
         w.destroy.connect((w) => {
             cancellable.cancel();
@@ -928,6 +941,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.clipboard_actions_init();
         this.selection_actions_init();
         this.search_init();
+        this.tab_view_init();
     }
 
     public override void
@@ -942,11 +956,4 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         );
     }
 
-    private void
-    add_document(Bedit.Document document) {
-        Brk.TabPage page = this.tab_view.add_page(document, null);
-        document.bind_property("title", page, "title", SYNC_CREATE);
-        this.tab_view.selected_page = page;
-        this.tab_view.grab_focus();
-    }
 }
