@@ -197,7 +197,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     /* --- Closing Tabs ----------------------------------------------------------------------------------- */
 
-
     private void
     action_doc_close() {
         this.tab_view.close_page(this.tab_view.selected_page);
@@ -431,7 +430,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
         this.active_document.select_all();
     }
-
 
     /* --- Selection Action State ------------------------------------------------------------------------- */
 

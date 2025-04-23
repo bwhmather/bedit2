@@ -375,7 +375,6 @@ public sealed class Bedit.Document : Gtk.Widget {
         font_css_provider.load_from_string("textview { %s }".printf(font_css));
     }
 
-
     private void
     font_init() {
         this.font_css_provider = new Gtk.CssProvider();
@@ -516,7 +515,6 @@ public sealed class Bedit.Document : Gtk.Widget {
             this.set_start_mark();
         }
     }
-
 
     private void
     start_mark_init() {
