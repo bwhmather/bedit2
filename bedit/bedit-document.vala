@@ -25,54 +25,6 @@ public sealed class Bedit.Document : Gtk.Widget {
     private unowned GtkSource.View source_view;
     private unowned GtkSource.Buffer source_buffer;
 
-    class construct {
-        set_layout_manager_type(typeof (Gtk.BinLayout));
-    }
-
-    construct {
-        this.source_buffer = source_view.get_buffer() as GtkSource.Buffer;
-        this.source_buffer.end_user_action.connect((tb) => {
-            this.source_view.scroll_mark_onscreen(this.source_buffer.get_insert());
-        });
-
-        filesystem_init();
-        editing_init();
-        title_init();
-        language_init();
-        font_init();
-        word_wrap_init();
-        indentation_init();
-        trim_trailing_init();
-        overview_map_init();
-        right_margin_init();
-        highlight_current_line_init();
-        highlight_syntax_init();
-        line_numbers_init();
-        start_mark_init();
-        search_init();
-        go_to_line_init();
-    }
-
-    public override void
-    dispose() {
-        this.dispose_template(typeof(Bedit.Document));
-    }
-
-    ~Document() {
-        assert(!this.busy);
-
-        title_deinit();
-    }
-
-    public Document.for_file(GLib.File file) {
-        Object(file: file);
-    }
-
-    public override bool
-    grab_focus() {
-        return this.source_view.grab_focus();
-    }
-
     /* === Loading and Saving ============================================================================= */
 
     private GLib.Cancellable filesystem_cancellable = new GLib.Cancellable();
@@ -973,5 +925,55 @@ public sealed class Bedit.Document : Gtk.Widget {
             this.go_to_line_commit();
             this.go_to_line_hide();
         });
+    }
+
+    /* === Lifecyle ======================================================================================= */
+
+    class construct {
+        set_layout_manager_type(typeof (Gtk.BinLayout));
+    }
+
+    construct {
+        this.source_buffer = source_view.get_buffer() as GtkSource.Buffer;
+        this.source_buffer.end_user_action.connect((tb) => {
+            this.source_view.scroll_mark_onscreen(this.source_buffer.get_insert());
+        });
+
+        filesystem_init();
+        editing_init();
+        title_init();
+        language_init();
+        font_init();
+        word_wrap_init();
+        indentation_init();
+        trim_trailing_init();
+        overview_map_init();
+        right_margin_init();
+        highlight_current_line_init();
+        highlight_syntax_init();
+        line_numbers_init();
+        start_mark_init();
+        search_init();
+        go_to_line_init();
+    }
+
+    public override void
+    dispose() {
+        this.dispose_template(typeof(Bedit.Document));
+    }
+
+    ~Document() {
+        assert(!this.busy);
+
+        title_deinit();
+    }
+
+    public Document.for_file(GLib.File file) {
+        Object(file: file);
+    }
+
+    public override bool
+    grab_focus() {
+        return this.source_view.grab_focus();
     }
 }
