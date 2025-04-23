@@ -29,35 +29,18 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     public signal void closed();
 
-    public bool can_undo { get; private set; }
-    public bool can_redo { get; private set; }
-    public bool can_cut { get; private set; }
-    public bool can_copy { get; private set; }
-    public bool can_paste { get; private set; default = true; }
-
     class construct {
         set_layout_manager_type(typeof (Gtk.BinLayout));
     }
 
-
     construct {
         this.source_buffer = source_view.get_buffer() as GtkSource.Buffer;
-        this.source_buffer.notify["can-undo"].connect((sb, pspec) => {
-            this.can_undo = source_buffer.can_undo;
-        });
-        this.source_buffer.notify["can-redo"].connect((sb, pspec) => {
-            this.can_redo = source_buffer.can_redo;
-        });
-        this.source_buffer.notify["has-selection"].connect((sb, pspec) => {
-            bool has_selection = this.source_buffer.has_selection;
-            this.can_cut = has_selection;
-            this.can_copy = has_selection;
-        });
         this.source_buffer.end_user_action.connect((tb) => {
             this.source_view.scroll_mark_onscreen(this.source_buffer.get_insert());
         });
 
         filesystem_init();
+        editing_init();
         title_init();
         language_init();
         font_init();
@@ -173,15 +156,21 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     /* === Editing ======================================================================================== */
 
+    public bool can_undo { get; private set; }
+
     public void
     undo() {
         this.source_buffer.undo();
     }
 
+    public bool can_redo { get; private set; }
+
     public void
     redo() {
         this.source_buffer.redo();
     }
+
+    public bool can_cut { get; private set; }
 
     public void
     cut() {
@@ -189,11 +178,15 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.source_buffer.cut_clipboard(clipboard, this.source_view.editable);
     }
 
+    public bool can_copy { get; private set; }
+
     public void
     copy() {
         var clipboard = this.get_display().get_clipboard();
         this.source_buffer.copy_clipboard(clipboard);
     }
+
+    public bool can_paste { get; private set; default = true; }
 
     public void
     paste() {
@@ -247,6 +240,21 @@ public sealed class Bedit.Document : Gtk.Widget {
 
             this.source_view.scroll_mark_onscreen(this.source_buffer.get_insert());
         }
+    }
+
+    private void
+    editing_init() {
+        this.source_buffer.notify["can-undo"].connect((sb, pspec) => {
+            this.can_undo = source_buffer.can_undo;
+        });
+        this.source_buffer.notify["can-redo"].connect((sb, pspec) => {
+            this.can_redo = source_buffer.can_redo;
+        });
+        this.source_buffer.notify["has-selection"].connect((sb, pspec) => {
+            bool has_selection = this.source_buffer.has_selection;
+            this.can_cut = has_selection;
+            this.can_copy = has_selection;
+        });
     }
 
     /* === Metadata ======================================================================================= */
