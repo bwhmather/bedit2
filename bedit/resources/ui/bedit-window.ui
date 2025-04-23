@@ -264,6 +264,8 @@
             <child>
               <object class="GtkLabel" id="language_label">
               </object>
+              <object class="GtkLabel" id="position_label">
+              </object>
             </child>
           </object>
         </child>

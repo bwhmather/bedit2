@@ -77,7 +77,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     private unowned Gtk.Label language_label;
 
     private void
-    language_update() {
+    language_label_update() {
         if (this.active_document == null || this.active_document.language == null) {
             this.language_label.label = "";
         } else {
@@ -85,10 +85,26 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         }
     }
 
+    [GtkChild]
+    private unowned Gtk.Label position_label;
+
+    private void
+    position_label_update() {
+        if (this.active_document == null) {
+            this.position_label.label = "";
+        } else {
+            this.position_label.label = "Line %i, Column %i".printf(
+                this.active_document.line, this.active_document.column
+            );
+        }
+    }
+
     private void
     statusbar_init() {
         this.settings.bind("show-statusbar", this, "show-statusbar", GET);
-        this.active_document_notify_connect("language", this.language_update);
+        this.active_document_notify_connect("language", this.language_label_update);
+        this.active_document_notify_connect("line", this.position_label_update);
+        this.active_document_notify_connect("column", this.position_label_update);
     }
 
     /* === Document Operations ============================================================================ */

@@ -293,6 +293,38 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.language_update();
     }
 
+    /* --- Source Position -------------------------------------------------------------------------------- */
+
+    public int line { get; private set; }
+    public int column { get; private set; }
+
+    public signal void moved();
+
+    private void
+    position_update() {
+        Gtk.TextIter start_iter;
+        this.source_buffer.get_iter_at_mark(out start_iter, this.source_buffer.get_insert());
+
+        this.freeze_notify();
+        this.line = start_iter.get_line() + 1;
+        this.column = start_iter.get_line_offset() + 1;
+        this.thaw_notify();
+        this.moved();
+    }
+
+    private void
+    position_init() {
+        this.source_buffer.end_user_action.connect((tb) => {
+            this.position_update();
+        });
+        this.source_buffer.mark_set.connect((loc, mark) => {
+            if (mark == this.source_buffer.get_insert()) {
+                this.position_update();
+            }
+        });
+        this.position_update();
+    }
+
     /* === Whitespace ===================================================================================== */
 
     /* --- Indentation ------------------------------------------------------------------------------------ */
@@ -941,6 +973,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         editing_init();
         title_init();
         language_init();
+        position_init();
         font_init();
         word_wrap_init();
         indentation_init();
