@@ -294,6 +294,12 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         });
     }
 
+    private void
+    action_doc_hide_go_to_line() {
+        return_if_fail(this.active_document != null);
+        this.active_document.go_to_line_hide();
+    }
+
     /* --- Document Action State -------------------------------------------------------------------------- */
 
     const GLib.ActionEntry[] document_action_entries = {
@@ -313,6 +319,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         {"delete", action_doc_delete_line},
         {"duplicate", action_doc_duplicate_line},
         {"show-go-to-line", action_doc_show_go_to_line},
+        {"hide-go-to-line", action_doc_hide_go_to_line}
     };
 
     private void
