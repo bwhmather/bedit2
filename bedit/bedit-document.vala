@@ -21,6 +21,8 @@ public sealed class Bedit.Document : Gtk.Widget {
     private GLib.Settings settings = new GLib.Settings("com.bwhmather.Bedit");
     private GLib.Settings settings_desktop = new GLib.Settings("org.gnome.desktop.interface");
 
+    private GLib.SimpleActionGroup document_actions = new GLib.SimpleActionGroup();
+
     [GtkChild]
     private unowned GtkSource.View source_view;
     private unowned GtkSource.Buffer source_buffer;
@@ -806,30 +808,6 @@ public sealed class Bedit.Document : Gtk.Widget {
     uint go_to_line_timeout_id;
 
     private void
-    go_to_line_commit() {
-        this.reset_start_mark();
-    }
-
-    private void
-    go_to_line_hide() {
-        Gtk.TextIter start_iter;
-
-        if (!this.go_to_line_revealer.reveal_child) {
-            return;
-        }
-        this.go_to_line_revealer.reveal_child = false;
-
-        if (this.go_to_line_timeout_id != 0) {
-            GLib.Source.remove(this.go_to_line_timeout_id);
-            this.go_to_line_timeout_id = 0;
-        }
-
-        this.source_buffer.get_iter_at_mark(out start_iter, this.start_mark);
-        this.source_buffer.place_cursor(start_iter);
-        this.scroll_to_cursor();
-    }
-
-    private void
     go_to_line_update() {
         string text;
         string line_text;
@@ -934,7 +912,39 @@ public sealed class Bedit.Document : Gtk.Widget {
     }
 
     private void
+    go_to_line_commit() {
+        this.reset_start_mark();
+    }
+
+    public void
+    go_to_line_hide() {
+        Gtk.TextIter start_iter;
+
+        if (!this.go_to_line_revealer.reveal_child) {
+            return;
+        }
+        this.go_to_line_revealer.reveal_child = false;
+
+        if (this.go_to_line_timeout_id != 0) {
+            GLib.Source.remove(this.go_to_line_timeout_id);
+            this.go_to_line_timeout_id = 0;
+        }
+
+        this.source_buffer.get_iter_at_mark(out start_iter, this.start_mark);
+        this.source_buffer.place_cursor(start_iter);
+        this.scroll_to_cursor();
+    }
+
+    private void
     go_to_line_init() {
+        var action = new GLib.SimpleAction("show-go-to-line", null);
+        action.activate.connect(this.go_to_line_show);
+        this.document_actions.add_action(action);
+
+        action = new GLib.SimpleAction("hide-go-to-line", null);
+        action.activate.connect(this.go_to_line_hide);
+        this.document_actions.add_action(action);
+
         this.go_to_line_entry.changed.connect((e) => { this.go_to_line_update(); });
 
         var focus_controller = new Gtk.EventControllerFocus();
@@ -986,6 +996,8 @@ public sealed class Bedit.Document : Gtk.Widget {
         start_mark_init();
         search_init();
         go_to_line_init();
+
+        this.insert_action_group("doc", this.document_actions);
     }
 
     public override void
