@@ -159,6 +159,7 @@ class Bedit.Application : Gtk.Application {
         // File.
         this.set_accels_for_action("app.new", {"<Control>N"});
         this.set_accels_for_action("win.new", {"<Control>T"});
+        this.set_accels_for_action("win.open-experimental", {"<Control><Shift>O"});
         this.set_accels_for_action("win.open", {"<Control>O"});
         this.set_accels_for_action("doc.save", {"<Control>S"});
         this.set_accels_for_action("doc.save-as", {"<Control><Shift>S"});

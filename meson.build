@@ -133,6 +133,7 @@ bedit_sources = [
   'bedit/bedit-application.vala',
   'bedit/bedit-close-confirmation-dialog.vala',
   'bedit/bedit-document.vala',
+  'bedit/bedit-file-dialog.vala',
   'bedit/bedit-fonts.vala',
   'bedit/bedit-preferences-window.vala',
   'bedit/bedit-window.vala',
