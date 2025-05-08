@@ -196,7 +196,7 @@
                           <object class="GtkToggleButton" id="case_sensitive_toggle">
                             <property name="hexpand">true</property>
                             <property name="label">Aa</property>
-                            <property name="tooltip-text">Match case</property>
+                            <property name="tooltip-text">Match case (Ctrl+Alt+M)</property>
                             <property name="action-name">search.case-sensitive</property>
                           </object>
                         </child>
@@ -204,7 +204,7 @@
                           <object class="GtkToggleButton" id="regex_toggle">
                             <property name="hexpand">true</property>
                             <property name="label">.*</property>
-                            <property name="tooltip-text">Use regular expressions (Ctrl+.)</property>
+                            <property name="tooltip-text">Use regular expressions (Ctrl+Alt+.)</property>
                             <property name="action-name">search.regex</property>
                           </object>
                         </child>
