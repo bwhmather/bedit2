@@ -46,16 +46,19 @@
                         <child>
                           <object class="GtkToggleButton" id="icon_toggle">
                             <property name="icon-name">view-grid</property>
+                            <property name="tooltip-text">Grid view</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkToggleButton">
                             <property name="icon-name">view-list</property>
+                            <property name="tooltip-text">List view</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkToggleButton">
                             <property name="icon-name">view-tree</property>
+                            <property name="tooltip-text">Tree view</property>
                           </object>
                         </child>
                       </object>
