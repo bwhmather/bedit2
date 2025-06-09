@@ -96,6 +96,10 @@ class Bedit.Application : Gtk.Application {
         base.startup();
         Brk.init();
         GtkSource.init();
+
+        var display = Gdk.Display.get_default();
+        var icon_theme = Gtk.IconTheme.get_for_display(display);
+        icon_theme.add_resource_path("/com/bwhmather/Bedit/icons");
     }
 
     public override int

@@ -55,7 +55,7 @@
                         </child>
                         <child>
                           <object class="GtkToggleButton">
-                            <property name="label">Tree</property>
+                            <property name="icon-name">view-tree</property>
                           </object>
                         </child>
                       </object>
