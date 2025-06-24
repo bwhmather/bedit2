@@ -74,12 +74,12 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     private unowned Brk.Statusbar status_bar;
 
     [GtkChild]
-    private unowned Gtk.Label language_label;
+    private unowned Gtk.MenuButton language_label;
 
     private void
     language_label_update() {
         if (this.active_document == null || this.active_document.language == null) {
-            this.language_label.label = "";
+            this.language_label.label = "Plain Text";
         } else {
             this.language_label.label = this.active_document.language.name;
         }
