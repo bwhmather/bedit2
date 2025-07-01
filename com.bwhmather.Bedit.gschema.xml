@@ -1,12 +1,12 @@
 <schemalist>
   <schema id="com.bwhmather.Bedit" path="/com/bwhmather/Bedit/" gettext-domain="bedit">
     <key name="use-default-font" type="b">
-      <default>true</default>
+      <default>false</default>
       <summary>Use Default Font</summary>
       <description>Whether to use the system's default fixed width font for editing text instead of a font specific to bedit.  If this option is turned off, then the font named in the "Editor Font" option will be used instead of the system font.</description>
     </key>
     <key name="editor-font" type="s">
-      <default>'Monospace 12'</default>
+      <default>'Terminus 11'</default>
       <summary>Editor Font</summary>
       <description>A custom font that will be used for the editing area.  This will only take effect if the "Use Default Font" option is turned off.</description>
     </key>
@@ -53,7 +53,7 @@
     <key name="show-line-numbers" type="b">
       <default>true</default>
       <summary>Show Line Numbers</summary>
-      <description>Wheter Bedit should show line numbers at the side of the screen.</description>
+      <description>Whether Bedit should show line numbers at the side of the screen.</description>
     </key>
     <key name="show-right-margin" type="b">
       <default>true</default>
