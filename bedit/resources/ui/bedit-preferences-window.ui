@@ -1,43 +1,70 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <template class="BeditPreferencesWindow" parent="GtkWindow">
+  <template class="BeditPreferencesWindow" parent="BrkPreferencesDialog">
     <property name="title">Bedit Preferences</property>
     <child>
-      <object class="GtkBox">
+      <object class="BrkPreferencesPage">
+        <property name="name">editor</property>
+        <property name="title">Editor</property>
         <child>
-          <object class="GtkStackSidebar">
-            <property name="stack">stack</property>
+          <object class="BrkPreferencesGroup">
+            <property name="title">Display</property>
+            <!-- <key name="show-line-numbers" type="b"> -->
+            <!-- <key name="show-right-margin" type="b"> -->
+            <!-- <key name="right-margin-position" type="u"> -->
+            <!-- <key name="show-overview-map" type="b"> -->
+            <!-- <key name="show-toolbar" type="b"> -->
+            <!-- <key name="show-menubar" type="b"> -->
+            <!-- <key name="show-statusbar" type="b"> -->
           </object>
         </child>
-
         <child>
-          <object class="GtkStack" id="stack">
-            <child>
-              <object class="GtkStackPage">
-                <property name="name">view</property>
-                <property name="title">View</property>
-                <property name="child">
-                  <object class="GtkLabel">
-                    <property name="label">View settings</property>
-                  </object>
-                </property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkStackPage">
-                <property name="name">theme</property>
-                <property name="title">Theme</property>
-                <property name="child">
-                  <object class="GtkLabel">
-                    <property name="label">Theme settings</property>
-                  </object>
-                </property>
-              </object>
-            </child>
+          <object class="BrkPreferencesGroup">
+            <property name="title">Highlighting</property>
+            <!-- <key name="highlight-selection" type="b"> -->
+            <!-- <key name="highlight-current-line" type="b"> -->
+            <!-- <key name="highlight-syntax" type="b"> -->
+          </object>
+        </child>
+        <child>
+          <object class="BrkPreferencesGroup">
+            <property name="title">Indentation</property>
+            <!-- <key name="insert-spaces-instead-of-tabs" type="b"> -->
+            <!-- <key name="tab-width" type="u"> -->
+            <!-- <key name="trim-trailing-whitespace" type="b"> -->
+          </object>
+        </child>
+        <child>
+          <object class="BrkPreferencesGroup">
+            <property name="title">Word Wrap</property>
+            <!-- <key name="word-wrap" type="b"> -->
+          </object>
+        </child>
+        <child>
+          <object class="BrkPreferencesGroup">
+            <property name="title">Spell Checking</property>
+            <!-- <key name="auto-check-spelling" type="b"> -->
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="BrkPreferencesPage">
+        <property name="name">appearance</property>
+        <property name="title">Appearance</property>
+        <child>
+          <object class="BrkPreferencesGroup">
+            <property name="title">Font</property>
+            <!-- <key name="use-default-font" type="b"> -->
+            <!-- <key name="editor-font" type="s"> -->
+          </object>
+        </child>
+        <child>
+          <object class="BrkPreferencesGroup">
+            <property name="title">Syntax Highlighting</property>
           </object>
         </child>
       </object>
     </child>
   </template>
 </interface>
-
