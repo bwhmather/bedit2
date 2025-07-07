@@ -68,6 +68,7 @@ public sealed class Bedit.CloseConfirmationDialog : Gtk.Window {
     public override void
     dispose() {
         this.dispose_template(typeof(Bedit.CloseConfirmationDialog));
+        base.dispose();
     }
 
     public static async Bedit.CloseAction

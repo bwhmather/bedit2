@@ -23,6 +23,7 @@ public sealed class Bedit.PreferencesWindow : Brk.PreferencesDialog {
     public override void
     dispose() {
         this.dispose_template(typeof(Bedit.PreferencesWindow));
+        base.dispose();
     }
 
     public PreferencesWindow(Gtk.Application application) {

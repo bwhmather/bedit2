@@ -993,6 +993,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     public override void
     dispose() {
         this.dispose_template(typeof(Bedit.Window));
+        base.dispose();
     }
 
     public Window(Gtk.Application application) {

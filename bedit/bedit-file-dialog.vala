@@ -37,6 +37,7 @@ private sealed class Bedit.FileDialogFilterView : Gtk.Widget {
     public override void
     dispose() {
         this.dispose_template(typeof(Bedit.FileDialogFilterView));
+        base.dispose();
     }
 }
 
@@ -81,6 +82,7 @@ private sealed class Bedit.FileDialogListView : Gtk.Widget {
     public override void
     dispose() {
         this.dispose_template(typeof(Bedit.FileDialogListView));
+        base.dispose();
     }
 }
 
@@ -89,6 +91,7 @@ private sealed class Bedit.FileDialogIconView : Gtk.Widget {
     public override void
     dispose() {
         this.dispose_template(typeof(Bedit.FileDialogIconView));
+        base.dispose();
     }
 }
 
@@ -98,6 +101,7 @@ private sealed class Bedit.FileDialogTreeView : Gtk.Widget {
     public override void
     dispose() {
         this.dispose_template(typeof(Bedit.FileDialogTreeView));
+        base.dispose();
     }
 }
 
@@ -124,6 +128,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
     public override void
     dispose() {
         this.dispose_template(typeof(Bedit.FileDialogWindow));
+        base.dispose();
     }
 }
 
