@@ -74,14 +74,14 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     private unowned Brk.Statusbar status_bar;
 
     [GtkChild]
-    private unowned Gtk.MenuButton language_label;
+    private unowned Gtk.MenuButton language_button;
 
     private void
-    language_label_update() {
+    language_button_update() {
         if (this.active_document == null || this.active_document.language == null) {
-            this.language_label.label = "Plain Text";
+            this.language_button.label = "Plain Text";
         } else {
-            this.language_label.label = this.active_document.language.name;
+            this.language_button.label = this.active_document.language.name;
         }
     }
 
@@ -102,7 +102,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     private void
     statusbar_init() {
         this.settings.bind("show-statusbar", this, "show-statusbar", GET);
-        this.active_document_notify_connect("language", this.language_label_update);
+        this.active_document_notify_connect("language", this.language_button_update);
         this.active_document_notify_connect("line", this.position_label_update);
         this.active_document_notify_connect("column", this.position_label_update);
     }
