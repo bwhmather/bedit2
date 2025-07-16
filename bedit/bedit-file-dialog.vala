@@ -52,17 +52,24 @@ private sealed class Bedit.FileDialogListView : Gtk.Widget {
     [GtkChild]
     private unowned Gtk.ColumnViewColumn name_column;
 
+    [GtkChild]
+    private unowned Gtk.ColumnViewColumn size_column;
+
     class construct {
         set_layout_manager_type(typeof (Gtk.BinLayout));
     }
 
     construct {
-        this.directory_list = new Gtk.DirectoryList("standard::display-name", GLib.File.new_for_path("/home/ben/pro"));
+        this.directory_list = new Gtk.DirectoryList(
+            "standard::display-name,standard::size,time::modified,standard::type",
+            GLib.File.new_for_path("/home/ben/pro")
+        );
         this.directory_list.monitored = true;  // TODO
 //        this.bind_property("root", this.directory_list, "file", SYNC_CREATE);
 
         this.column_view.model = new Gtk.MultiSelection(directory_list);
 
+        // Name column.
         var factory = new Gtk.SignalListItemFactory();
         factory.setup.connect((listitem_) => {
             var listitem = (Gtk.ListItem) listitem_;
@@ -77,6 +84,22 @@ private sealed class Bedit.FileDialogListView : Gtk.Widget {
             label.label = info.get_display_name();
         });
         this.name_column.factory = factory;
+
+        // Size column.
+        factory = new Gtk.SignalListItemFactory();
+        factory.setup.connect((listitem_) => {
+            var listitem = (Gtk.ListItem) listitem_;
+            var label = new Gtk.Label("");
+            label.halign = START;
+            listitem.child = label;
+        });
+        factory.bind.connect((listitem_) => {
+            var listitem = (Gtk.ListItem) listitem_;
+            Gtk.Label label = (Gtk.Label) listitem.child;
+            GLib.FileInfo info = (GLib.FileInfo) listitem.item;
+            label.label = GLib.format_size(info.get_size());
+        });
+        this.size_column.factory = factory;
     }
 
     public override void
