@@ -12,9 +12,19 @@ private enum Bedit.FileDialogViewMode {
 
 private class Bedit.FileDialogState {
     public Bedit.ViewMode view_mode;
+
+    // Shared state.
     public Gio.Volume volume;
     public string folder; // Path to root folder under mount.
+
+    public bool show_binary;
+    public bool show_hidden;
+
+    // Tree view specific.
     public string[] expanded;  // Sorted list of expanded directories under the current mount.
+
+    // List view specific.
+    public string[] sort_columns;
 
     public Bedit.FileDialogState
     dup();
