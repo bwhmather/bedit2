@@ -31,7 +31,7 @@
               <object class="GtkColumnViewColumn" id="modified_column">
                 <property name="title">Modified</property>
               </object>
-            </child>k
+            </child>
           </object>
         </property>
       </object>
