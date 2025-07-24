@@ -180,6 +180,7 @@ sealed class Bedit.FileDialog : GLib.Object {
     public async GLib.File?
     open(Gtk.Window? parent, GLib.Cancellable cancellable) throws Error {
         var window = new Bedit.FileDialogWindow();
+        window.set_transient_for(parent);
         window.present();
         return null;
     }

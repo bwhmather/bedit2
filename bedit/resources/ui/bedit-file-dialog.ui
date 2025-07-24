@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <template class="BeditFileDialogWindow" parent="GtkWindow">
+    <property name="modal">true</property>
+    <property name="destroy-with-parent">true</property>
     <child>
       <object class="BrkToolbarView">
         <property name="content">
