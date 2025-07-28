@@ -3,22 +3,22 @@
  *
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
-/*
 private enum Bedit.FileDialogViewMode {
-    Icons,
-    Tree,
-    List
+    ICON,
+    TREE,
+    LIST
 }
 
-private class Bedit.FileDialogState {
-    public Bedit.ViewMode view_mode;
+private sealed class Bedit.FileDialogState : GLib.Object {
+    // Application state.
+    public Bedit.FileDialogViewMode view_mode;
 
+    public bool show_binary { get; set; }
+    public bool show_hidden { get; set; }
+
+    // Window state.
     // Shared state.
-    public Gio.Volume volume;
-    public string folder; // Path to root folder under mount.
-
-    public bool show_binary;
-    public bool show_hidden;
+    public GLib.File root_directory; // Path to root folder under mount.
 
     // Tree view specific.
     public string[] expanded;  // Sorted list of expanded directories under the current mount.
@@ -26,11 +26,12 @@ private class Bedit.FileDialogState {
     // List view specific.
     public string[] sort_columns;
 
+    /*
     public Bedit.FileDialogState
-    dup();
+    dup() {
+    }
+    */
 }
-*/
-
 //state: map[windowId]FileDialogState
 
 // On begin:
@@ -44,6 +45,8 @@ private class Bedit.FileDialogState {
 
 [GtkTemplate ( ui = "/com/bwhmather/Bedit/ui/bedit-file-dialog-filter-view.ui")]
 private sealed class Bedit.FileDialogFilterView : Gtk.Widget {
+    public GLib.File root_directory { get; set; }
+
     public override void
     dispose() {
         this.dispose_template(typeof(Bedit.FileDialogFilterView));
@@ -121,6 +124,7 @@ private sealed class Bedit.FileDialogListView : Gtk.Widget {
 
 [GtkTemplate ( ui = "/com/bwhmather/Bedit/ui/bedit-file-dialog-icon-view.ui")]
 private sealed class Bedit.FileDialogIconView : Gtk.Widget {
+    public GLib.File root_directory { get; set; }
     public override void
     dispose() {
         this.dispose_template(typeof(Bedit.FileDialogIconView));
@@ -130,6 +134,7 @@ private sealed class Bedit.FileDialogIconView : Gtk.Widget {
 
 [GtkTemplate ( ui = "/com/bwhmather/Bedit/ui/bedit-file-dialog-tree-view.ui")]
 private sealed class Bedit.FileDialogTreeView : Gtk.Widget {
+    public GLib.File root_directory { get; set; }
 
     public override void
     dispose() {
@@ -141,11 +146,112 @@ private sealed class Bedit.FileDialogTreeView : Gtk.Widget {
 
 [GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-file-dialog.ui")]
 private sealed class Bedit.FileDialogWindow : Gtk.Window {
+    private Bedit.FileDialogState state;
+
+    private GLib.SimpleActionGroup window_actions = new GLib.SimpleActionGroup();
+
+    /* === Views ========================================================================================== */
+
+    [GtkChild]
+    private unowned Gtk.ToggleButton show_binary_toggle;
+
+    [GtkChild]
+    private unowned Gtk.ToggleButton show_hidden_toggle;
+
+    private void
+    views_init() {
+        this.state.bind_property("show-binary", this.show_binary_toggle, "active", SYNC_CREATE | BIDIRECTIONAL);
+        this.state.bind_property("show-hidden", this.show_hidden_toggle, "active", SYNC_CREATE | BIDIRECTIONAL);
+    }
+
     [GtkChild]
     private unowned Gtk.Stack view_stack;
 
+    /* --- Filter View ------------------------------------------------------------------------------------ */
+
+    public bool filter_view_enabled { get; set; }
+
+    [GtkChild]
+    private unowned Bedit.FileDialogFilterView filter_view;
+
+    private void
+    filter_view_init() {
+        this.state.bind_property("root-directory", this.filter_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
+
+        this.notify["filter-view-enabled"].connect(() => {
+            if (this.filter_view_enabled) {
+                this.list_view_enabled = false;
+                this.icon_view_enabled = false;
+                this.tree_view_enabled = false;
+                this.view_stack.visible_child = this.filter_view;
+            }
+        });
+    }
+
+    /* --- List View -------------------------------------------------------------------------------------- */
+
+    public bool list_view_enabled { get; set; }
+
     [GtkChild]
     private unowned Bedit.FileDialogListView list_view;
+
+    private void
+    list_view_init() {
+        this.state.bind_property("root-directory", this.list_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
+
+        this.notify["list-view-enabled"].connect(() => {
+            if (this.list_view_enabled) {
+                this.filter_view_enabled = false;
+                this.icon_view_enabled = false;
+                this.tree_view_enabled = false;
+                this.view_stack.visible_child = this.list_view;
+            }
+        });
+    }
+
+    /* --- Icon View -------------------------------------------------------------------------------------- */
+
+    public bool icon_view_enabled { get; set; }
+
+    [GtkChild]
+    private unowned Bedit.FileDialogIconView icon_view;
+
+    private void
+    icon_view_init() {
+        this.state.bind_property("root-directory", this.icon_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
+
+        this.notify["icon-view-enabled"].connect(() => {
+            if (this.icon_view_enabled) {
+                this.filter_view_enabled = false;
+                this.list_view_enabled = false;
+                this.tree_view_enabled = false;
+                this.view_stack.visible_child = this.icon_view;
+            }
+        });
+    }
+
+    /* --- Tree View -------------------------------------------------------------------------------------- */
+
+    [GtkChild]
+    private unowned Bedit.FileDialogTreeView tree_view;
+
+    public bool tree_view_enabled { get; set; }
+
+    private void
+    tree_view_init() {
+        this.state.bind_property("root-directory", this.tree_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
+
+        this.notify["tree-view-enabled"].connect(() => {
+            if (this.tree_view_enabled) {
+                this.filter_view_enabled = false;
+                this.list_view_enabled = false;
+                this.icon_view_enabled = false;
+                this.view_stack.visible_child = this.tree_view;
+            }
+        });
+    }
+
+    /* === Lifecycle ======================================================================================= */
 
     class construct {
         typeof (Bedit.FileDialogFilterView).ensure();
@@ -155,7 +261,11 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
     }
 
     construct {
-        this.view_stack.visible_child = this.list_view;
+        this.filter_view_init();
+        this.list_view_init();
+        this.icon_view_init();
+        this.tree_view_init();
+        this.list_view_enabled = true;
     }
 
     public override void

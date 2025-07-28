@@ -22,21 +22,25 @@
                 <child type="top">
                   <object class="BrkToolbar">
                     <child>
-                      <object class="GtkToggleButton" id="filter_toggle">
+                      <object class="GtkToggleButton" id="filter_view_toggle">
                         <property name="icon-name">edit-find</property>
                         <property name="tooltip-text">Toggle search (automatic on text input)</property>
                       </object>
                     </child>
                     <child>
+                      <object class="GtkInput" id="filter_input">
+                      </object>
+                    </child>
+                    <child>
                       <object class="BrkButtonGroup">
                         <child>
-                          <object class="GtkToggleButton">
+                          <object class="GtkToggleButton" id="show_binary_toggle">
                             <property name="label">01</property>
                             <property name="tooltip-text">Show binary files (Ctrl+B)</property>
                           </object>
                         </child>
                         <child>
-                          <object class="GtkToggleButton">
+                          <object class="GtkToggleButton" id="show_hidden_toggle">
                             <property name="label">.h</property>
                             <property name="tooltip-text">Show hidden files (Ctrl+H)</property>
                           </object>
@@ -46,19 +50,19 @@
                     <child>
                       <object class="BrkButtonGroup">
                         <child>
-                          <object class="GtkToggleButton" id="icon_toggle">
+                          <object class="GtkToggleButton" id="icon_view_toggle">
                             <property name="icon-name">view-grid</property>
                             <property name="tooltip-text">Grid view</property>
                           </object>
                         </child>
                         <child>
-                          <object class="GtkToggleButton">
+                          <object class="GtkToggleButton" id="list_view_toggle">
                             <property name="icon-name">view-list</property>
                             <property name="tooltip-text">List view</property>
                           </object>
                         </child>
                         <child>
-                          <object class="GtkToggleButton">
+                          <object class="GtkToggleButton" id="tree_view_toggle">
                             <property name="icon-name">view-tree</property>
                             <property name="tooltip-text">Tree view</property>
                           </object>
