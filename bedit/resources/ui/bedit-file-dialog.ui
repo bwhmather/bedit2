@@ -28,7 +28,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="GtkInput" id="filter_input">
+                      <object class="GtkEntry" id="filter_input">
                       </object>
                     </child>
                     <child>

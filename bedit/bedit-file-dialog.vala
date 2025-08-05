@@ -8,7 +8,7 @@ private enum Bedit.FileDialogViewMode {
     TREE,
     LIST
 }
-
+/*
 private sealed class Bedit.FileDialogState : GLib.Object {
     // Application state.
     public Bedit.FileDialogViewMode view_mode;
@@ -26,12 +26,11 @@ private sealed class Bedit.FileDialogState : GLib.Object {
     // List view specific.
     public string[] sort_columns;
 
-    /*
     public Bedit.FileDialogState
     dup() {
     }
-    */
 }
+*/
 //state: map[windowId]FileDialogState
 
 // On begin:
@@ -146,11 +145,18 @@ private sealed class Bedit.FileDialogTreeView : Gtk.Widget {
 
 [GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-file-dialog.ui")]
 private sealed class Bedit.FileDialogWindow : Gtk.Window {
-    private Bedit.FileDialogState state;
+    // Path to root folder under mount.
+    public GLib.File root_directory { get; set; }
 
-    private GLib.SimpleActionGroup window_actions = new GLib.SimpleActionGroup();
+    public signal void open(GLib.File result);
 
     /* === Views ========================================================================================== */
+
+    // Application state.
+    public Bedit.FileDialogViewMode view_mode;
+
+    public bool show_binary { get; set; }
+    public bool show_hidden { get; set; }
 
     [GtkChild]
     private unowned Gtk.ToggleButton show_binary_toggle;
@@ -160,8 +166,8 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     private void
     views_init() {
-        this.state.bind_property("show-binary", this.show_binary_toggle, "active", SYNC_CREATE | BIDIRECTIONAL);
-        this.state.bind_property("show-hidden", this.show_hidden_toggle, "active", SYNC_CREATE | BIDIRECTIONAL);
+        this.bind_property("show-binary", this.show_binary_toggle, "active", SYNC_CREATE | BIDIRECTIONAL);
+        this.bind_property("show-hidden", this.show_hidden_toggle, "active", SYNC_CREATE | BIDIRECTIONAL);
     }
 
     [GtkChild]
@@ -176,7 +182,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     private void
     filter_view_init() {
-        this.state.bind_property("root-directory", this.filter_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
+        this.bind_property("root-directory", this.filter_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
 
         this.notify["filter-view-enabled"].connect(() => {
             if (this.filter_view_enabled) {
@@ -190,6 +196,8 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     /* --- List View -------------------------------------------------------------------------------------- */
 
+    public string[] sort_columns;
+
     public bool list_view_enabled { get; set; }
 
     [GtkChild]
@@ -197,7 +205,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     private void
     list_view_init() {
-        this.state.bind_property("root-directory", this.list_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
+        this.bind_property("root-directory", this.list_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
 
         this.notify["list-view-enabled"].connect(() => {
             if (this.list_view_enabled) {
@@ -218,7 +226,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     private void
     icon_view_init() {
-        this.state.bind_property("root-directory", this.icon_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
+        this.bind_property("root-directory", this.icon_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
 
         this.notify["icon-view-enabled"].connect(() => {
             if (this.icon_view_enabled) {
@@ -232,6 +240,9 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     /* --- Tree View -------------------------------------------------------------------------------------- */
 
+    // Sorted list of expanded directories under the current mount.
+    public string[] expanded;
+
     [GtkChild]
     private unowned Bedit.FileDialogTreeView tree_view;
 
@@ -239,7 +250,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     private void
     tree_view_init() {
-        this.state.bind_property("root-directory", this.tree_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
+        this.bind_property("root-directory", this.tree_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
 
         this.notify["tree-view-enabled"].connect(() => {
             if (this.tree_view_enabled) {
@@ -261,6 +272,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
     }
 
     construct {
+        this.views_init();
         this.filter_view_init();
         this.list_view_init();
         this.icon_view_init();
@@ -276,22 +288,57 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 }
 
 sealed class Bedit.FileDialog : GLib.Object {
-    public string accept_label { get; set; }
-
-    public Gtk.FileFilter default_filter { get; set; }
-    public GLib.ListModel filters { get; set; }
+    public string title { get; set; }
 
     public GLib.File initial_file { get; set; }
     public GLib.File initial_folder { get; set; }
     public string initial_name { get; set; }
 
-    public Gtk.Window parent { get; set; }
+    public Gtk.FileFilter default_filter { get; set; }
+    public GLib.ListModel filters { get; set; }
+
+    public string accept_label { get; set; }
 
     public async GLib.File?
     open(Gtk.Window? parent, GLib.Cancellable cancellable) throws Error {
         var window = new Bedit.FileDialogWindow();
         window.set_transient_for(parent);
+
+        window.root_directory =  GLib.File.new_for_path("/home/ben/pro");
+        window.view_mode = LIST;
+        window.sort_columns = {};
+        window.expanded = {};
+
+        GLib.File? result = null;
+        bool done = false;
+
+        cancellable.connect((c) => {
+            if (!done) {
+                done = true;
+                this.open.callback();
+            }
+        });
+        window.open.connect((file) => {
+            result = file;
+            if (!done) {
+                done = true;
+                this.open.callback();
+            }
+        });
+        window.unmap.connect((w) => {
+            if (!done) {
+                done = true;
+                this.open.callback();
+            }
+        });
         window.present();
-        return null;
+        yield;
+        window.close();
+
+        if (cancellable.is_cancelled()) {
+            throw new GLib.IOError.CANCELLED("open cancelled");
+        }
+
+        return result;
     }
 }
