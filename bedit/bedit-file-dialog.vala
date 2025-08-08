@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 private enum Bedit.FileDialogViewMode {
+    LIST,
     ICON,
-    TREE,
-    LIST
+    TREE
 }
 /*
 private sealed class Bedit.FileDialogState : GLib.Object {
@@ -150,28 +150,48 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     public signal void open(GLib.File result);
 
+    public GLib.SimpleActionGroup dialog_actions = new GLib.SimpleActionGroup();
+
     /* === Views ========================================================================================== */
 
-    // Application state.
-    public Bedit.FileDialogViewMode view_mode;
+    public Bedit.FileDialogViewMode view_mode { get; set; default = LIST; }
 
     public bool show_binary { get; set; }
     public bool show_hidden { get; set; }
 
     [GtkChild]
-    private unowned Gtk.ToggleButton show_binary_toggle;
+    private unowned Gtk.Stack view_stack;
 
-    [GtkChild]
-    private unowned Gtk.ToggleButton show_hidden_toggle;
+    private void
+    view_stack_update_visible_child() {
+        if (this.filter_view_enabled) {
+            this.view_stack.visible_child = this.filter_view;
+        }
+        switch (this.view_mode) {
+        case LIST:
+            this.view_stack.visible_child = this.list_view;
+            break;
+        case ICON:
+            this.view_stack.visible_child = this.icon_view;
+            break;
+        case TREE:
+            this.view_stack.visible_child = this.tree_view;
+            break;
+        }
+    }
 
     private void
     views_init() {
-        this.bind_property("show-binary", this.show_binary_toggle, "active", SYNC_CREATE | BIDIRECTIONAL);
-        this.bind_property("show-hidden", this.show_hidden_toggle, "active", SYNC_CREATE | BIDIRECTIONAL);
+        this.dialog_actions.add_action(new GLib.PropertyAction("show-binary", this, "show-binary"));
+        this.dialog_actions.add_action(new GLib.PropertyAction("show-hidden", this, "show-hidden"));
+
+        this.dialog_actions.add_action(new GLib.PropertyAction("view-mode", this, "view-mode"));
+
+        this.notify["filter-view-visible"].connect(this.view_stack_update_visible_child);
+        this.notify["view-mode"].connect(this.view_stack_update_visible_child);
+        this.view_stack_update_visible_child();
     }
 
-    [GtkChild]
-    private unowned Gtk.Stack view_stack;
 
     /* --- Filter View ------------------------------------------------------------------------------------ */
 
@@ -184,11 +204,8 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
     filter_view_init() {
         this.bind_property("root-directory", this.filter_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
 
-        this.notify["filter-view-enabled"].connect(() => {
+        this.notify["view-enabled"].connect(() => {
             if (this.filter_view_enabled) {
-                this.list_view_enabled = false;
-                this.icon_view_enabled = false;
-                this.tree_view_enabled = false;
                 this.view_stack.visible_child = this.filter_view;
             }
         });
@@ -198,28 +215,15 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     public string[] sort_columns;
 
-    public bool list_view_enabled { get; set; }
-
     [GtkChild]
     private unowned Bedit.FileDialogListView list_view;
 
     private void
     list_view_init() {
         this.bind_property("root-directory", this.list_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
-
-        this.notify["list-view-enabled"].connect(() => {
-            if (this.list_view_enabled) {
-                this.filter_view_enabled = false;
-                this.icon_view_enabled = false;
-                this.tree_view_enabled = false;
-                this.view_stack.visible_child = this.list_view;
-            }
-        });
     }
 
     /* --- Icon View -------------------------------------------------------------------------------------- */
-
-    public bool icon_view_enabled { get; set; }
 
     [GtkChild]
     private unowned Bedit.FileDialogIconView icon_view;
@@ -227,15 +231,6 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
     private void
     icon_view_init() {
         this.bind_property("root-directory", this.icon_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
-
-        this.notify["icon-view-enabled"].connect(() => {
-            if (this.icon_view_enabled) {
-                this.filter_view_enabled = false;
-                this.list_view_enabled = false;
-                this.tree_view_enabled = false;
-                this.view_stack.visible_child = this.icon_view;
-            }
-        });
     }
 
     /* --- Tree View -------------------------------------------------------------------------------------- */
@@ -246,20 +241,9 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
     [GtkChild]
     private unowned Bedit.FileDialogTreeView tree_view;
 
-    public bool tree_view_enabled { get; set; }
-
     private void
     tree_view_init() {
         this.bind_property("root-directory", this.tree_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
-
-        this.notify["tree-view-enabled"].connect(() => {
-            if (this.tree_view_enabled) {
-                this.filter_view_enabled = false;
-                this.list_view_enabled = false;
-                this.icon_view_enabled = false;
-                this.view_stack.visible_child = this.tree_view;
-            }
-        });
     }
 
     /* === Lifecycle ======================================================================================= */
@@ -277,7 +261,8 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
         this.list_view_init();
         this.icon_view_init();
         this.tree_view_init();
-        this.list_view_enabled = true;
+
+        this.insert_action_group("dialog", this.dialog_actions);
     }
 
     public override void

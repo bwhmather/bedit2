@@ -35,12 +35,14 @@
                       <object class="BrkButtonGroup">
                         <child>
                           <object class="GtkToggleButton" id="show_binary_toggle">
+                            <property name="action-name">dialog.show-binary</property>
                             <property name="label">01</property>
                             <property name="tooltip-text">Show binary files (Ctrl+B)</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkToggleButton" id="show_hidden_toggle">
+                            <property name="action-name">dialog.show-hidden</property>
                             <property name="label">.h</property>
                             <property name="tooltip-text">Show hidden files (Ctrl+H)</property>
                           </object>
@@ -51,18 +53,24 @@
                       <object class="BrkButtonGroup">
                         <child>
                           <object class="GtkToggleButton" id="icon_view_toggle">
+                            <property name="action-name">dialog.view-mode</property>
+                            <property name="action-target">&apos;icon&apos;</property>
                             <property name="icon-name">view-grid</property>
                             <property name="tooltip-text">Grid view</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkToggleButton" id="list_view_toggle">
+                            <property name="action-name">dialog.view-mode</property>
+                            <property name="action-target">&apos;list&apos;</property>
                             <property name="icon-name">view-list</property>
                             <property name="tooltip-text">List view</property>
                           </object>
                         </child>
                         <child>
                           <object class="GtkToggleButton" id="tree_view_toggle">
+                            <property name="action-name">dialog.view-mode</property>
+                            <property name="action-target">&apos;tree&apos;</property>
                             <property name="icon-name">view-tree</property>
                             <property name="tooltip-text">Tree view</property>
                           </object>
