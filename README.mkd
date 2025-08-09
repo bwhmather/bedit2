@@ -1,0 +1,6 @@
+> [!WARNING]
+> Bedit2 is currently in very early development.
+
+# Bedit
+
+A tabbed text editor using [libbricks](https://github.com/bwhmather/libbricks).  Think Gnome 2 Gedit but written using GTK4.
