@@ -4,6 +4,30 @@ project(
   version: '0.1.0',
   meson_version: '>=1.3',
 )
+
+gnome = import('gnome')
+
+cc = meson.get_compiler('c')
+
+prefix = get_option('prefix')
+bindir = get_option('bindir')
+datadir = get_option('datadir')
+
+m_dep = cc.find_library('m', required: false)
+gtk_dep = dependency('gtk4', include_type: 'system')
+
+bricks_proj = subproject('libbricks-1')
+bricks_dep = bricks_proj.get_variable('libbricks_dep')
+
+gtksourceview_dep = dependency('gtksourceview-5', version: '>= 5.10.0', include_type: 'system')
+
+bedit_deps = [
+  m_dep,
+  bricks_dep,
+  gtk_dep,
+  gtksourceview_dep,
+]
+
 add_project_arguments(
   '-include', 'config.h',
   '-Wno-overlength-strings',
@@ -17,32 +41,11 @@ add_project_arguments(
   '--gresourcesdir', 'resources',
   '--gresources', meson.current_source_dir() / 'bedit/resources/bedit.gresources.xml',
   '--vapidir=' + meson.source_root() + '/vapi/',
+  '--vapidir=/usr/share/vala-0.56/vapi',
   '--pkg', 'config',
   '--enable-deprecated',
   language: 'vala'
 )
-
-gnome = import('gnome')
-
-cc = meson.get_compiler('c')
-
-prefix = get_option('prefix')
-bindir = get_option('bindir')
-datadir = get_option('datadir')
-
-bricks_proj = subproject('libbricks-1')
-
-m_dep = cc.find_library('m', required: false)
-bricks_dep = bricks_proj.get_variable('libbricks_dep')
-gtk_dep = dependency('gtk4', include_type: 'system')
-gtksourceview_dep = dependency('gtksourceview-5', version: '>= 5.10.0', include_type: 'system')
-
-bedit_deps = [
-  m_dep,
-  bricks_dep,
-  gtk_dep,
-  gtksourceview_dep,
-]
 
 config_data = configuration_data()
 config_data.set_quoted('BEDIT_NAME', 'Bedit')
