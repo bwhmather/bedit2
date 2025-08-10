@@ -166,6 +166,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
     view_stack_update_visible_child() {
         if (this.filter_view_enabled) {
             this.view_stack.visible_child = this.filter_view;
+            return;
         }
         switch (this.view_mode) {
         case LIST:
