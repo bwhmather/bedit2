@@ -255,12 +255,6 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
     private void
     filter_view_init() {
         this.bind_property("root-directory", this.filter_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
-
-        this.notify["view-enabled"].connect(() => {
-            if (this.filter_view_enabled) {
-                this.view_stack.visible_child = this.filter_view;
-            }
-        });
     }
 
     /* --- List View -------------------------------------------------------------------------------------- */
