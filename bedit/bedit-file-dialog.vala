@@ -135,13 +135,64 @@ private sealed class Bedit.FileDialogIconView : Gtk.Widget {
 private sealed class Bedit.FileDialogTreeView : Gtk.Widget {
     public GLib.File root_directory { get; set; }
 
+    [GtkChild]
+    private unowned Gtk.ListView list_view;
+
+    class construct {
+        set_layout_manager_type(typeof (Gtk.BinLayout));
+    }
+
+    construct {
+        var directory_list = new Gtk.DirectoryList(
+            "standard::display-name,standard::size,time::modified,standard::type",
+            GLib.File.new_for_path("/home/ben/pro")
+        );
+        directory_list.monitored = true;  // TODO
+//        this.bind_property("root", this.directory_list, "file", SYNC_CREATE);
+
+        var factory = new Gtk.SignalListItemFactory();
+        factory.setup.connect((listitem_) => {
+            var listitem = (Gtk.ListItem) listitem_;
+
+            var label = new Gtk.Label("");
+            label.halign = START;
+
+            var expander = new Gtk.TreeExpander();
+            expander.child = label;
+
+            listitem.child = expander;
+        });
+        factory.bind.connect((listitem_) => {
+            var listitem = (Gtk.ListItem) listitem_;
+            var expander = (Gtk.TreeExpander) listitem.child;
+            var label = (Gtk.Label) expander.child;
+
+            var row = (Gtk.TreeListRow) listitem.item;
+            expander.list_row = row;
+
+            var info = (GLib.FileInfo) row.item;
+            label.label = info.get_display_name();
+        });
+        this.list_view.factory = factory;
+
+        var tree_list_model = new Gtk.TreeListModel(
+            directory_list,
+            false,  // passthrough
+            false,  // autoexpand
+            (item) => {
+                return null;
+            }
+        );
+
+        this.list_view.model = new Gtk.MultiSelection(tree_list_model);
+    }
+
     public override void
     dispose() {
         this.dispose_template(typeof(Bedit.FileDialogTreeView));
         base.dispose();
     }
 }
-
 
 [GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-file-dialog.ui")]
 private sealed class Bedit.FileDialogWindow : Gtk.Window {
