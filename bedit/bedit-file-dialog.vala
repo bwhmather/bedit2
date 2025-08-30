@@ -45,7 +45,16 @@ private sealed class Bedit.FileDialogState : GLib.Object {
 
 [GtkTemplate ( ui = "/com/bwhmather/Bedit/ui/bedit-file-dialog-filter-view.ui")]
 private sealed class Bedit.FileDialogFilterView : Gtk.Widget {
+
+    /* === State ========================================================================================== */
+
     public GLib.File root_directory { get; set; }
+
+    /* === Lifecycle ====================================================================================== */
+
+    class construct {
+        set_layout_manager_type(typeof (Gtk.BinLayout));
+    }
 
     public override void
     dispose() {
@@ -56,6 +65,11 @@ private sealed class Bedit.FileDialogFilterView : Gtk.Widget {
 
 [GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-file-dialog-list-view.ui")]
 private sealed class Bedit.FileDialogListView : Gtk.Widget {
+
+    /* === State ========================================================================================== */
+
+    /* --- Directory State -------------------------------------------------------------------------------- */
+
     private Gtk.DirectoryList _directory_list;
     public Gtk.DirectoryList directory_list {
         get {
@@ -229,6 +243,11 @@ private sealed class Bedit.FileDialogListView : Gtk.Widget {
 
 [GtkTemplate ( ui = "/com/bwhmather/Bedit/ui/bedit-file-dialog-icon-view.ui")]
 private sealed class Bedit.FileDialogIconView : Gtk.Widget {
+
+    /* === State ========================================================================================== */
+
+    /* --- Directory State -------------------------------------------------------------------------------- */
+
     private Gtk.DirectoryList _directory_list;
     public Gtk.DirectoryList directory_list {
         get {
@@ -249,6 +268,12 @@ private sealed class Bedit.FileDialogIconView : Gtk.Widget {
             }
             this._directory_list = value;
         }
+    }
+
+    /* === Lifecycle ====================================================================================== */
+
+    class construct {
+        set_layout_manager_type(typeof (Gtk.BinLayout));
     }
 
     public override void
@@ -260,6 +285,11 @@ private sealed class Bedit.FileDialogIconView : Gtk.Widget {
 
 [GtkTemplate ( ui = "/com/bwhmather/Bedit/ui/bedit-file-dialog-tree-view.ui")]
 private sealed class Bedit.FileDialogTreeView : Gtk.Widget {
+
+    /* === State ========================================================================================== */
+
+    /* --- Directory State -------------------------------------------------------------------------------- */
+
     private Gtk.DirectoryList _directory_list;
     public Gtk.DirectoryList directory_list {
         get {
@@ -282,14 +312,13 @@ private sealed class Bedit.FileDialogTreeView : Gtk.Widget {
         }
     }
 
+    /* === View =========================================================================================== */
+
     [GtkChild]
     private unowned Gtk.ListView list_view;
 
-    class construct {
-        set_layout_manager_type(typeof (Gtk.BinLayout));
-    }
-
-    construct {
+    private void
+    view_init() {
         var factory = new Gtk.SignalListItemFactory();
         factory.setup.connect((listitem_) => {
             var listitem = (Gtk.ListItem) listitem_;
@@ -325,6 +354,16 @@ private sealed class Bedit.FileDialogTreeView : Gtk.Widget {
         );
 
         this.list_view.model = new Gtk.MultiSelection(tree_list_model);
+    }
+
+    /* === Lifecycle ====================================================================================== */
+
+    class construct {
+        set_layout_manager_type(typeof (Gtk.BinLayout));
+    }
+
+    construct {
+        view_init();
     }
 
     public override void
