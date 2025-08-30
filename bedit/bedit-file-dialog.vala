@@ -156,7 +156,7 @@ private sealed class Bedit.FileDialogListView : Gtk.Widget {
             });
         });
 
-        this.selection_model.notify["selection-changed"].connect((sm, pspec) => {
+        this.selection_model.selection_changed.connect((sm, p, n_items) => {
             this.notify_property("selection");
         });
     }
@@ -342,7 +342,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     public signal void open(GLib.File result);
 
-    private GLib.ListModel selection;
+    private GLib.ListModel selection { get; set; }
 
     public GLib.SimpleActionGroup dialog_actions = new GLib.SimpleActionGroup();
 
