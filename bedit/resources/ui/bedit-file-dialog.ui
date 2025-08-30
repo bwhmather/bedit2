@@ -29,6 +29,7 @@
                     </child>
                     <child>
                       <object class="GtkEntry" id="filter_input">
+                        <property name="hexpand">true</property>
                       </object>
                     </child>
                     <child>
