@@ -81,7 +81,8 @@ private sealed class Bedit.FileDialogListView : Gtk.Widget {
     /* --- Selection -------------------------------------------------------------------------------------- */
 
     private Gtk.MultiSelection selection_model = new Gtk.MultiSelection(null);
-    private GLib.HashTable<GLib.File, void *> selection_pending = new GLib.HashTable<GLib.File, void *>(GLib.File.hash, GLib.File.equal);
+    // Files that should be in the current selection but haven't been loaded into the directory list yet.
+    private GLib.HashTable<GLib.File, void *> pending_selection = new GLib.HashTable<GLib.File, void *>(GLib.File.hash, GLib.File.equal);
 
     public GLib.ListModel selection {
         owned get {
@@ -93,13 +94,13 @@ private sealed class Bedit.FileDialogListView : Gtk.Widget {
                     list_store.append(file);
                 }
             }
-            selection_pending.foreach((file, _) => {
+            pending_selection.foreach((file, _) => {
                 list_store.append(file);
             });
             return (owned) list_store;
         }
         set {
-            this.selection_pending.remove_all();
+            this.pending_selection.remove_all();
             var root_directory = this.directory_list.file;
             for (var i = 0; i < (value != null? value.get_n_items() : 0); i++) {
                 var file = value.get_item(i) as GLib.File;
@@ -107,17 +108,17 @@ private sealed class Bedit.FileDialogListView : Gtk.Widget {
                     // File not visible in current state of view.  Only safe thing to do is to clear the
                     // entire selection.  Silently dropping just some files from the selection or worse
                     // leaving invisible files selected is not acceptable.
-                    this.selection_pending.remove_all();
+                    this.pending_selection.remove_all();
                     break;
                 }
-                this.selection_pending[file] = null;
+                this.pending_selection[file] = null;
             }
             var selected = new Gtk.Bitset.empty();
             var mask = new Gtk.Bitset.range(0, this.directory_list.n_items);
             for (var i = 0; i < this.directory_list.n_items; i++) {
                 var fileinfo = this.directory_list.get_item(i) as GLib.FileInfo;
                 var file = fileinfo.get_attribute_object("standard::file") as GLib.File;
-                if (this.selection_pending.steal(file)) {
+                if (this.pending_selection.steal(file)) {
                     selected.add(i);
                 }
             }
@@ -138,7 +139,7 @@ private sealed class Bedit.FileDialogListView : Gtk.Widget {
                 for (var i = position; i < position + added; i++) {
                     var fileinfo = this.directory_list.get_item(i) as GLib.FileInfo;
                     var file = fileinfo.get_attribute_object("standard::file") as GLib.File;
-                    if (this.selection_pending.steal(file)) {
+                    if (this.pending_selection.steal(file)) {
                         selected.add(i);
                     }
                 }
@@ -150,7 +151,7 @@ private sealed class Bedit.FileDialogListView : Gtk.Widget {
                     // All files that actually exist in the directory should now also be in the directory list
                     // model.  Any files in the selection that aren't in the directory list model don't exist
                     // anymore and should be removed.
-                    this.selection_pending.remove_all();
+                    this.pending_selection.remove_all();
                 }
             });
         });
