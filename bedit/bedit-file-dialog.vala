@@ -33,6 +33,7 @@ private sealed class Bedit.FileDialogState : GLib.Object {
 */
 //state: map[windowId]FileDialogState
 
+
 // On begin:
 // Try to load state.
 // Fall back to creating a new state with the passed in root folder.
@@ -55,10 +56,31 @@ private sealed class Bedit.FileDialogFilterView : Gtk.Widget {
 
 [GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-file-dialog-list-view.ui")]
 private sealed class Bedit.FileDialogListView : Gtk.Widget {
-    public GLib.File root_directory { get; set; }
-    private Gtk.DirectoryList directory_list;
+    private Gtk.DirectoryList _directory_list;
+    public Gtk.DirectoryList directory_list {
+        get {
+            if (this._directory_list == null) {
+                this._directory_list = new Gtk.DirectoryList(
+                    "standard::display-name,standard::size,time::modified,standard::type",
+                    null
+                );
+            }
+            return this._directory_list;
+        }
+        set {
+            if (value == this._directory_list) {
+                return;
+            }
+            if (this._directory_list != null) {
+                GLib.SignalHandler.disconnect_by_data(this._directory_list, this);
+            }
+            this._directory_list = value;
+        }
+    }
 
-    private Gtk.SelectionModel selection_model;
+    /* --- Selection -------------------------------------------------------------------------------------- */
+
+    private Gtk.MultiSelection selection_model = new Gtk.MultiSelection(null);
     private GLib.HashTable<GLib.File, void *> selection_pending = new GLib.HashTable<GLib.File, void *>(GLib.File.hash, GLib.File.equal);
 
     public GLib.ListModel selection {
@@ -78,6 +100,7 @@ private sealed class Bedit.FileDialogListView : Gtk.Widget {
         }
         set {
             this.selection_pending.remove_all();
+            var root_directory = this.directory_list.file;
             for (var i = 0; i < (value != null? value.get_n_items() : 0); i++) {
                 var file = value.get_item(i) as GLib.File;
                 if (!file.has_parent(root_directory)) {
@@ -102,6 +125,43 @@ private sealed class Bedit.FileDialogListView : Gtk.Widget {
         }
     }
 
+    private void
+    selection_init() {
+        this.notify["directory-list"].connect((lv, pspec) => {
+            this.selection_model.model = this.directory_list;
+
+            // This binding requires that the selection model is updated first.  Do not reorder.
+            this.directory_list.items_changed.connect((dl, position, removed, added) => {
+                // Check if any of the newly added items is in the pending selection and should be selected.
+                var selected = new Gtk.Bitset.empty();
+                var mask = new Gtk.Bitset.range(position, added);
+                for (var i = position; i < position + added; i++) {
+                    var fileinfo = this.directory_list.get_item(i) as GLib.FileInfo;
+                    var file = fileinfo.get_attribute_object("standard::file") as GLib.File;
+                    if (this.selection_pending.steal(file)) {
+                        selected.add(i);
+                    }
+                }
+                this.selection_model.set_selection(selected, mask);
+            });
+
+            this.directory_list.notify["loading"].connect((dl, pspec) => {
+                if (!this.directory_list.loading) {
+                    // All files that actually exist in the directory should now also be in the directory list
+                    // model.  Any files in the selection that aren't in the directory list model don't exist
+                    // anymore and should be removed.
+                    this.selection_pending.remove_all();
+                }
+            });
+        });
+
+        this.selection_model.notify["selection-changed"].connect((sm, pspec) => {
+            this.notify_property("selection");
+        });
+    }
+
+    /* === View =========================================================================================== */
+
     [GtkChild]
     private unowned Gtk.ColumnView column_view;
 
@@ -111,47 +171,8 @@ private sealed class Bedit.FileDialogListView : Gtk.Widget {
     [GtkChild]
     private unowned Gtk.ColumnViewColumn size_column;
 
-    class construct {
-        set_layout_manager_type(typeof (Gtk.BinLayout));
-    }
-
-    construct {
-        this.directory_list = new Gtk.DirectoryList(
-            "standard::display-name,standard::size,time::modified,standard::type",
-            GLib.File.new_for_path("/usr/lib")
-        );
-        this.directory_list.monitored = true;  // TODO
-
-        this.selection_model = new Gtk.MultiSelection(this.directory_list);
-
-        // Selection maintenance.
-        this.directory_list.items_changed.connect((dl, position, removed, added) => {
-            // Check if any of the newly added items is in the pending selection and should be selected.
-            var selected = new Gtk.Bitset.empty();
-            var mask = new Gtk.Bitset.range(position, added);
-            for (var i = position; i < position + added; i++) {
-                var fileinfo = this.directory_list.get_item(i) as GLib.FileInfo;
-                var file = fileinfo.get_attribute_object("standard::file") as GLib.File;
-                if (this.selection_pending.steal(file)) {
-                    selected.add(i);
-                }
-            }
-            this.selection_model.set_selection(selected, mask);
-        });
-
-        this.directory_list.notify["loading"].connect((dl, pspec) => {
-            if (!this.directory_list.loading) {
-                // All files that actually exist in the directory should now also be in the directory list
-                // model.  Any files in the selection that aren't in the directory list model don't exist
-                // anymore and should be removed.
-                this.selection_pending.remove_all();
-            }
-        });
-
-        this.selection_model.notify["selection-changed"].connect((sm, pspec) => {
-            this.notify_property("selection");
-        });
-
+    private void
+    view_init() {
         this.column_view.model = this.selection_model;
 
         // Name column.
@@ -187,6 +208,17 @@ private sealed class Bedit.FileDialogListView : Gtk.Widget {
         this.size_column.factory = factory;
     }
 
+    /* === Lifecycle ====================================================================================== */
+
+    class construct {
+        set_layout_manager_type(typeof (Gtk.BinLayout));
+    }
+
+    construct {
+        this.selection_init();
+        this.view_init();
+    }
+
     public override void
     dispose() {
         this.dispose_template(typeof(Bedit.FileDialogListView));
@@ -196,7 +228,28 @@ private sealed class Bedit.FileDialogListView : Gtk.Widget {
 
 [GtkTemplate ( ui = "/com/bwhmather/Bedit/ui/bedit-file-dialog-icon-view.ui")]
 private sealed class Bedit.FileDialogIconView : Gtk.Widget {
-    public GLib.File root_directory { get; set; }
+    private Gtk.DirectoryList _directory_list;
+    public Gtk.DirectoryList directory_list {
+        get {
+            if (this._directory_list == null) {
+                this._directory_list = new Gtk.DirectoryList(
+                    "standard::display-name,standard::size,time::modified,standard::type",
+                    null
+                );
+            }
+            return this._directory_list;
+        }
+        set {
+            if (value == this._directory_list) {
+                return;
+            }
+            if (this._directory_list != null) {
+                GLib.SignalHandler.disconnect_by_data(this._directory_list, this);
+            }
+            this._directory_list = value;
+        }
+    }
+
     public override void
     dispose() {
         this.dispose_template(typeof(Bedit.FileDialogIconView));
@@ -206,7 +259,27 @@ private sealed class Bedit.FileDialogIconView : Gtk.Widget {
 
 [GtkTemplate ( ui = "/com/bwhmather/Bedit/ui/bedit-file-dialog-tree-view.ui")]
 private sealed class Bedit.FileDialogTreeView : Gtk.Widget {
-    public GLib.File root_directory { get; set; }
+    private Gtk.DirectoryList _directory_list;
+    public Gtk.DirectoryList directory_list {
+        get {
+            if (this._directory_list == null) {
+                this._directory_list = new Gtk.DirectoryList(
+                    "standard::display-name,standard::size,time::modified,standard::type",
+                    null
+                );
+            }
+            return this._directory_list;
+        }
+        set {
+            if (value == this._directory_list) {
+                return;
+            }
+            if (this._directory_list != null) {
+                GLib.SignalHandler.disconnect_by_data(this._directory_list, this);
+            }
+            this._directory_list = value;
+        }
+    }
 
     [GtkChild]
     private unowned Gtk.ListView list_view;
@@ -216,13 +289,6 @@ private sealed class Bedit.FileDialogTreeView : Gtk.Widget {
     }
 
     construct {
-        var directory_list = new Gtk.DirectoryList(
-            "standard::display-name,standard::size,time::modified,standard::type",
-            GLib.File.new_for_path("/usr/lib")
-        );
-        directory_list.monitored = true;  // TODO
-//        this.bind_property("root", this.directory_list, "file", SYNC_CREATE);
-
         var factory = new Gtk.SignalListItemFactory();
         factory.setup.connect((listitem_) => {
             var listitem = (Gtk.ListItem) listitem_;
@@ -249,7 +315,7 @@ private sealed class Bedit.FileDialogTreeView : Gtk.Widget {
         this.list_view.factory = factory;
 
         var tree_list_model = new Gtk.TreeListModel(
-            directory_list,
+            this.directory_list,
             false,  // passthrough
             false,  // autoexpand
             (item) => {
@@ -271,6 +337,7 @@ private sealed class Bedit.FileDialogTreeView : Gtk.Widget {
 private sealed class Bedit.FileDialogWindow : Gtk.Window {
     // Path to root folder under mount.
     public GLib.File root_directory { get; set; }
+    public Gtk.DirectoryList directory_list;
 
     public signal void open(GLib.File result);
 
@@ -319,7 +386,6 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
         this.view_stack_update_visible_child();
     }
 
-
     /* --- Filter View ------------------------------------------------------------------------------------ */
 
     public bool filter_view_enabled { get; set; }
@@ -329,7 +395,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     private void
     filter_view_init() {
-        this.bind_property("root-directory", this.filter_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
+        this.bind_property("root-directory", this.filter_view, "root-directory", SYNC_CREATE);
     }
 
     /* --- List View -------------------------------------------------------------------------------------- */
@@ -341,7 +407,8 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     private void
     list_view_init() {
-        this.bind_property("root-directory", this.list_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
+        this.list_view.directory_list = this.directory_list;
+
         this.notify["view-mode"].connect(() => {
             if (this.view_mode == LIST) {
                 this.list_view.selection = this.selection;
@@ -361,7 +428,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     private void
     icon_view_init() {
-        this.bind_property("root-directory", this.icon_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
+        this.icon_view.directory_list = this.directory_list;
     }
 
     /* --- Tree View -------------------------------------------------------------------------------------- */
@@ -374,7 +441,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     private void
     tree_view_init() {
-        this.bind_property("root-directory", this.tree_view, "root-directory", SYNC_CREATE | BIDIRECTIONAL);
+        this.tree_view.directory_list = this.directory_list;
     }
 
     /* === Lifecycle ======================================================================================= */
@@ -387,6 +454,13 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
     }
 
     construct {
+        this.directory_list = new Gtk.DirectoryList(
+            "standard::display-name,standard::size,time::modified,standard::type",
+            this.root_directory
+        );
+        directory_list.monitored = true;
+        this.bind_property("root-directory", this.directory_list, "file", SYNC_CREATE);
+
         this.views_init();
         this.filter_view_init();
         this.list_view_init();
