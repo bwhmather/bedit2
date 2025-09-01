@@ -43,6 +43,18 @@ private sealed class Bedit.FileDialogState : GLib.Object {
 // On end:
 // Set or update saved state for window.
 
+
+private sealed class Bedit.FileDialogPathBar : Gtk.Widget {
+    class construct {
+        set_layout_manager_type(typeof (Gtk.BoxLayout));
+    }
+
+    public override void
+    dispose() {
+        base.dispose();
+    }
+}
+
 [GtkTemplate ( ui = "/com/bwhmather/Bedit/ui/bedit-file-dialog-filter-view.ui")]
 private sealed class Bedit.FileDialogFilterView : Gtk.Widget {
 
@@ -62,6 +74,7 @@ private sealed class Bedit.FileDialogFilterView : Gtk.Widget {
         base.dispose();
     }
 }
+
 
 [GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-file-dialog-list-view.ui")]
 private sealed class Bedit.FileDialogListView : Gtk.Widget {
@@ -387,19 +400,48 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     /* === Views ========================================================================================== */
 
+    [GtkChild]
+    private unowned Gtk.Entry filter_entry;
+
+    [GtkChild]
+    private unowned Gtk.Entry location_entry;
+
+    [GtkChild]
+    private unowned Bedit.FileDialogPathBar path_bar;
+
+    [GtkChild]
+    private unowned Brk.ButtonGroup view_button_group;
+
+    [GtkChild]
+    private unowned Gtk.Stack view_stack;
+
+    public bool filter_view_enabled { get; set; }
+    public bool edit_location_enabled { get; set; }
     public Bedit.FileDialogViewMode view_mode { get; set; default = LIST; }
 
     public bool show_binary { get; set; }
     public bool show_hidden { get; set; }
 
-    [GtkChild]
-    private unowned Gtk.Stack view_stack;
-
     private void
     view_stack_update_visible_child() {
         if (this.filter_view_enabled) {
+            this.filter_entry.visible = true;
+            this.location_entry.visible = false;
+            this.path_bar.visible = false;
+            this.view_button_group.visible = false;
+
             this.view_stack.visible_child = this.filter_view;
             return;
+        }
+
+        this.filter_entry.visible = false;
+        this.view_button_group.visible = true;
+        if (this.edit_location_enabled) {
+            this.location_entry.visible = true;
+            this.path_bar.visible = false;
+        } else {
+            this.location_entry.visible = false;
+            this.path_bar.visible = true;
         }
         switch (this.view_mode) {
         case LIST:
@@ -416,19 +458,21 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     private void
     views_init() {
-        this.dialog_actions.add_action(new GLib.PropertyAction("show-binary", this, "show-binary"));
-        this.dialog_actions.add_action(new GLib.PropertyAction("show-hidden", this, "show-hidden"));
+        this.dialog_actions.add_action(new GLib.PropertyAction("filter", this, "filter-view-enabled"));
 
         this.dialog_actions.add_action(new GLib.PropertyAction("view-mode", this, "view-mode"));
 
-        this.notify["filter-view-visible"].connect(this.view_stack_update_visible_child);
+        this.dialog_actions.add_action(new GLib.PropertyAction("show-binary", this, "show-binary"));
+        this.dialog_actions.add_action(new GLib.PropertyAction("show-hidden", this, "show-hidden"));
+
+
+        this.notify["filter-view-enabled"].connect(this.view_stack_update_visible_child);
         this.notify["view-mode"].connect(this.view_stack_update_visible_child);
         this.view_stack_update_visible_child();
     }
 
     /* --- Filter View ------------------------------------------------------------------------------------ */
 
-    public bool filter_view_enabled { get; set; }
 
     [GtkChild]
     private unowned Bedit.FileDialogFilterView filter_view;
@@ -487,6 +531,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
     /* === Lifecycle ======================================================================================= */
 
     class construct {
+        typeof (Bedit.FileDialogPathBar).ensure();
         typeof (Bedit.FileDialogFilterView).ensure();
         typeof (Bedit.FileDialogListView).ensure();
         typeof (Bedit.FileDialogIconView).ensure();

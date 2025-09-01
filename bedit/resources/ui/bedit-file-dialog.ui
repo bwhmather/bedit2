@@ -22,18 +22,34 @@
                 <child type="top">
                   <object class="BrkToolbar">
                     <child>
-                      <object class="GtkToggleButton" id="filter_view_toggle">
-                        <property name="icon-name">edit-find</property>
-                        <property name="tooltip-text">Toggle search (automatic on text input)</property>
+                      <object class="BrkButtonGroup">
+                        <property name="hexpand">true</property>
+                        <child>
+                          <object class="GtkToggleButton" id="filter_view_toggle">
+                            <property name="action-name">dialog.filter</property>
+                            <property name="icon-name">edit-find</property>
+                            <property name="tooltip-text">Toggle search (automatic on text input)</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkEntry" id="filter_entry">
+                            <property name="hexpand">true</property>
+                          </object>
+                        </child>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkEntry" id="filter_input">
+                      <object class="GtkEntry" id="location_entry">
                         <property name="hexpand">true</property>
                       </object>
                     </child>
                     <child>
-                      <object class="BrkButtonGroup">
+                      <object class="BeditFileDialogPathBar" id="path_bar">
+                        <property name="hexpand">true</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="BrkButtonGroup" id="view_button_group">
                         <child>
                           <object class="GtkToggleButton" id="icon_view_toggle">
                             <property name="action-name">dialog.view-mode</property>
