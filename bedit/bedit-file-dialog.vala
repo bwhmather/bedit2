@@ -45,6 +45,8 @@ private sealed class Bedit.FileDialogState : GLib.Object {
 
 
 private sealed class Bedit.FileDialogPathBar : Gtk.Widget {
+    public GLib.File root_directory { get; set; }
+
     class construct {
         set_layout_manager_type(typeof (Gtk.BoxLayout));
     }
@@ -458,6 +460,8 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     private void
     views_init() {
+        this.bind_property("root-directory", this.path_bar, "root-directory", BIDIRECTIONAL | SYNC_CREATE);
+
         this.dialog_actions.add_action(new GLib.PropertyAction("filter", this, "filter-view-enabled"));
 
         this.dialog_actions.add_action(new GLib.PropertyAction("view-mode", this, "view-mode"));
