@@ -18,13 +18,15 @@
 
 private async void
 document_wait_idle(Bedit.Document document) {
-    var handle = document.notify["busy"].connect((d, pspec) => {
-        document_wait_idle.callback();
-    });
-    while (document.busy) {
+    if (document.busy) {
+        var handle = document.notify["busy"].connect((d, pspec) => {
+            if (!document.busy) {
+                document_wait_idle.callback();
+            }
+        });
         yield;
+        document.disconnect(handle);
     }
-    document.disconnect(handle);
 }
 
 [GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-window.ui")]
