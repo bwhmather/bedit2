@@ -203,7 +203,7 @@
       <attribute name="label" translatable="yes">Search</attribute>
       <section>
         <item>
-          <attribute name="label" translatable="yes">Find</attribute>
+          <attribute name="label" translatable="yes">Focus Find</attribute>
           <attribute name="action">search.focus-find</attribute>
         </item>
         <item>
@@ -217,7 +217,7 @@
       </section>
       <section>
         <item>
-          <attribute name="label" translatable="yes">Replace</attribute>
+          <attribute name="label" translatable="yes">Focus Replace</attribute>
           <attribute name="action">search.focus-replace</attribute>
         </item>
         <item>
