@@ -1003,6 +1003,9 @@ public sealed class Bedit.Document : Gtk.Widget {
     public override void
     dispose() {
         this.dispose_template(typeof(Bedit.Document));
+        while (this.get_last_child() != null) {
+            this.get_last_child().unparent();
+        }
         base.dispose();
     }
 
