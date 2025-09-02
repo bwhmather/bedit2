@@ -208,10 +208,10 @@ class Bedit.Application : Gtk.Application {
         this.set_accels_for_action("app.show-line-numbers", {});
 
         // Search.
-        this.set_accels_for_action("search.find", {"<Control>F"});
+        this.set_accels_for_action("search.focus-find", {"<Control>F"});
         this.set_accels_for_action("search.find-next", {"<Control>G"});
         this.set_accels_for_action("search.find-previous", {"<Control><Shift>G"});
-        this.set_accels_for_action("search.find-and-replace", {"<Control>H"});
+        this.set_accels_for_action("search.focus-replace", {"<Control>H"});
         this.set_accels_for_action("search.replace", {"<Control>R"});
         this.set_accels_for_action("search.replace-all", {"<Control><Alt>R"});
         this.set_accels_for_action("search.case-sensitive", {"<Control><Alt>M"});

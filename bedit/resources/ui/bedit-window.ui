@@ -100,14 +100,14 @@
               <object class="GtkButton">
                 <property name="icon-name">edit-find</property>
                 <property name="tooltip-text">Find (Ctrl+F)</property>
-                <property name="action-name">search.find</property>
+                <property name="action-name">search.focus-find</property>
               </object>
             </child>
             <child>
               <object class="GtkButton">
                 <property name="icon-name">edit-find-replace</property>
                 <property name="tooltip-text">Find and Replace (Ctrl+H)</property>
-                <property name="action-name">search.find-and-replace</property>
+                <property name="action-name">search.focus-replace</property>
               </object>
             </child>
           </object>

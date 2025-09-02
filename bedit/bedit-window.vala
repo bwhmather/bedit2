@@ -668,7 +668,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     }
 
     private void
-    action_search_find() {
+    action_search_focus_find() {
         this.freeze_notify();
         this.search_visible = true;
         this.set_search_text_from_selection();
@@ -686,6 +686,17 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     private void
     action_search_find_next() {
         this.active_document.find_next();
+    }
+
+    private void
+    action_search_focus_replace() {
+        this.freeze_notify();
+        this.search_visible = true;
+        this.replace_visible = true;
+        this.set_search_text_from_selection();
+        this.thaw_notify();
+        this.replace_entry.grab_focus();
+        this.replace_entry.select_region(0, -1);
     }
 
     private void
@@ -714,9 +725,10 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     }
 
     const GLib.ActionEntry[] search_action_entries = {
-        {"find", action_search_find},
+        {"focus-find", action_search_focus_find},
         {"find-previous", action_search_find_prev},
         {"find-next", action_search_find_next},
+        {"focus-replace", action_search_focus_replace},
         {"replace", action_search_replace},
         {"replace-all", action_search_replace_all},
         {"hide", action_search_hide},
