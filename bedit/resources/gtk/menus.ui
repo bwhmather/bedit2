@@ -231,6 +231,16 @@
       </section>
       <section>
         <item>
+          <attribute name="label" translatable="yes">Case Sensitive</attribute>
+          <attribute name="action">search.case-sensitive</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Regular Expression</attribute>
+          <attribute name="action">search.regex</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
           <attribute name="label" translatable="yes">Go to Line</attribute>
           <attribute name="action">doc.show-go-to-line</attribute>
         </item>
