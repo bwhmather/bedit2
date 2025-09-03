@@ -216,6 +216,7 @@ class Bedit.Application : Gtk.Application {
         this.set_accels_for_action("search.replace-all", {"<Control><Alt>R"});
         this.set_accels_for_action("search.case-sensitive", {"<Control><Alt>M"});
         this.set_accels_for_action("search.regex", {"<Control><Alt>period"});
+        this.set_accels_for_action("doc.focus", {"<Control>E"});
         this.set_accels_for_action("doc.show-go-to-line", {"<Control>I"});
 
         // Tools.

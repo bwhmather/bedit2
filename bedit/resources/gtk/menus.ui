@@ -241,6 +241,12 @@
       </section>
       <section>
         <item>
+          <attribute name="label" translatable="yes">Focus Editor</attribute>
+          <attribute name="action">doc.focus</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
           <attribute name="label" translatable="yes">Go to Line</attribute>
           <attribute name="action">doc.show-go-to-line</attribute>
         </item>
