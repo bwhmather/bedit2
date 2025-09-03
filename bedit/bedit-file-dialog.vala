@@ -594,6 +594,7 @@ sealed class Bedit.FileDialog : GLib.Object {
         cancellable.connect((c) => {
             if (!done) {
                 done = true;
+                window.close();
                 this.open.callback();
             }
         });
@@ -601,6 +602,7 @@ sealed class Bedit.FileDialog : GLib.Object {
             result = file;
             if (!done) {
                 done = true;
+                window.close();
                 this.open.callback();
             }
         });
@@ -612,7 +614,6 @@ sealed class Bedit.FileDialog : GLib.Object {
         });
         window.present();
         yield;
-        window.close();
 
         if (cancellable.is_cancelled()) {
             throw new GLib.IOError.CANCELLED("open cancelled");
