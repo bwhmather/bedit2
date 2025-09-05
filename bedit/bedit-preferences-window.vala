@@ -17,7 +17,7 @@
  */
 
 [GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-preferences-window.ui")]
-public sealed class Bedit.PreferencesWindow : Brk.PreferencesDialog {
+public sealed class Bedit.PreferencesWindow : Brk.PreferencesWindow {
 //    private GLib.Settings settings = new GLib.Settings("com.bwhmather.Bedit");
 
     public override void

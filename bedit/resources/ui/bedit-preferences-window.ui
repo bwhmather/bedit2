@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
-  <template class="BeditPreferencesWindow" parent="BrkPreferencesDialog">
+  <template class="BeditPreferencesWindow" parent="BrkPreferencesWindow">
     <property name="title">Bedit Preferences</property>
     <child>
       <object class="BrkPreferencesPage">
