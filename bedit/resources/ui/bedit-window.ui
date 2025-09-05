@@ -110,6 +110,16 @@
                 <property name="action-name">search.focus-replace</property>
               </object>
             </child>
+
+            <child><object class="GtkSeparator"></object></child>
+
+            <child>
+              <object class="GtkButton">
+                <property name="icon-name">go-jump</property>
+                <property name="tooltip-text">Go to line (Ctrl+I)</property>
+                <property name="action-name">doc.show-go-to-line</property>
+              </object>
+            </child>
           </object>
         </child>
         <property name="content">
