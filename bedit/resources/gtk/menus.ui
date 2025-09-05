@@ -241,6 +241,10 @@
       </section>
       <section>
         <item>
+          <attribute name="label" translatable="yes">Hide Searchbar</attribute>
+          <attribute name="action">search.hide</attribute>
+        </item>
+        <item>
           <attribute name="label" translatable="yes">Focus Editor</attribute>
           <attribute name="action">doc.focus</attribute>
         </item>

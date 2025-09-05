@@ -758,6 +758,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         search_actions_set_action_enabled("find-next", this.search_active);
         search_actions_set_action_enabled("replace", this.replace_active);
         search_actions_set_action_enabled("replace-all", this.replace_active);
+        search_actions_set_action_enabled("hide", this.search_active);
     }
 
     private void
