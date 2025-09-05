@@ -148,7 +148,7 @@
                         <property name="primary-icon-name">edit-find</property>
                         <property name="primary-icon-tooltip-text">Search pattern</property>
                         <property name="secondary-icon-name">edit-clear</property>
-                        <property name="secondary-icon-tooltip-text">Clear search pattern</property>
+                        <property name="secondary-icon-tooltip-text">Clear search pattern (Ctrl+F to focus)</property>
                         <layout>
                           <property name="column">0</property>
                           <property name="row">0</property>
@@ -161,7 +161,7 @@
                         <property name="hexpand">true</property>
                         <property name="tooltip-text">Search replacement text</property>
                         <property name="primary-icon-name">edit-find-replace</property>
-                        <property name="primary-icon-tooltip-text">Search replacement text</property>
+                        <property name="primary-icon-tooltip-text">Search replacement text (Ctrl+H to focus)</property>
                         <property name="secondary-icon-name">edit-clear</property>
                         <property name="secondary-icon-tooltip-text">Clear search replacement text</property>
                         <layout>
