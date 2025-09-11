@@ -60,12 +60,13 @@ private sealed class Bedit.FileDialogPathBar : Gtk.Widget {
 [GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-file-dialog.ui")]
 private sealed class Bedit.FileDialogWindow : Gtk.Window {
     // Path to root folder under mount.
+
     public GLib.File root_directory { get; set; }
     public Gtk.DirectoryList directory_list;
 
     public signal void open(GLib.File result);
 
-    private GLib.ListModel selection { get; set; }
+    public GLib.ListModel selection { get; set; default=new GLib.ListStore(typeof (GLib.File)); }
 
     public GLib.SimpleActionGroup dialog_actions = new GLib.SimpleActionGroup();
 
@@ -88,6 +89,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     public bool filter_view_enabled { get; set; }
     public bool edit_location_enabled { get; set; }
+    // This is the view that should be shown when filter mode is not enabled.
     public Bedit.FileDialogViewMode view_mode { get; set; default = LIST; }
 
     public bool show_binary { get; set; }
@@ -128,6 +130,11 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
     }
 
     private void
+    action_open() {
+        this.open(this.selection.get_item(0) as GLib.File);
+    }
+
+    private void
     views_init() {
         this.bind_property("root-directory", this.path_bar, "root-directory", BIDIRECTIONAL | SYNC_CREATE);
 
@@ -138,6 +145,13 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
         this.dialog_actions.add_action(new GLib.PropertyAction("show-binary", this, "show-binary"));
         this.dialog_actions.add_action(new GLib.PropertyAction("show-hidden", this, "show-hidden"));
 
+        var open_action = new GLib.SimpleAction("open", null);
+        open_action.activate.connect(this.action_open);
+        this.dialog_actions.add_action(open_action);
+        this.notify["selection"].connect((d, pspec) => {
+            open_action.set_enabled(this.selection.get_n_items() > 0);
+        });
+        open_action.set_enabled(this.selection.get_n_items() > 0);
 
         this.notify["filter-view-enabled"].connect(this.view_stack_update_visible_child);
         this.notify["view-mode"].connect(this.view_stack_update_visible_child);
@@ -168,11 +182,19 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
         this.notify["view-mode"].connect(() => {
             if (this.view_mode == LIST) {
+                // Apply current selection to list view when switching from a different view.
                 this.list_view.selection = this.selection;
             }
         });
+        this.notify["filter-view-enabled"].connect((v, pspec) => {
+            if (this.view_mode == LIST && !this.filter_view_enabled) {
+                // Resync selection to match list view when coming out of filter mode.
+                this.selection = this.list_view.selection;
+            }
+        });
         this.list_view.notify["selection"].connect((v, pspec) => {
-            if (this.view_mode == LIST) {
+            if (this.view_mode == LIST && !this.filter_view_enabled) {
+                // Sync selection to match list view when list view visible.
                 this.selection = this.list_view.selection;
             }
         });
@@ -252,7 +274,7 @@ sealed class Bedit.FileDialog : GLib.Object {
         var window = new Bedit.FileDialogWindow();
         window.set_transient_for(parent);
 
-        window.root_directory =  GLib.File.new_for_path("/usr/lib");
+        window.root_directory =  GLib.File.new_for_path("/usr/include");
         window.view_mode = LIST;
         window.sort_columns = {};
         window.expanded = {};

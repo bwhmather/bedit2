@@ -149,7 +149,7 @@
             <child type="end">
               <object class="GtkButton">
                 <property name="label">Open</property>
-                <property name="action-name">open</property>
+                <property name="action-name">dialog.open</property>
                 <style>
                   <class name="suggested-action"/>
                 </style>
