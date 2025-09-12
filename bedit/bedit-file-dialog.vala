@@ -257,6 +257,15 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
     }
 }
 
+/**
+ * Asnychronous API for opening a file chooser dialog.
+ *
+ * Bedit.FileDialog collects the arguments that are needed topresent the dialog to the user such as a title
+ * or whether it should be modal.
+ *
+ * It is safe to reuse a file dialog object multiple times to serve multiple requests.  You do not need to
+ * wait for previous requests to finish before asking for a new window.
+ */
 sealed class Bedit.FileDialog : GLib.Object {
     public string title { get; set; }
 
@@ -269,6 +278,12 @@ sealed class Bedit.FileDialog : GLib.Object {
 
     public string accept_label { get; set; }
 
+    /**
+     * Opens a new file chooser dialog to allow the user to select a single file for reading.
+     *
+     * If the user closes the chooser without selecting a file will return NULL.
+     * Will throw a CANCELLED error if interrupted.
+     */
     public async GLib.File?
     open(Gtk.Window? parent, GLib.Cancellable cancellable) throws Error {
         var window = new Bedit.FileDialogWindow();
