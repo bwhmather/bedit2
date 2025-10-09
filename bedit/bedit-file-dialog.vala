@@ -166,6 +166,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     private void
     filter_view_init() {
+        this.filter_entry.bind_property("text", this.filter_view, "query", SYNC_CREATE);
         this.bind_property("root-directory", this.filter_view, "root-directory", SYNC_CREATE);
     }
 
