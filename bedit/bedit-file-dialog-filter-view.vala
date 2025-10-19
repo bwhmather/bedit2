@@ -62,17 +62,28 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
 
     /* === State ========================================================================================== */
 
-    public GLib.File? root_directory { get; set; }
+    public GLib.File? root_directory { get; set; default = null; }
 
     public string query { get; set; default = "";}
 
     private GLib.ListStore list_store;
     private Gtk.SingleSelection selection_model;
 
-    private QueryStackEntry[] query_stack;
-
+    private GLib.Cancellable query_cancellable;
+    private QueryStackEntry[] query_stack = null;
     private void
+    query_stack_truncate(int n) {
+        for (var i = n; i < this.query_stack.length; i++) {
+            this.query_stack[i] = {};
+        }
+        this.query_stack.resize(n);
+    }
+
+    private async void
     update_matches() {
+        // At every `yield`, the query stack must be left in a valid state.
+
+        int n = 0;
         var remainder = this.query[:];
 
         GLib.File? root = this.root_directory;
@@ -82,34 +93,36 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
             subquery = "~/";
             remainder = remainder[2:];
         } else if (remainder.has_prefix("./")) {
-            remainder = remainder[:2];
+            remainder = remainder[2:];
         } else if (remainder.has_prefix("/")) {
             root = GLib.File.new_for_path("/");
             subquery = "/";
             remainder = remainder[1:];
         }
         if (root == null) {
-            print("no root\n");
-            this.query_stack.resize(0);
+            this.query_stack_truncate(0);
             this.list_store.remove_all();
             return;
         }
-        print("root\n");
 
-        print("subquery: %s, remainder: %s\n", subquery, remainder);
+        if (this.query_stack.length <= n || this.query_stack[n].subquery != subquery) {
+            this.query_stack_truncate(n);  // Truncate before doing anything else to leave stack in valid state.
 
-        if (this.query_stack.length == 0 || this.query_stack[1].subquery != subquery) {
-            this.query_stack.resize(1);
-            this.query_stack[0].subquery = subquery;
             try {
-                this.query_stack[0].matches = {root.query_info(ATTRIBUTES, NONE, null)};
-            } catch {
+                var rootinfo = yield root.query_info_async(ATTRIBUTES, NONE, GLib.Priority.DEFAULT, this.query_cancellable);
+                rootinfo.set_attribute_object("standard::file", root);
 
+                this.query_stack.resize(n + 1);
+                this.query_stack[n].subquery = subquery;
+                this.query_stack[n].matches = {rootinfo};
+            } catch {
+                // TODO
+                return;
             }
         }
-        int n = 1;
 
-        do {
+        bool done = false;
+        while (!done) {
             n += 1;
 
             // Subquery is from the beginning of the remaining query to either the next `/` or the very end.
@@ -121,31 +134,21 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
                 remainder = remainder[next_slash + 1:];
             } else {
                 subquery = remainder;
-                remainder = remainder[remainder.length-1:remainder.length-1];
+                remainder = "";
+                done = true;
             }
-
-            print("subquery: %s, remainder: %s\n", subquery, remainder);
 
             if (this.query_stack.length > n && this.query_stack[n].subquery == subquery) {
                 // Use cached entry from stack.
                 continue;
             }
 
-            // Changing a stack entry invalidates all higher entries.
-            // Pop all higher entries but keep the current entry for now in case it can be reused.
-            this.query_stack.resize(n + 1);
-
             if (subquery == "..") {
-                this.query_stack[n].subquery = "..";
-                this.query_stack[n].matches = {};
-
-                if (this.query_stack[n - 1].matches.length == 0) {
-                    continue;
-                }
+                this.query_stack_truncate(n);  // Truncate to leave stack in valid state.
 
                 // Find all parent directories of all previous matches.
+                GLib.FileInfo[] matches = {};
                 GLib.File last_parent = null;
-                try {
                 foreach (GLib.FileInfo matchinfo in this.query_stack[n-1].matches) {
                     GLib.File match = matchinfo.get_attribute_object("standard::file") as GLib.File;
                     GLib.File parent = match.get_parent();
@@ -159,46 +162,80 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
                         // of tracking it.
                         continue;
                     }
-                    this.query_stack[n].matches += parent.query_info(ATTRIBUTES, NONE, null);
+                    try {
+                        var parentinfo = yield parent.query_info_async(ATTRIBUTES, NONE, GLib.Priority.DEFAULT, this.query_cancellable);
+                        parentinfo.set_attribute_object("standard::file", parent);
+
+                        matches += parentinfo;
+                    } catch {
+                        // TODO
+                        return;
+                    }
                     last_parent = parent;
                 }
-                }catch{}
+
+                this.query_stack.resize(n + 1);
+                this.query_stack[n].subquery = (owned) subquery;
+                this.query_stack[n].matches = (owned) matches;
+
                 continue;
             }
 
-            if (this.query_stack[n].subquery == null || !subquery.has_prefix(this.query_stack[n].subquery) || this.query_stack[n].subquery == "..") {
-                // New query is not a refinement of the current query.  We can't reuse the existing list.
-                this.query_stack[n].matches = {};
-                foreach (GLib.FileInfo fileinfo in this.query_stack[n-1].matches) {
-                    GLib.FileType filetype = fileinfo.get_file_type();
-                    if (filetype != DIRECTORY && filetype != SYMBOLIC_LINK) {
+            GLib.FileInfo[] candidates = {};
+            if (this.query_stack.length > n && (subquery.has_prefix(this.query_stack[n].subquery) || this.query_stack[n].subquery != "..")) {
+                // New query is a refinement of the current query so we can copy the existing matches as a
+                // starting point.
+                candidates = this.query_stack[n].matches;
+            } else {
+                // New query is not a refinement of the current query so we cannot reuse the existing list.
+                foreach (GLib.FileInfo parentinfo in this.query_stack[n-1].matches) {
+                    GLib.FileType parenttype = parentinfo.get_file_type();
+                    if (parenttype != DIRECTORY && parenttype != SYMBOLIC_LINK) {
                         continue;
                     }
 
-                    GLib.File file = fileinfo.get_attribute_object("standard::file") as GLib.File;
-                    var enumerator = file.enumerate_children(ATTRIBUTES, NONE, null);
-                    while (true) {
-                        var next = enumerator.next_file(null);
-                        if (next == null) {
-                            break;
+                    GLib.File parent = parentinfo.get_attribute_object("standard::file") as GLib.File;
+                    try {
+                        var enumerator = yield parent.enumerate_children_async(ATTRIBUTES, NONE, GLib.Priority.DEFAULT, this.query_cancellable);
+                        while (true) {
+                            var fileinfos = yield enumerator.next_files_async(64, GLib.Priority.DEFAULT, this.query_cancellable);
+                            if (fileinfos.length() == 0) {
+                                break;
+                            }
+                            foreach (var fileinfo in fileinfos) {
+                                var file = enumerator.get_child(fileinfo);
+                                fileinfo.set_attribute_object("standard::file", file);
+
+                                candidates += fileinfo;
+                            }
                         }
-                        this.query_stack[n].matches += next;
+                        yield enumerator.close_async(GLib.Priority.DEFAULT, this.query_cancellable);
+                    } catch {
+                        // TODO
+                        return;
                     }
                 }
             }
-            this.query_stack[n].subquery = subquery;
 
             // TODO Filter to only include matches and sort by match quality.
             // When sorting, files should be kept together with other files with the same parent directory.
-        } while (remainder != "");
+
+            GLib.FileInfo[] matches = {};
+            foreach (var candidate in candidates) {
+                if (!candidate.get_name().has_prefix(subquery)) {
+                    continue;
+                }
+                matches += candidate;
+            }
+
+            // Changing a stack entry invalidates all higher entries.
+            this.query_stack.resize(n + 1);
+            this.query_stack[n].subquery = (owned) subquery;
+            this.query_stack[n].matches = (owned) matches;
+        }
 
         // Remove any unused entries from the query cache as these were derived from a different query.
-        this.query_stack.resize(n + 1);
-
-        foreach (GLib.FileInfo matchinfo in this.query_stack[n].matches) {
-            GLib.File match = matchinfo.get_attribute_object("standard::file") as GLib.File;
-            print("%s\n", match.get_path());
-        }
+        this.query_stack_truncate(n + 1);
 
         this.list_store.splice(0, this.list_store.get_n_items(), this.query_stack[n].matches);
     }
@@ -227,7 +264,6 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
 
         this.list_view.model = this.selection_model;
     }
-
 
     /* === Lifecycle ====================================================================================== */
 
