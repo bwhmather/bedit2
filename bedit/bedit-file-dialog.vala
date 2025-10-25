@@ -168,6 +168,8 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
     filter_view_init() {
         this.filter_entry.bind_property("text", this.filter_view, "query", SYNC_CREATE);
         this.bind_property("root-directory", this.filter_view, "root-directory", SYNC_CREATE);
+        this.bind_property("show-binary", this.filter_view, "show-binary", SYNC_CREATE);
+        this.bind_property("show-hidden", this.filter_view, "show-hidden", SYNC_CREATE);
     }
 
     /* --- List View -------------------------------------------------------------------------------------- */

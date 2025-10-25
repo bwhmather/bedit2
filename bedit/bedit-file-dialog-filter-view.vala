@@ -19,6 +19,8 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
     public GLib.File? root_directory { get; set; default = null; }
 
     public string query { get; set; default = "";}
+    public bool show_binary { get; set; }
+    public bool show_hidden { get; set; }
 
     private GLib.ListStore list_store;
     private Gtk.SingleSelection selection_model;
@@ -176,7 +178,12 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
 
                 GLib.FileInfo[] matches = {};
                 foreach (var candidate in candidates) {
-                    if (!candidate.get_name().has_prefix(subquery)) {
+                    if (!this.show_hidden && candidate.get_is_hidden()) {
+                        continue;
+                    }
+
+                    string name = candidate.get_name();
+                    if (!name.has_prefix(subquery)) {
                         continue;
                     }
                     matches += candidate;
@@ -257,6 +264,14 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
             this.update();
         });
         this.notify["query"].connect((fv, pspec) => {
+            this.update();
+        });
+        this.notify["show-binary"].connect((fv, pspec) => {
+            this.query_stack_truncate(0);
+            this.update();
+        });
+        this.notify["show-hidden"].connect((fv, pspec) => {
+            this.query_stack_truncate(0);
             this.update();
         });
         this.map.connect(() => {
