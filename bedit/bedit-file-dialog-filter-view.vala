@@ -253,7 +253,7 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
         this.selection_model = new Gtk.SingleSelection(this.list_store);
 
         this.notify["root-directory"].connect((fv, pspec) => {
-            this.query_stack.resize(0);
+            this.query_stack_truncate(0);
             this.update();
         });
         this.notify["query"].connect((fv, pspec) => {
