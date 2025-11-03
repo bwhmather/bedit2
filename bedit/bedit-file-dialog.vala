@@ -73,6 +73,9 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
     /* === Views ========================================================================================== */
 
     [GtkChild]
+    private unowned Brk.ToolbarView main_view;
+
+    [GtkChild]
     private unowned Gtk.Entry filter_entry;
 
     [GtkChild]
@@ -156,10 +159,27 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
         this.notify["filter-view-enabled"].connect(this.view_stack_update_visible_child);
         this.notify["view-mode"].connect(this.view_stack_update_visible_child);
         this.view_stack_update_visible_child();
+
+        // Unhandled keypresses get redirected to the filter view entry and, if
+        // handled there, result in a switch to filter mode.
+        var event_controller = new Gtk.EventControllerKey();
+        event_controller.name = "Redirect";
+        event_controller.propagation_phase = BUBBLE;
+        event_controller.key_pressed.connect((controller, keyval, keycode, modifiers) => {
+            if (event_controller.forward(this.filter_entry.get_delegate())) {
+                this.filter_view_enabled = true;
+                // It's more usual for the forwarding widget to keep focus but
+                // we need the entry to have focus so that it can enable event
+                // buffering on submit.
+                this.filter_entry.grab_focus_without_selecting();
+                return true;
+            }
+            return false;
+        });
+        this.main_view.add_controller(event_controller);
     }
 
     /* --- Filter View ------------------------------------------------------------------------------------ */
-
 
     [GtkChild]
     private unowned Bedit.FileDialogFilterView filter_view;
