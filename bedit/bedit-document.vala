@@ -99,9 +99,52 @@ public sealed class Bedit.Document : Gtk.Widget {
 
         this.source_file.notify["location"].connect((_, pspec) => { this.notify_property("file"); });
 
-        if (file != null) {
+        if (this.file != null) {
             reload_async.begin(null);
         }
+    }
+
+    /* --- Reload Notification ---------------------------------------------------------------------------- */
+
+    [GtkChild]
+    private unowned Gtk.InfoBar reload_info_bar;
+
+    private void
+    action_reload() {
+        this.reload_async.begin(null, (_, res) => {
+            try {
+                this.reload_async.end(res);
+            } catch (Error err) {
+                warning("Error: %s\n", err.message);
+            }
+        });
+        this.reload_info_bar.revealed = false;
+    }
+
+    private void
+    reload_notification_init() {
+        var action = new GLib.SimpleAction("reload", null);
+        action.activate.connect(this.action_reload);
+        this.document_actions.add_action(action);
+
+        var focus_controller = new Gtk.EventControllerFocus();
+        focus_controller.enter.connect(() => {
+            if (this.file == null) {
+                return;
+            }
+            if (!this.source_file.is_local()) {
+                return;
+            }
+
+            // TODO this can happily be done asynchronously.
+            this.source_file.check_file_on_disk();
+            this.reload_info_bar.revealed = this.source_file.is_externally_modified();
+        });
+        this.add_controller(focus_controller);
+
+        this.reload_info_bar.close.connect(() => {
+            this.reload_info_bar.revealed = false;
+        });
     }
 
     /* === Editing ======================================================================================== */
@@ -512,7 +555,6 @@ public sealed class Bedit.Document : Gtk.Widget {
 
         this.settings.bind("show-right-margin", this, "show-right-margin", GET);
         this.bind_property("show-right-margin", this.source_view, "show-right-margin", SYNC_CREATE);
-
     }
 
     /* === Navigation ===================================================================================== */
@@ -980,6 +1022,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         });
 
         filesystem_init();
+        reload_notification_init();
         editing_init();
         title_init();
         language_init();
