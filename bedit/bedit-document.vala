@@ -71,21 +71,38 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.saving = false;
     }
 
-    public async bool
-    reload_async(GLib.Cancellable? cancellable) throws Error {
-        return_val_if_fail(this.file is GLib.File, false);
-        return_val_if_fail(!this.loading, false);
-        return_val_if_fail(!this.saving, false);
+    private async void
+    reload_async() {
+        if (!(this.file is GLib.File)) {
+            return;
+        }
+        if (this.loading) {
+            return;
+        }
+
+        this.reload_bar.revealed = false;
 
         this.loading = true;
         this.load();
 
         var source_loader = new GtkSource.FileLoader(source_buffer, source_file);
-        yield source_loader.load_async(Priority.LOW, cancellable, null);
+        try {
+            yield source_loader.load_async(Priority.LOW, this.filesystem_cancellable, null);
+            this.loaded();
+        } catch (Error err) {
+            this.reload_label.label = GLib.Markup.printf_escaped("<b>%s</b>", err.message);
+            this.reload_button.label = "Try again";
+            this.reload_bar.revealed = true;
+        } finally {
+            this.loading = false;
+        }
+    }
 
-        this.loaded();
-        this.loading = false;
-        return true;
+    public void
+    reload() {
+        this.reload_async.begin((_, res) => {
+            this.reload_async.end(res);
+        });
     }
 
     private void
@@ -100,25 +117,24 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.source_file.notify["location"].connect((_, pspec) => { this.notify_property("file"); });
 
         if (this.file != null) {
-            reload_async.begin(null);
+            this.reload();
         }
     }
 
     /* --- Reload Notification ---------------------------------------------------------------------------- */
 
     [GtkChild]
-    private unowned Gtk.InfoBar reload_info_bar;
+    private unowned Gtk.InfoBar reload_bar;
+
+    [GtkChild]
+    private unowned Gtk.Label reload_label;
+
+    [GtkChild]
+    private unowned Gtk.Button reload_button;
 
     private void
     action_reload() {
-        this.reload_async.begin(null, (_, res) => {
-            try {
-                this.reload_async.end(res);
-            } catch (Error err) {
-                warning("Error: %s\n", err.message);
-            }
-        });
-        this.reload_info_bar.revealed = false;
+        this.reload();
     }
 
     private void
@@ -138,12 +154,16 @@ public sealed class Bedit.Document : Gtk.Widget {
 
             // TODO this can happily be done asynchronously.
             this.source_file.check_file_on_disk();
-            this.reload_info_bar.revealed = this.source_file.is_externally_modified();
+            if (!this.reload_bar.revealed && this.source_file.is_externally_modified()) {
+                this.reload_label.label = "<b>The file has been changed by another program</b>";
+                this.reload_button.label = "Drop Changes and Reload";
+                this.reload_bar.revealed = true;
+            }
         });
         this.add_controller(focus_controller);
 
-        this.reload_info_bar.close.connect(() => {
-            this.reload_info_bar.revealed = false;
+        this.reload_bar.close.connect(() => {
+            this.reload_bar.revealed = false;
         });
     }
 

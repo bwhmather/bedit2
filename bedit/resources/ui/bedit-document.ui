@@ -48,18 +48,18 @@
           </object>
         </child>
         <child type="overlay">
-          <object class="GtkInfoBar" id="reload_info_bar">
+          <object class="GtkInfoBar" id="reload_bar">
             <property name="valign">start</property>
             <property name="revealed">false</property>
             <property name="show-close-button">true</property>
             <child>
-              <object class="GtkLabel">
+              <object class="GtkLabel" id="reload_label">
                 <property name="label">&lt;b&gt;The file has been changed by another program&lt;/b&gt;</property>
                 <property name="use-markup">true</property>
               </object>
             </child>
             <child type="action">
-              <object class="GtkButton">
+              <object class="GtkButton" id="reload_button">
                 <property name="label">Drop Changes and Reload</property>
                 <property name="action-name">doc.reload</property>
               </object>
