@@ -65,10 +65,12 @@ public sealed class Bedit.Document : Gtk.Widget {
         var source_saver = new GtkSource.FileSaver.with_target(this.source_buffer, this.source_file, file);
         source_saver.flags = IGNORE_INVALID_CHARS | IGNORE_MODIFICATION_TIME;
 
-        yield source_saver.save_async(Priority.DEFAULT, this.filesystem_cancellable, null);
-
-        this.saved();
-        this.saving = false;
+        try {
+            yield source_saver.save_async(Priority.DEFAULT, this.filesystem_cancellable, null);
+            this.saved();
+        } finally {
+            this.saving = false;
+        }
     }
 
     private async void
