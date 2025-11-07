@@ -59,6 +59,8 @@ public sealed class Bedit.Document : Gtk.Widget {
         return_val_if_fail(!this.loading, false);
         return_val_if_fail(!this.saving, false);
 
+        this.reload_bar.revealed = false;
+
         this.saving = true;
         this.save();
 
@@ -72,6 +74,15 @@ public sealed class Bedit.Document : Gtk.Widget {
             this.saving = false;
         }
     }
+
+    [GtkChild]
+    private unowned Gtk.InfoBar reload_bar;
+
+    [GtkChild]
+    private unowned Gtk.Label reload_label;
+
+    [GtkChild]
+    private unowned Gtk.Button reload_button;
 
     private async void
     reload_async() {
@@ -118,31 +129,8 @@ public sealed class Bedit.Document : Gtk.Widget {
 
         this.source_file.notify["location"].connect((_, pspec) => { this.notify_property("file"); });
 
-        if (this.file != null) {
-            this.reload();
-        }
-    }
-
-    /* --- Reload Notification ---------------------------------------------------------------------------- */
-
-    [GtkChild]
-    private unowned Gtk.InfoBar reload_bar;
-
-    [GtkChild]
-    private unowned Gtk.Label reload_label;
-
-    [GtkChild]
-    private unowned Gtk.Button reload_button;
-
-    private void
-    action_reload() {
-        this.reload();
-    }
-
-    private void
-    reload_notification_init() {
         var action = new GLib.SimpleAction("reload", null);
-        action.activate.connect(this.action_reload);
+        action.activate.connect(this.reload);
         this.document_actions.add_action(action);
 
         var focus_controller = new Gtk.EventControllerFocus();
@@ -167,6 +155,10 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.reload_bar.close.connect(() => {
             this.reload_bar.revealed = false;
         });
+
+        if (this.file != null) {
+            this.reload();
+        }
     }
 
     /* === Editing ======================================================================================== */
@@ -1044,7 +1036,6 @@ public sealed class Bedit.Document : Gtk.Widget {
         });
 
         filesystem_init();
-        reload_notification_init();
         editing_init();
         title_init();
         language_init();
