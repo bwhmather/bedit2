@@ -41,7 +41,6 @@ add_project_arguments(
   '--gresourcesdir', 'resources',
   '--gresources', meson.current_source_dir() / 'bedit/resources/bedit.gresources.xml',
   '--vapidir=' + meson.source_root() + '/vapi/',
-  '--vapidir=/usr/share/vala-0.56/vapi',
   '--pkg', 'config',
   '--enable-deprecated',
   language: 'vala'
