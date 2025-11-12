@@ -17,10 +17,11 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
     /* === State ========================================================================================== */
 
     public GLib.File? root_directory { get; set; default = null; }
-
     public string query { get; set; default = "";}
     public bool show_binary { get; set; }
     public bool show_hidden { get; set; }
+
+    public bool loading { get; private set; default = false; }
 
     private GLib.ListStore list_store;
     private Gtk.SingleSelection selection_model;
@@ -35,16 +36,20 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
     }
 
     private async void
-    update_matches(GLib.Cancellable cancellable) throws GLib.Error {
+    update_matches(GLib.Cancellable cancellable) {
         // Rules:
         //  1. Before every `yield`, the query stack must be left in a valid state.
         //  2. After every `yield` the state of `cancellable` must be checked and no further changes must be
         //     made if set.
         try {
-            int n = 0;
-            var remainder = this.query[:];
-
             GLib.File? root = this.root_directory;
+            string query = this.query;
+            bool show_binary = this.show_binary;
+            bool show_hidden = this.show_hidden;
+
+            int n = 0;
+            string remainder = query[:];
+
             string subquery = "";
             if (remainder.has_prefix("~/")) {
                 root = GLib.File.new_for_path(GLib.Environment.get_home_dir());
@@ -62,6 +67,8 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
                 this.list_store.remove_all();
                 return;
             }
+
+            this.loading = true;
 
             if (this.query_stack.length <= n || this.query_stack[n].subquery != subquery) {
                 this.query_stack_truncate(n);  // Truncate before doing anything else to leave stack in valid state.
@@ -178,7 +185,7 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
 
                 GLib.FileInfo[] matches = {};
                 foreach (var candidate in candidates) {
-                    if (!this.show_hidden && candidate.get_is_hidden()) {
+                    if (!show_hidden && candidate.get_is_hidden()) {
                         continue;
                     }
 
@@ -197,11 +204,15 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
 
             // Remove any unused entries from the query cache as these were derived from a different query.
             this.query_stack_truncate(n + 1);
-
             this.list_store.splice(0, this.list_store.get_n_items(), this.query_stack[n].matches);
+            this.loading = false;
+
         } catch (GLib.IOError.CANCELLED _) {
             return;
         } catch {
+            this.query_stack_truncate(0);
+            this.list_store.remove_all();
+            this.loading = false;
             // TODO
             return;
         }
@@ -217,11 +228,14 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
 
         if (!this.get_mapped() || this.root_directory == null || this.query == "") {
             this.list_store.remove_all();
+            this.loading = false;
             return;
         }
 
         this.query_cancellable = new GLib.Cancellable();
-        this.update_matches.begin(this.query_cancellable);
+        this.update_matches.begin(this.query_cancellable, (_, res) => {
+            this.update_matches.end(res);
+        });
     }
 
     /* === View =========================================================================================== */

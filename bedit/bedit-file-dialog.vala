@@ -76,9 +76,6 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
     private unowned Brk.ToolbarView main_view;
 
     [GtkChild]
-    private unowned Gtk.Entry filter_entry;
-
-    [GtkChild]
     private unowned Gtk.Entry location_entry;
 
     [GtkChild]
@@ -182,11 +179,112 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
     /* --- Filter View ------------------------------------------------------------------------------------ */
 
     [GtkChild]
+    private unowned Gtk.Entry filter_entry;
+
+    [GtkChild]
     private unowned Bedit.FileDialogFilterView filter_view;
+
+    // Keyboard input on the filter entry can be handled asnychronously if the
+    // view is still catching up.  Navigation (using up and down keys  before
+    // the entry is submitted is buffered manually here.  Everything after the
+    // entry is submitted is buffered using a Gtk.EventControllerBuffer.  Input
+    // anywhere else is handled synchronously and ignores these two mechanisms.
+    private int[] filter_entry_navigate;
+    private bool filter_entry_submit;
+
+    private void
+    filter_entry_clear_commands() {
+
+    }
+
+    private void
+    filter_entry_play_commands() {
+        if (this.filter_view.loading) {
+            return;
+        }
+
+        foreach (int step in this.filter_entry_navigate) {
+
+        }
+        if (this.filter_entry_submit) {
+
+        }
+        this.filter_entry_clear_commands();
+    }
+
 
     private void
     filter_view_init() {
         this.filter_entry.bind_property("text", this.filter_view, "query", SYNC_CREATE);
+
+        var cancel_controller = new Gtk.ShortcutController();
+        cancel_controller.propagation_phase = CAPTURE;
+        cancel_controller.add_shortcut(new Gtk.Shortcut(
+            Gtk.ShortcutTrigger.parse_string("Escape"),
+            new Gtk.CallbackAction(() => {
+                // This shortcut controller is only installed so that we can
+                // bypass the keyboard buffer and cancel a long running query
+                // without having to wait until it finishes.  Usually we want
+                // to wait until BUBBLE so that the input method can get a
+                // chance to consume it first.
+                // TODO if (buffer_controller.enabled) {
+                    this.filter_view_enabled = true;
+                // TODO }
+                return false;
+            })
+        ));
+        this.filter_entry.add_controller(cancel_controller);
+
+        // TODO var buffer_controller = new Gtk.EventControllerBuffer();
+        // TODO buffer_controller.propagation_phase = CAPTURE;
+        // TODO buffer_controller.discarded.connect(() => {
+        // TODO     // Queued commands are effectively the same as buffered input.
+        // TODO     // If we lose the input buffer then commands should also be dropped.
+        // TODO     this.filter_view_clear_commands();
+        // TODO });
+        // TODO this.filter_entry.add_controller(buffer_controller);
+
+        var shortcut_controller = new Gtk.ShortcutController();
+        shortcut_controller.add_shortcut(new Gtk.Shortcut(
+            Gtk.ShortcutTrigger.parse_string("Enter"),
+            new Gtk.CallbackAction(() => {
+                return_val_if_fail(!this.filter_entry_submit, false);  // Should be caught by buffer.
+                // buffer_controller.begin();
+                this.filter_entry_submit = true;
+
+                return true;
+            })
+        ));
+        shortcut_controller.add_shortcut(new Gtk.Shortcut(
+            Gtk.ShortcutTrigger.parse_string("Up"),
+            new Gtk.CallbackAction(() => {
+                return_val_if_fail(!this.filter_entry_submit, false);  // Should be caught by buffer.
+                this.filter_entry_navigate.resize(this.filter_entry_navigate.length + 1);
+                this.filter_entry_navigate[-1] = -1;
+                this.filter_entry_play_commands();
+                return true;
+            })
+        ));
+        shortcut_controller.add_shortcut(new Gtk.Shortcut(
+            Gtk.ShortcutTrigger.parse_string("Down"),
+            new Gtk.CallbackAction(() => {
+                return_val_if_fail(!this.filter_entry_submit, false);  // Should be caught by buffer.
+                this.filter_entry_navigate.resize(this.filter_entry_navigate.length + 1);
+                this.filter_entry_navigate[-1] = 1;
+                this.filter_entry_play_commands();
+                return true;
+            })
+        ));
+        this.filter_entry.add_controller(shortcut_controller);
+
+        this.filter_view.notify["loading"].connect((fv, pspec) => {
+            if (!this.filter_view.loading) {
+                this.filter_entry_play_commands();
+                // TODO buffer_controller.end();
+            }
+        });
+
+        // Settings.
         this.bind_property("root-directory", this.filter_view, "root-directory", SYNC_CREATE);
         this.bind_property("show-binary", this.filter_view, "show-binary", SYNC_CREATE);
         this.bind_property("show-hidden", this.filter_view, "show-hidden", SYNC_CREATE);
