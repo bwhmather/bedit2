@@ -65,6 +65,7 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
             if (root == null) {
                 this.query_stack_truncate(0);
                 this.list_store.remove_all();
+                this.selection_model.selected = 0;
                 return;
             }
 
@@ -205,13 +206,19 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
             // Remove any unused entries from the query cache as these were derived from a different query.
             this.query_stack_truncate(n + 1);
             this.list_store.splice(0, this.list_store.get_n_items(), this.query_stack[n].matches);
+            this.selection_model.selected = 0;
             this.loading = false;
 
         } catch (GLib.IOError.CANCELLED _) {
+            // We don't know if another query is going to be triggered so can't
+            // safely unset loading or do any other cleanup here.  All we can
+            // do is make sure all cancellable operations levae the view in a
+            // consistent state and let the cancelling code clean up.
             return;
         } catch {
             this.query_stack_truncate(0);
             this.list_store.remove_all();
+            this.selection_model.selected = 0;
             this.loading = false;
             // TODO
             return;
@@ -228,6 +235,7 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
 
         if (!this.get_mapped() || this.root_directory == null || this.query == "") {
             this.list_store.remove_all();
+            this.selection_model.selected = 0;
             this.loading = false;
             return;
         }
@@ -304,6 +312,16 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
     dispose() {
         this.dispose_template(typeof(Bedit.FileDialogFilterView));
         base.dispose();
+    }
+
+    public void
+    select_prev() {
+        this.selection_model.selected -= 1;
+    }
+
+    public void
+    select_next() {
+        this.selection_model.selected += 1;
     }
 }
 

@@ -189,12 +189,13 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
     // the entry is submitted is buffered manually here.  Everything after the
     // entry is submitted is buffered using a Gtk.EventControllerBuffer.  Input
     // anywhere else is handled synchronously and ignores these two mechanisms.
-    private int[] filter_entry_navigate;
-    private bool filter_entry_submit;
+    private int[] filter_entry_navigate = null;
+    private bool filter_entry_submit = false;
 
     private void
     filter_entry_clear_commands() {
-
+        this.filter_entry_navigate = null;
+        this.filter_entry_submit = false;
     }
 
     private void
@@ -204,7 +205,14 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
         }
 
         foreach (int step in this.filter_entry_navigate) {
-
+            while (step < 0) {
+                this.filter_view.select_prev();
+                step += 1;
+            }
+            while (step > 0) {
+                this.filter_view.select_next();
+                step -= 1;
+            }
         }
         if (this.filter_entry_submit) {
 
@@ -259,8 +267,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
             Gtk.ShortcutTrigger.parse_string("Up"),
             new Gtk.CallbackAction(() => {
                 return_val_if_fail(!this.filter_entry_submit, false);  // Should be caught by buffer.
-                this.filter_entry_navigate.resize(this.filter_entry_navigate.length + 1);
-                this.filter_entry_navigate[-1] = -1;
+                this.filter_entry_navigate += -1;
                 this.filter_entry_play_commands();
                 return true;
             })
@@ -269,8 +276,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
             Gtk.ShortcutTrigger.parse_string("Down"),
             new Gtk.CallbackAction(() => {
                 return_val_if_fail(!this.filter_entry_submit, false);  // Should be caught by buffer.
-                this.filter_entry_navigate.resize(this.filter_entry_navigate.length + 1);
-                this.filter_entry_navigate[-1] = 1;
+                this.filter_entry_navigate += 1;
                 this.filter_entry_play_commands();
                 return true;
             })
