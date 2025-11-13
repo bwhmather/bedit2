@@ -241,7 +241,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
                 // to wait until BUBBLE so that the input method can get a
                 // chance to consume it first.
                 // TODO if (buffer_controller.enabled) {
-                    this.filter_view_enabled = true;
+                    this.filter_view_enabled = false;
                 // TODO }
                 return false;
             })
