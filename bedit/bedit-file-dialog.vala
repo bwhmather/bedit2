@@ -224,6 +224,11 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
     private void
     filter_view_init() {
         this.filter_entry.bind_property("text", this.filter_view, "query", SYNC_CREATE);
+        this.notify["filter-view-enabled"].connect((v, pspec) => {
+            if (!this.filter_view_enabled) {
+                this.filter_entry.text = "";
+            }
+        });
 
         var cancel_controller = new Gtk.ShortcutController();
         cancel_controller.propagation_phase = CAPTURE;
