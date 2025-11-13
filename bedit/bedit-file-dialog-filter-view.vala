@@ -120,7 +120,7 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
                             // Can't traverse to parent of root directory.
                             continue;
                         }
-                        if (parent.equal(last_parent)) {
+                        if (last_parent != null && parent.equal(last_parent)) {
                             // Matches should already be sorted by parent directory so deduplicating just a
                             // matter of tracking it.
                             continue;
