@@ -14,12 +14,31 @@ bindir = get_option('bindir')
 datadir = get_option('datadir')
 
 m_dep = cc.find_library('m', required: false)
-gtk_dep = dependency('gtk4', include_type: 'system')
+gtk_dep = dependency(
+  'gtk4',
+  default_options: [
+    'introspection=enabled',
+    'build-demos=false',
+    'build-examples=false',
+    'build-testsuite=false',
+    'build-tests=false',
+    'werror=false',
+  ],
+)
 
 bricks_proj = subproject('libbricks-1')
 bricks_dep = bricks_proj.get_variable('libbricks_dep')
 
-gtksourceview_dep = dependency('gtksourceview-5', version: '>= 5.10.0', include_type: 'system')
+gtksourceview_dep = dependency(
+  'gtksourceview-5', version: '>= 5.10.0',
+  include_type: 'system',
+  default_options: [
+    'introspection=enabled',
+    'vapi=true',
+    'build-testsuite=false',
+    'werror=false',
+  ],
+)
 
 bedit_deps = [
   m_dep,
@@ -42,6 +61,7 @@ add_project_arguments(
   '--gresources', meson.current_source_dir() / 'bedit/resources/bedit.gresources.xml',
   '--vapidir=' + meson.source_root() + '/vapi/',
   '--pkg', 'config',
+  '--pkg', 'gtk4',
   '--enable-deprecated',
   language: 'vala'
 )
