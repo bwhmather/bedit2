@@ -3,6 +3,8 @@
   <template class="BeditFileDialogWindow" parent="GtkWindow">
     <property name="modal">true</property>
     <property name="destroy-with-parent">true</property>
+    <property name="default-width">640</property>
+    <property name="default-height">480</property>
     <child>
       <object class="BrkToolbarView">
         <property name="content">

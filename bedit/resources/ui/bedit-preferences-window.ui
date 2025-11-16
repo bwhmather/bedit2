@@ -2,6 +2,8 @@
 <interface>
   <template class="BeditPreferencesWindow" parent="BrkPreferencesWindow">
     <property name="title">Bedit Preferences</property>
+    <property name="default-width">640</property>
+    <property name="default-height">480</property>
     <child>
       <object class="BrkPreferencesPage">
         <property name="name">editor</property>
