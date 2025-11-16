@@ -8720,6 +8720,16 @@ namespace Gtk {
 		public Gtk.PropagationPhase propagation_phase { get; set; }
 		public Gtk.Widget widget { get; }
 	}
+	[CCode (cheader_filename = "gtk/gtk.h", type_id = "gtk_event_controller_buffer_get_type ()")]
+	public class EventControllerBuffer : Gtk.EventController {
+		[CCode (has_construct_function = false, type = "GtkEventController*")]
+		public EventControllerBuffer ();
+		public void enable();
+		public void replay();
+		public void discard();
+		public bool enabled { get; }
+		public signal void discarded ();
+	}
 	[CCode (cheader_filename = "gtk/gtk.h", type_id = "gtk_event_controller_focus_get_type ()")]
 	public class EventControllerFocus : Gtk.EventController {
 		[CCode (has_construct_function = false, type = "GtkEventController*")]

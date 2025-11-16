@@ -223,11 +223,12 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     private void
     filter_view_init() {
-        this.filter_entry.bind_property("text", this.filter_view, "query", SYNC_CREATE);
-        this.notify["filter-view-enabled"].connect((v, pspec) => {
-            if (!this.filter_view_enabled) {
-                this.filter_entry.text = "";
-            }
+        var buffer_controller = new Gtk.EventControllerBuffer();
+        buffer_controller.propagation_phase = CAPTURE;
+        buffer_controller.discarded.connect(() => {
+            // Queued commands are effectively the same as buffered input.
+            // If we lose the input buffer then commands should also be dropped.
+            this.filter_entry_clear_commands();
         });
 
         var cancel_controller = new Gtk.ShortcutController();
@@ -240,29 +241,19 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
                 // without having to wait until it finishes.  Usually we want
                 // to wait until BUBBLE so that the input method can get a
                 // chance to consume it first.
-                // TODO if (buffer_controller.enabled) {
+                if (buffer_controller.enabled) {
                     this.filter_view_enabled = false;
-                // TODO }
+                }
                 return false;
             })
         ));
-        this.filter_entry.add_controller(cancel_controller);
-
-        // TODO var buffer_controller = new Gtk.EventControllerBuffer();
-        // TODO buffer_controller.propagation_phase = CAPTURE;
-        // TODO buffer_controller.discarded.connect(() => {
-        // TODO     // Queued commands are effectively the same as buffered input.
-        // TODO     // If we lose the input buffer then commands should also be dropped.
-        // TODO     this.filter_view_clear_commands();
-        // TODO });
-        // TODO this.filter_entry.add_controller(buffer_controller);
 
         var shortcut_controller = new Gtk.ShortcutController();
         shortcut_controller.add_shortcut(new Gtk.Shortcut(
             Gtk.ShortcutTrigger.parse_string("Enter"),
             new Gtk.CallbackAction(() => {
                 return_val_if_fail(!this.filter_entry_submit, false);  // Should be caught by buffer.
-                // buffer_controller.begin();
+                buffer_controller.enable();
                 this.filter_entry_submit = true;
 
                 return true;
@@ -286,12 +277,31 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
                 return true;
             })
         ));
+
+        // The order here is important.  The cancel controller must be able to
+        // intercept events before they are buffered.  The shortcut controller
+        // must not receive events until after they are released.
+        this.filter_entry.add_controller(cancel_controller);
+        this.filter_entry.add_controller(buffer_controller);
         this.filter_entry.add_controller(shortcut_controller);
+
+        this.filter_entry.bind_property("text", this.filter_view, "query", SYNC_CREATE);
+        this.filter_entry.notify["text"].connect((fe, pspec) => {
+            // Buffered keyboard events will have happened before whatever
+            // changed the entry (for example, a careful middle click paste)
+            // and so can't be replayed after.
+            buffer_controller.discard();
+        });
+        this.notify["filter-view-enabled"].connect((v, pspec) => {
+            if (!this.filter_view_enabled) {
+                this.filter_entry.text = "";
+            }
+        });
 
         this.filter_view.notify["loading"].connect((fv, pspec) => {
             if (!this.filter_view.loading) {
                 this.filter_entry_play_commands();
-                // TODO buffer_controller.end();
+                buffer_controller.replay();
             }
         });
 
