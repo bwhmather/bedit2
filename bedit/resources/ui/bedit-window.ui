@@ -124,15 +124,9 @@
           </object>
         </child>
         <property name="content">
-          <object class="GtkBox">
-            <property name="orientation">vertical</property>
+          <object class="BrkTabView" id="tab_view">
             <property name="vexpand">true</property>
             <property name="valign">fill</property>
-            <child>
-              <object class="BrkTabView" id="tab_view">
-                <property name="vexpand">true</property>
-              </object>
-            </child>
           </object>
         </property>
         <child type="bottom">
