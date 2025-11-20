@@ -35,6 +35,7 @@ gtksourceview_dep = dependency(
   default_options: [
     'introspection=enabled',
     'vapi=true',
+    'build-tests=false',
     'build-testsuite=false',
     'werror=false',
   ],
