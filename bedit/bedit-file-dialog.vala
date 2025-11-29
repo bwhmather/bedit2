@@ -73,7 +73,10 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
     /* === Views ========================================================================================== */
 
     [GtkChild]
-    private unowned Brk.ToolbarView main_view;
+    private unowned Brk.ToolbarView outer_view;
+
+    [GtkChild]
+    private unowned Brk.ToolbarView inner_view;
 
     [GtkChild]
     private unowned Gtk.Entry location_entry;
@@ -173,7 +176,28 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
             }
             return false;
         });
-        this.main_view.add_controller(event_controller);
+        this.outer_view.add_controller(event_controller);
+
+        var filter_focus_controller = new Gtk.EventControllerFocus();
+        filter_focus_controller.leave.connect(() => {
+            this.filter_view_enabled = false;
+        });
+        this.inner_view.add_controller(filter_focus_controller);
+
+        var filter_cancel_controller = new Gtk.ShortcutController();
+        filter_cancel_controller.add_shortcut(new Gtk.Shortcut(
+            Gtk.ShortcutTrigger.parse_string("Escape"),
+            new Gtk.CallbackAction(() => {
+                // Partially duplicated on filter entry to capture Escape
+                // during CAPTURE phasee when buffering enabled.
+                if (this.filter_view_enabled) {
+                    this.filter_view_enabled = false;
+                    return true;
+                }
+                return false;
+            })
+        ));
+        this.inner_view.add_controller(filter_cancel_controller);
     }
 
     /* --- Filter View ------------------------------------------------------------------------------------ */
@@ -243,6 +267,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
                 // chance to consume it first.
                 if (buffer_controller.enabled) {
                     this.filter_view_enabled = false;
+                    return true;
                 }
                 return false;
             })

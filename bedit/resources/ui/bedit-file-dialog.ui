@@ -6,7 +6,7 @@
     <property name="default-width">640</property>
     <property name="default-height">480</property>
     <child>
-      <object class="BrkToolbarView">
+      <object class="BrkToolbarView" id="outer_view">
         <property name="content">
           <object class="GtkPaned">
             <property name="hexpand">true</property>
@@ -20,7 +20,7 @@
               </object>
             </child>
             <child>
-              <object class="BrkToolbarView" id="main_view">
+              <object class="BrkToolbarView" id="inner_view">
                 <child type="top">
                   <object class="BrkToolbar">
                     <child>
@@ -145,7 +145,7 @@
             <child type="end">
               <object class="GtkButton">
                 <property name="label">Cancel</property>
-                <property name="action-name">cancel</property>
+                <property name="action-name">window.close</property>
               </object>
             </child>
             <child type="end">
