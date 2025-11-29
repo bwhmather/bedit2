@@ -317,18 +317,29 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
             // and so can't be replayed after.
             buffer_controller.discard();
         });
-        this.notify["filter-view-enabled"].connect((v, pspec) => {
-            if (!this.filter_view_enabled) {
-                this.filter_entry.text = "";
-            }
-        });
-
         this.filter_view.notify["loading"].connect((fv, pspec) => {
             if (!this.filter_view.loading) {
                 this.filter_entry_play_commands();
                 buffer_controller.replay();
             }
         });
+
+        this.notify["filter-view-enabled"].connect((v, pspec) => {
+            if (!this.filter_view_enabled) {
+                // Clear the filter entry text so that next time filter view is
+                // enabled it can start from a clean slate.
+                this.filter_entry.text = "";
+            }
+        });
+        this.filter_entry.notify["text"].connect((fe, pspec) => {
+            if (this.filter_entry.text == "") {
+                // Exit filter view when text is deleted.  This won't be
+                // triggered on entering filter view as entry is cleared while
+                // closed.
+                this.filter_view_enabled = false;
+            }
+        });
+
 
         // Settings.
         this.bind_property("root-directory", this.filter_view, "root-directory", SYNC_CREATE);
