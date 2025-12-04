@@ -328,6 +328,11 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
             // and so can't be replayed after.
             buffer_controller.discard();
         });
+        this.filter_entry.notify["cursor-position"].connect((fe, pspec) => {
+            // Likewise, replaying events after moving the cursor would cause
+            // text to be entered in the wrong place.
+            buffer_controller.discard();
+        });
         this.filter_view.notify["loading"].connect((fv, pspec) => {
             if (!this.filter_view.loading) {
                 this.filter_entry_play_commands();
