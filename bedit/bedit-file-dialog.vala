@@ -192,12 +192,23 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
                 // during CAPTURE phasee when buffering enabled.
                 if (this.filter_view_enabled) {
                     this.filter_view_enabled = false;
+                    this.view_stack.grab_focus();
                     return true;
                 }
                 return false;
             })
         ));
         this.inner_view.add_controller(filter_cancel_controller);
+
+        var cancel_controller = new Gtk.ShortcutController();
+        cancel_controller.add_shortcut(new Gtk.Shortcut(
+            Gtk.ShortcutTrigger.parse_string("Escape"),
+            new Gtk.CallbackAction(() => {
+                this.close();
+                return true;
+            })
+        ));
+        this.outer_view.add_controller(cancel_controller);
     }
 
     /* --- Filter View ------------------------------------------------------------------------------------ */

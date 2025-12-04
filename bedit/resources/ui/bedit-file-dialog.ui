@@ -9,6 +9,7 @@
       <object class="BrkToolbarView" id="outer_view">
         <property name="content">
           <object class="GtkPaned">
+            <property name="focusable">false</property>
             <property name="hexpand">true</property>
             <property name="vexpand">true</property>
             <child>
