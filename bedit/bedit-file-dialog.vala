@@ -381,13 +381,13 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
             }
         });
         this.notify["filter-view-enabled"].connect((v, pspec) => {
-            if (this.view_mode == LIST && !this.filter_view_enabled) {
+            if (this.view_mode == LIST) {
                 // Resync selection to match list view when coming out of filter mode.
                 this.selection = this.list_view.selection;
             }
         });
         this.list_view.notify["selection"].connect((v, pspec) => {
-            if (this.view_mode == LIST && !this.filter_view_enabled) {
+            if (this.view_mode == LIST) {
                 // Sync selection to match list view when list view visible.
                 this.selection = this.list_view.selection;
             }
