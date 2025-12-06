@@ -94,6 +94,9 @@ internal sealed class Bedit.FileDialogListView : Gtk.Widget {
         } else {
             this.selection_model = new Gtk.SingleSelection(this.directory_list);
         }
+        this.selection_model.selection_changed.connect((sm, p, n_items) => {
+            this.notify_property("selection");
+        });
         this.selection = saved_selection;
     }
 
@@ -130,12 +133,8 @@ internal sealed class Bedit.FileDialogListView : Gtk.Widget {
                     this.pending_selection.remove_all();
                 }
             });
-
         });
 
-        this.selection_model.selection_changed.connect((sm, p, n_items) => {
-            this.notify_property("selection");
-        });
     }
 
     /* === View =========================================================================================== */
