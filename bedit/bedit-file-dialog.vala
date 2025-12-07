@@ -8,41 +8,22 @@ private enum Bedit.FileDialogViewMode {
     ICON,
     TREE
 }
-/*
-private sealed class Bedit.FileDialogState : GLib.Object {
-    // Application state.
+
+private sealed class Bedit.FileDialogState {
     public Bedit.FileDialogViewMode view_mode;
 
-    public bool show_binary { get; set; }
-    public bool show_hidden { get; set; }
+    // Common to all views.
+    public bool show_binary;
+    public bool show_hidden;
 
-    // Window state.
-    // Shared state.
-    public GLib.File root_directory; // Path to root folder under mount.
+    public GLib.File root_directory;
 
     // Tree view specific.
     public string[] expanded;  // Sorted list of expanded directories under the current mount.
 
     // List view specific.
     public string[] sort_columns;
-
-    public Bedit.FileDialogState
-    dup() {
-    }
 }
-*/
-//state: map[windowId]FileDialogState
-
-
-// On begin:
-// Try to load state.
-// Fall back to creating a new state with the passed in root folder.
-// Fall back to creating a new state from the home directory.
-
-
-// On end:
-// Set or update saved state for window.
-
 
 private sealed class Bedit.FileDialogPathBar : Gtk.Widget {
     public GLib.File root_directory { get; set; }
@@ -483,10 +464,20 @@ sealed class Bedit.FileDialog : GLib.Object {
         var window = new Bedit.FileDialogWindow();
         window.set_transient_for(parent);
 
-        window.root_directory =  GLib.File.new_for_path("/usr/include");
-        window.view_mode = LIST;
-        window.sort_columns = {};
-        window.expanded = {};
+        Bedit.FileDialogState? state = parent.get_data("bedit-file-dialog-state");
+        if (state != null) {
+            window.view_mode = state.view_mode;
+            window.show_binary = state.show_binary;
+            window.show_hidden = state.show_hidden;
+            window.root_directory =  state.root_directory;
+            window.expanded = {};
+            window.sort_columns = {};
+        } else {
+            window.view_mode = LIST;
+            window.root_directory =  GLib.File.new_for_path("/usr/include");
+            window.expanded = {};
+            window.sort_columns = {};
+        }
 
         GLib.File? result = null;
         bool done = false;
@@ -514,6 +505,17 @@ sealed class Bedit.FileDialog : GLib.Object {
         });
         window.present();
         yield;
+
+
+        var new_state = new FileDialogState() {
+            view_mode = window.view_mode,
+            show_binary = window.show_binary,
+            show_hidden = window.show_hidden,
+            root_directory = window.root_directory,
+            expanded = null,
+            sort_columns = null,
+        };
+        parent.set_data("bedit-file-dialog-state", new_state);
 
         if (cancellable.is_cancelled()) {
             throw new GLib.IOError.CANCELLED("open cancelled");
