@@ -227,7 +227,9 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
         if (this.filter_entry_submit) {
 
         }
-        this.filter_entry_clear_commands();
+
+        this.filter_entry_navigate = null;
+        this.filter_entry_submit = false;
     }
 
 
