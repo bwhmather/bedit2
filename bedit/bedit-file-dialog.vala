@@ -261,16 +261,6 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
         var shortcut_controller = new Gtk.ShortcutController();
         shortcut_controller.add_shortcut(new Gtk.Shortcut(
-            Gtk.ShortcutTrigger.parse_string("Enter"),
-            new Gtk.CallbackAction(() => {
-                return_val_if_fail(!this.filter_entry_submit, false);  // Should be caught by buffer.
-                buffer_controller.enable();
-                this.filter_entry_submit = true;
-
-                return true;
-            })
-        ));
-        shortcut_controller.add_shortcut(new Gtk.Shortcut(
             Gtk.ShortcutTrigger.parse_string("Up"),
             new Gtk.CallbackAction(() => {
                 return_val_if_fail(!this.filter_entry_submit, false);  // Should be caught by buffer.
@@ -295,6 +285,13 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
         this.filter_entry.add_controller(cancel_controller);
         this.filter_entry.add_controller(buffer_controller);
         this.filter_entry.add_controller(shortcut_controller);
+
+        this.filter_entry.activate.connect(() => {
+            return_if_fail(!this.filter_entry_submit);  // Should be caught by buffer.
+            buffer_controller.enable();
+            this.filter_entry_submit = true;
+            this.filter_entry_play_commands();
+        });
 
         this.filter_entry.bind_property("text", this.filter_view, "query", SYNC_CREATE);
         this.filter_entry.notify["text"].connect((fe, pspec) => {
