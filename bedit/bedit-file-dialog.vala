@@ -159,12 +159,6 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
         });
         this.outer_view.add_controller(event_controller);
 
-        var filter_focus_controller = new Gtk.EventControllerFocus();
-        filter_focus_controller.leave.connect(() => {
-            this.filter_view_enabled = false;
-        });
-        this.inner_view.add_controller(filter_focus_controller);
-
         var filter_cancel_controller = new Gtk.ShortcutController();
         filter_cancel_controller.add_shortcut(new Gtk.Shortcut(
             Gtk.ShortcutTrigger.parse_string("Escape"),
