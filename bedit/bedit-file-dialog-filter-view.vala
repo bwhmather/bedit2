@@ -22,6 +22,7 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
     public bool show_hidden { get; set; }
 
     public bool loading { get; private set; default = false; }
+    public GLib.FileInfo? selection { get { return this.selection_model.selected_item as GLib.FileInfo?; }}
 
     private GLib.ListStore list_store;
     private Gtk.SingleSelection selection_model;
@@ -280,6 +281,9 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
     construct {
         this.list_store = new GLib.ListStore(typeof(GLib.FileInfo));
         this.selection_model = new Gtk.SingleSelection(this.list_store);
+        this.selection_model.notify["selected-item"].connect((sm, pspec) => {
+            this.notify_property("selection");
+        });
 
         this.notify["root-directory"].connect((fv, pspec) => {
             this.query_stack_truncate(0);
@@ -303,7 +307,6 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
             this.update();
         });
         this.update();
-
 
         this.view_init();
     }

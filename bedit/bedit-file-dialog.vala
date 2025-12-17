@@ -115,7 +115,16 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     private void
     action_open() {
-        this.open(this.selection.get_item(0) as GLib.File);
+        GLib.FileInfo? selection;
+        if (this.filter_view_enabled) {
+            selection = this.filter_view.selection;
+        } else {
+            selection = this.selection.get_item(0) as GLib.FileInfo?;
+        }
+        if (selection != null) {
+            var selected_file = selection.get_attribute_object("standard::file") as GLib.File;
+            this.open(selected_file);
+        }
     }
 
     private void
@@ -132,10 +141,10 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
         var open_action = new GLib.SimpleAction("open", null);
         open_action.activate.connect(this.action_open);
         this.dialog_actions.add_action(open_action);
-        this.notify["selection"].connect((d, pspec) => {
-            open_action.set_enabled(this.selection.get_n_items() > 0);
-        });
-        open_action.set_enabled(this.selection.get_n_items() > 0);
+        //this.notify["selection"].connect((d, pspec) => {
+        //    open_action.set_enabled(this.selection.get_n_items() > 0);
+        //});
+        //open_action.set_enabled(this.selection.get_n_items() > 0);
 
         this.notify["filter-view-enabled"].connect(this.view_stack_update_visible_child);
         this.notify["view-mode"].connect(this.view_stack_update_visible_child);
@@ -225,7 +234,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
             }
         }
         if (this.filter_entry_submit) {
-
+            this.activate_action("dialog.open", null);
         }
 
         this.filter_entry_navigate = null;
