@@ -123,7 +123,17 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
         }
         if (selection != null) {
             var selected_file = selection.get_attribute_object("standard::file") as GLib.File;
-            this.open(selected_file);
+            var file_type = selection.get_file_type();
+            switch (file_type) {
+            case REGULAR:
+                this.open(selected_file);
+                return;
+            case DIRECTORY:
+                this.root_directory = selected_file;
+                return;
+            default:
+                return;
+            }
         }
     }
 
@@ -339,6 +349,9 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
             }
         });
 
+        this.notify["root-directory"].connect((fd, pspec) => {
+            this.filter_view_enabled = false;
+        });
 
         // Settings.
         this.bind_property("root-directory", this.filter_view, "root-directory", SYNC_CREATE);
