@@ -47,7 +47,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     public signal void open(GLib.File result);
 
-    public GLib.ListModel selection { get; set; default=new GLib.ListStore(typeof (GLib.File)); }
+    public GLib.ListModel selection { get; set; default=new GLib.ListStore(typeof (GLib.FileInfo)); }
 
     public GLib.SimpleActionGroup dialog_actions = new GLib.SimpleActionGroup();
 

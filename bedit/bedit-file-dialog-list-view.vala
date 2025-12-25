@@ -39,23 +39,21 @@ internal sealed class Bedit.FileDialogListView : Gtk.Widget {
 
     internal Gtk.SelectionModel selection_model { get; set; default = new Gtk.NoSelection(null); }
     // Files that should be in the current selection but haven't been loaded into the directory list yet.
-    private GLib.HashTable<GLib.File, void *> pending_selection = new GLib.HashTable<GLib.File, void *>(GLib.File.hash, GLib.File.equal);
+    private GLib.HashTable<GLib.File, void *> pending_selection = new GLib.HashTable<GLib.File, GLib.FileInfo>(GLib.File.hash, GLib.File.equal);
 
     public GLib.ListModel selection {
         owned get {
             // Note that we use the selection model rather than the directory list.  This is to allow us to
             // read the old selection when swapping out directory lists.
             var list_model = this.selection_model as GLib.ListModel;
-            var result = new GLib.ListStore(typeof(GLib.File));
+            var result = new GLib.ListStore(typeof(GLib.FileInfo));
             for (var i = 0; i < list_model.get_n_items(); i++) {
                 if (this.selection_model.is_selected(i)) {
-                    var fileinfo = this.selection_model.get_item(i) as GLib.FileInfo;
-                    var file = fileinfo.get_attribute_object("standard::file") as GLib.File;
-                    result.append(file);
+                    result.append(this.selection_model.get_item(i) as GLib.FileInfo);
                 }
             }
-            pending_selection.foreach((file, _) => {
-                result.append(file);
+            pending_selection.foreach((_, fileinfo) => {
+                result.append(fileinfo as GLib.FileInfo);
             });
             return (owned) result;
         }
@@ -63,7 +61,8 @@ internal sealed class Bedit.FileDialogListView : Gtk.Widget {
             this.pending_selection.remove_all();
             var root_directory = this.directory_list.file;
             for (var i = 0; i < (value != null? value.get_n_items() : 0); i++) {
-                var file = value.get_item(i) as GLib.File;
+                var fileinfo = value.get_item(i) as GLib.FileInfo;
+                var file = fileinfo.get_attribute_object("standard::file") as GLib.File;
                 if (!file.has_parent(root_directory)) {
                     // File not visible in current state of view.  Only safe thing to do is to clear the
                     // entire selection.  Silently dropping just some files from the selection or worse
@@ -71,7 +70,7 @@ internal sealed class Bedit.FileDialogListView : Gtk.Widget {
                     this.pending_selection.remove_all();
                     break;
                 }
-                this.pending_selection[file] = null;
+                this.pending_selection[file] = fileinfo;
             }
             var selected = new Gtk.Bitset.empty();
             var mask = new Gtk.Bitset.range(0, this.directory_list.n_items);
