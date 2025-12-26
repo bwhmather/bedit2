@@ -571,6 +571,38 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.bind_property("show-right-margin", this.source_view, "show-right-margin", SYNC_CREATE);
     }
 
+    /* --- Quick Highlight -------------------------------------------------------------------------------- */
+
+    private GtkSource.SearchContext? highlight_context;
+    private GLib.Cancellable? highlight_cancellable;
+
+    private void
+    highlight_init() {
+        var insert = this.source_buffer.get_insert();
+        this.source_buffer.mark_set.connect(() => {
+            if (mark == this.source_buffer.get_insert()) {
+            }
+        });
+
+        this.source_buffer.delete_range.connect(() => {
+
+        });
+
+
+        plugin->priv->mark_set_handler_id = g_signal_connect(
+            plugin->priv->buffer, "mark-set",
+            G_CALLBACK(bedit_quick_highlight_plugin_mark_set_cb), plugin
+        );
+
+        plugin->priv->delete_range_handler_id = g_signal_connect(
+            plugin->priv->buffer, "delete-range",
+            G_CALLBACK(bedit_quick_highlight_plugin_delete_range_cb), plugin
+        );
+
+    }
+
+
+
     /* === Navigation ===================================================================================== */
 
     private Gtk.TextMark? start_mark;
