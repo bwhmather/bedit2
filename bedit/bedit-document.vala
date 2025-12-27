@@ -168,6 +168,7 @@ public sealed class Bedit.Document : Gtk.Widget {
     public void
     undo() {
         this.source_buffer.undo();
+        this.scroll_to_cursor();
     }
 
     public bool can_redo { get; private set; }
@@ -175,6 +176,7 @@ public sealed class Bedit.Document : Gtk.Widget {
     public void
     redo() {
         this.source_buffer.redo();
+        this.scroll_to_cursor();
     }
 
     public bool can_cut { get; private set; }
