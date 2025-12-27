@@ -509,7 +509,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.bind_property("highlight-current-line", this.source_view, "highlight-current-line", SYNC_CREATE);
     }
 
-    /* --- Highlight Current Line ------------------------------------------------------------------------- */
+    /* --- Highlight Syntax ------------------------------------------------------------------------------- */
 
     public bool highlight_syntax { get; set; }
 
@@ -517,6 +517,70 @@ public sealed class Bedit.Document : Gtk.Widget {
     highlight_syntax_init() {
         this.settings.bind("highlight-syntax", this, "highlight-syntax", GET);
         this.bind_property("highlight-syntax", this.source_buffer, "highlight-syntax", SYNC_CREATE);
+    }
+
+    /* --- Quick Highlight -------------------------------------------------------------------------------- */
+
+    public bool highlight_selection { get; set; }
+
+    private GtkSource.SearchContext? highlight_selected_context;
+    private uint highlight_selected_timeout_id;
+
+    private void
+    highlight_selected_update() {
+        if (this.highlight_selected_timeout_id != 0) {
+            return;
+        }
+
+        this.highlight_selected_timeout_id = GLib.Idle.add_full(GLib.Priority.LOW, () => {
+            this.highlight_selected_timeout_id = 0;
+
+            var selection = this.get_selection();
+            if (selection == null || selection.length == 0) {
+                this.highlight_selected_context = null;
+                return GLib.Source.REMOVE;
+            }
+
+            if (!this.highlight_selection) {
+                this.highlight_selected_context = null;
+                return GLib.Source.REMOVE;
+            }
+
+            if (this.highlight_selected_context == null) {
+                this.highlight_selected_context = new GtkSource.SearchContext(this.source_buffer, null);
+            }
+
+            var settings = this.highlight_selected_context.settings;
+            settings.search_text = selection;
+            settings.regex_enabled = false;
+            settings.case_sensitive = true;
+
+            return GLib.Source.REMOVE;
+        });
+    }
+
+    private void
+    highlight_selected_init() {
+        this.settings.bind("highlight-selection", this, "highlight-selection", GET);
+        this.notify["highlight-selection"].connect(() => {
+            this.highlight_selected_update();
+        });
+
+        this.source_buffer.mark_set.connect((b, loc, mark) => {
+            if (mark == this.source_buffer.get_insert()) {
+                this.highlight_selected_update();
+            }
+        });
+
+        this.source_buffer.delete_range.connect(() => {
+            this.highlight_selected_update();
+        });
+
+        this.destroy.connect(() => {
+            if (this.highlight_selected_timeout_id != 0) {
+                GLib.Source.remove(this.highlight_selected_timeout_id);
+            }
+        });
     }
 
     /* --- Line Numbers ----------------------------------------------------------------------------------- */
@@ -570,38 +634,6 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.settings.bind("show-right-margin", this, "show-right-margin", GET);
         this.bind_property("show-right-margin", this.source_view, "show-right-margin", SYNC_CREATE);
     }
-
-    /* --- Quick Highlight -------------------------------------------------------------------------------- */
-
-    private GtkSource.SearchContext? highlight_context;
-    private GLib.Cancellable? highlight_cancellable;
-
-    private void
-    highlight_init() {
-        var insert = this.source_buffer.get_insert();
-        this.source_buffer.mark_set.connect(() => {
-            if (mark == this.source_buffer.get_insert()) {
-            }
-        });
-
-        this.source_buffer.delete_range.connect(() => {
-
-        });
-
-
-        plugin->priv->mark_set_handler_id = g_signal_connect(
-            plugin->priv->buffer, "mark-set",
-            G_CALLBACK(bedit_quick_highlight_plugin_mark_set_cb), plugin
-        );
-
-        plugin->priv->delete_range_handler_id = g_signal_connect(
-            plugin->priv->buffer, "delete-range",
-            G_CALLBACK(bedit_quick_highlight_plugin_delete_range_cb), plugin
-        );
-
-    }
-
-
 
     /* === Navigation ===================================================================================== */
 
@@ -1080,6 +1112,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         right_margin_init();
         highlight_current_line_init();
         highlight_syntax_init();
+        highlight_selected_init();
         line_numbers_init();
         start_mark_init();
         search_init();
