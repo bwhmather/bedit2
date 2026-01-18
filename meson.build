@@ -18,6 +18,7 @@ gtk_dep = dependency(
   'gtk4',
   default_options: [
     'introspection=enabled',
+    'media-gstreamer=disabled',
     'build-demos=false',
     'build-examples=false',
     'build-testsuite=false',
@@ -63,6 +64,7 @@ add_project_arguments(
   '--vapidir=' + meson.source_root() + '/vapi/',
   '--pkg', 'config',
   '--pkg', 'gtk4',
+  '--pkg', 'gtksourceview-5',
   '--enable-deprecated',
   language: 'vala'
 )
