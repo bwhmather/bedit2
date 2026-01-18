@@ -1,0 +1,4 @@
+*
+!.gitignore
+!gtk.wrap
+!gtksourceview.wrap
