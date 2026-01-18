@@ -3,4 +3,6 @@
 
 # Bedit
 
-A tabbed text editor using [libbricks](https://github.com/bwhmather/libbricks).  Think Gnome 2 Gedit but written using GTK4.
+A traditional tabbed text editor in the spirit of mousepad or gedit using [libbricks](https://github.com/bwhmather/libbricks) and [GTK4](https://gitlab.gnome.org/GNOME/gtk).
+
+
