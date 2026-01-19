@@ -438,6 +438,10 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
         this.tree_view_init();
 
         this.insert_action_group("dialog", this.dialog_actions);
+
+        this.map.connect(() => {
+            this.view_stack.grab_focus();
+        });
     }
 
     public override void

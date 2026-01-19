@@ -1012,6 +1012,13 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.selection_actions_init();
         this.search_init();
         this.tab_view_init();
+
+        this.map.connect(() => {
+            if (this.active_document != null) {
+                this.active_document.grab_focus();
+            }
+        });
+
     }
 
     public override void
