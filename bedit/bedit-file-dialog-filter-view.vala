@@ -51,16 +51,17 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
             int n = 0;
             string remainder = query[:];
 
-            string subquery = "";
+            string subquery = null;
             if (remainder.has_prefix("~/")) {
                 root = GLib.File.new_for_path(GLib.Environment.get_home_dir());
-                subquery = "~/";
+                subquery = "~";
                 remainder = remainder[2:];
             } else if (remainder.has_prefix("./")) {
+                subquery = ".";
                 remainder = remainder[2:];
             } else if (remainder.has_prefix("/")) {
                 root = GLib.File.new_for_path("/");
-                subquery = "/";
+                subquery = "";
                 remainder = remainder[1:];
             }
             if (root == null) {
@@ -78,7 +79,11 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
                 var rootinfo = yield root.query_info_async(
                     ATTRIBUTES, NONE, GLib.Priority.DEFAULT, cancellable
                 );
+
                 rootinfo.set_attribute_object("standard::file", root);
+
+                string markup = subquery == null ? "" : GLib.Markup.printf_escaped("<b>%s</b>", subquery);
+                rootinfo.set_attribute_string("bedit::markup", markup);
 
                 this.query_stack.resize(n + 1);
                 this.query_stack[n].subquery = subquery;
@@ -131,6 +136,9 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
                             ATTRIBUTES, NONE, GLib.Priority.DEFAULT, cancellable
                         );
                         parentinfo.set_attribute_object("standard::file", parent);
+
+                        string markup = matchinfo.get_attribute_string("bedit::markup");
+                        parentinfo.set_attribute_string("bedit::markup", markup != "" ? markup + "<b>/..</b>" : "<b>..</b>");
 
                         matches += parentinfo;
                         last_parent = parent;
@@ -186,6 +194,7 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
                 // directory.
 
                 GLib.FileInfo[] matches = {};
+                var parent_index = 0;
                 foreach (var candidate in candidates) {
                     if (!show_hidden && candidate.get_is_hidden()) {
                         continue;
@@ -195,7 +204,27 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
                     if (!name.has_prefix(subquery)) {
                         continue;
                     }
-                    matches += candidate;
+
+                    // We need to dup in order to invalidate the list view items.
+                    var match = candidate.dup();
+                    var file = match.get_attribute_object("standard::file") as GLib.File;
+
+                    string markup = "";
+                    while (true) {
+                        var parentinfo = this.query_stack[n - 1].matches[parent_index];
+                        var parentfile = parentinfo.get_attribute_object("standard::file") as GLib.File;
+                        if (parentfile.equal(file.get_parent())) {
+                            markup = parentinfo.get_attribute_string("bedit::markup");
+                            break;
+                        }
+                        parent_index++;
+                    }
+
+                    markup = markup == "" ? "" : markup + "<b>/</b>";
+                    markup = markup + GLib.Markup.printf_escaped("<b>%s</b>%s", subquery, name[subquery.length:]);
+                    match.set_attribute_string("bedit::markup", markup);
+
+                    matches += match;
                 }
 
                 // Changing a stack entry invalidates all higher entries.
@@ -265,7 +294,7 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
             var listitem = (Gtk.ListItem) listitem_;
             Gtk.Label label = (Gtk.Label) listitem.child;
             GLib.FileInfo info = (GLib.FileInfo) listitem.item;
-            label.label = info.get_display_name();
+            label.set_markup(info.get_attribute_string("bedit::markup"));
         });
         this.list_view.factory = factory;
 
