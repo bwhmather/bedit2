@@ -16,7 +16,7 @@ internal sealed class Bedit.FileDialogListView : Gtk.Widget {
         get {
             if (this._directory_list == null) {
                 this._directory_list = new Gtk.DirectoryList(
-                    "standard::display-name,standard::size,time::modified,standard::type",
+                    "standard::icon,standard::display-name,standard::size,time::modified,standard::type",
                     null
                 );
             }
@@ -155,15 +155,12 @@ internal sealed class Bedit.FileDialogListView : Gtk.Widget {
         var factory = new Gtk.SignalListItemFactory();
         factory.setup.connect((listitem_) => {
             var listitem = (Gtk.ListItem) listitem_;
-            var label = new Gtk.Label("");
-            label.halign = START;
-            listitem.child = label;
+            listitem.child = new Bedit.FileThumbnail();
         });
         factory.bind.connect((listitem_) => {
             var listitem = (Gtk.ListItem) listitem_;
-            Gtk.Label label = (Gtk.Label) listitem.child;
-            GLib.FileInfo info = (GLib.FileInfo) listitem.item;
-            label.label = info.get_display_name();
+            var thumbnail = (Bedit.FileThumbnail) listitem.child;
+            thumbnail.fileinfo = (GLib.FileInfo) listitem.item;
         });
         this.name_column.factory = factory;
 

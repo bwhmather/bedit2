@@ -3,6 +3,7 @@
  *
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
+
 private enum Bedit.FileDialogViewMode {
     LIST,
     ICON,
@@ -425,7 +426,7 @@ private sealed class Bedit.FileDialogWindow : Gtk.Window {
 
     construct {
         this.directory_list = new Gtk.DirectoryList(
-            "standard::display-name,standard::size,time::modified,standard::type",
+            "standard::icon,standard::display-name,standard::size,time::modified,standard::type",
             this.root_directory
         );
         directory_list.monitored = true;
@@ -493,7 +494,9 @@ sealed class Bedit.FileDialog : GLib.Object {
             window.sort_columns = {};
         } else {
             window.view_mode = LIST;
-            window.root_directory =  GLib.File.new_for_path("/usr/include");
+            window.root_directory = GLib.File.new_for_path(
+                GLib.Environment.get_current_dir()
+            );
             window.expanded = {};
             window.sort_columns = {};
         }

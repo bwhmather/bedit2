@@ -286,15 +286,12 @@ internal sealed class Bedit.FileDialogFilterView : Gtk.Widget {
         var factory = new Gtk.SignalListItemFactory();
         factory.setup.connect((listitem_) => {
             var listitem = (Gtk.ListItem) listitem_;
-            var label = new Gtk.Label("");
-            label.halign = START;
-            listitem.child = label;
+            listitem.child = new Bedit.FileThumbnail();
         });
         factory.bind.connect((listitem_) => {
             var listitem = (Gtk.ListItem) listitem_;
-            Gtk.Label label = (Gtk.Label) listitem.child;
-            GLib.FileInfo info = (GLib.FileInfo) listitem.item;
-            label.set_markup(info.get_attribute_string("bedit::markup"));
+            var thumbnail = (Bedit.FileThumbnail) listitem.child;
+            thumbnail.fileinfo = (GLib.FileInfo) listitem.item;
         });
         this.list_view.factory = factory;
 

@@ -163,6 +163,7 @@ bedit_sources = [
   'bedit/bedit-file-dialog-icon-view.vala',
   'bedit/bedit-file-dialog-list-view.vala',
   'bedit/bedit-file-dialog-tree-view.vala',
+  'bedit/bedit-file-thumbnail.vala',
   'bedit/bedit-fonts.vala',
   'bedit/bedit-preferences-window.vala',
   'bedit/bedit-window.vala',
