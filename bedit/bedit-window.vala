@@ -504,7 +504,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private async void
     do_open_experimental() throws Error {
-        var file_dialog = new Bedit.FileDialog();
+        var file_dialog = new Brk.FileDialog();
         var file = yield file_dialog.open(this, this.cancellable);
         if (file != null) {
             this.open_file(file);
