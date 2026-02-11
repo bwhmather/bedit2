@@ -80,6 +80,11 @@
       <summary>Tab Width</summary>
       <description>The width of a tabulation in characters.</description>
     </key>
+    <key name="auto-indent" type="b">
+      <default>true</default>
+      <summary>Auto-Indent</summary>
+      <description>Whether Bedit should start new lines with indentation based on the previous line.</description>
+    </key>
     <key name="trim-trailing-whitespace" type="b">
       <default>true</default>
       <summary>Trim Trailing Whitespace</summary>

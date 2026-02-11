@@ -392,6 +392,7 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     public uint tab_width { get; set; }
     public bool insert_spaces_instead_of_tabs { get; set; }
+    public bool auto_indent { get; set; }
 
     private void
     indentation_init() {
@@ -400,6 +401,9 @@ public sealed class Bedit.Document : Gtk.Widget {
 
         this.settings.bind("insert-spaces-instead-of-tabs", this, "insert-spaces-instead-of-tabs", GET);
         this.bind_property("insert-spaces-instead-of-tabs", this.source_view, "insert-spaces-instead-of-tabs", SYNC_CREATE);
+
+        this.settings.bind("auto-indent", this, "auto-indent", GET);
+        this.bind_property("auto-indent", this.source_view, "auto-indent", SYNC_CREATE);
     }
 
     /* --- Trim trailing whitespace ----------------------------------------------------------------------- */

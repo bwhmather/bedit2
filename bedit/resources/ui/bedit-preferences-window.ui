@@ -33,6 +33,7 @@
             <property name="title">Indentation</property>
             <!-- <key name="insert-spaces-instead-of-tabs" type="b"> -->
             <!-- <key name="tab-width" type="u"> -->
+            <!-- <key name="auto-indent" type="b"> -->
             <!-- <key name="trim-trailing-whitespace" type="b"> -->
           </object>
         </child>
