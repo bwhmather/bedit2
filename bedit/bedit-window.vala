@@ -601,6 +601,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     public bool regex { get; set; }
     public bool case_sensitive { get; set; default=true; }
 
+    public string search_error { get; private set; }
+    public string replace_error { get; private set; }
+
     private bool
     search_entry_on_key_press_event(Gtk.EventControllerKey controller, uint keyval, uint keycode, Gdk.ModifierType modifiers) {
         if ((keyval == Gdk.Key.ISO_Enter || keyval == Gdk.Key.KP_Enter || keyval == Gdk.Key.Return) && modifiers == 0){
@@ -785,12 +788,41 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
             replace_active = false;
         }
 
+        var search_error = "";
+        if (search_active && this.regex) {
+            try {
+                GLib.RegexCompileFlags compile_flags = MULTILINE;
+                if (!this.case_sensitive) {
+                    compile_flags |= CASELESS;
+                }
+                new GLib.Regex(search_text, compile_flags, NOTEMPTY);
+            } catch (Error err) {
+                search_active = false;
+                replace_active = false;
+                search_error = err.message;  // TODO parse error message
+            }
+        }
+        this.search_error = search_error;
+
+        var replace_error = "";
+        if (replace_active && this.regex) {
+            try {
+                GLib.Regex.check_replacement(this.replace_entry.text, null);
+                this.replace_error = "";
+            } catch (Error err) {
+                search_active = false;
+                replace_active = false;
+                replace_error = err.message;  // TODO parse error message
+            }
+        }
+        this.replace_error = replace_error;
+
         this.search_active = search_active;
         this.replace_active = replace_active;
 
         if (this.active_document != null) {
             if (this.search_active) {
-                this.active_document.find(this.search_entry.text, this.regex, this.case_sensitive);
+                this.active_document.find(search_text, this.regex, this.case_sensitive);
             } else {
                 this.active_document.clear_search();
             }
@@ -827,6 +859,13 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
             } else if (count > 1) {
                 message = "%i matches".printf(count);
             }
+        }
+
+        if (this.replace_error != "") {
+            message = this.replace_error;
+        }
+        if (this.search_error != "") {
+            message = this.search_error;
         }
 
         if (this.search_status_bar_context_id == 0) {
@@ -873,6 +912,23 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
         this.notify["search-active"].connect((s, pspec) => { this.search_actions_update(); });
         this.notify["replace-active"].connect((s, pspec) => { this.search_actions_update(); });
+
+        this.notify["search-error"].connect((s, pspec) => {
+            if (this.search_error != "") {
+                this.search_entry.add_css_class("error");
+             } else {
+                this.search_entry.remove_css_class("error");
+             }
+            this.search_update_status_bar();
+        });
+        this.notify["replace-error"].connect((s, pspec) => {
+            if (this.replace_error != "") {
+                this.replace_entry.add_css_class("error");
+            } else {
+                this.replace_entry.remove_css_class("error");
+            }
+            this.search_update_status_bar();
+        });
 
         this.active_document_notify_connect("num-search-occurrences", this.search_update_status_bar);
         this.active_document_notify_connect("selected-search-occurrence", this.search_update_status_bar);
@@ -1034,5 +1090,4 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
             show_menubar: true
         );
     }
-
 }
