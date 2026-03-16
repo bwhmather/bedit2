@@ -11,42 +11,122 @@
         <child>
           <object class="BrkPreferencesGroup">
             <property name="title">Display</property>
-            <!-- <key name="show-line-numbers" type="b"> -->
-            <!-- <key name="show-right-margin" type="b"> -->
-            <!-- <key name="right-margin-position" type="u"> -->
-            <!-- <key name="show-overview-map" type="b"> -->
-            <!-- <key name="show-toolbar" type="b"> -->
-            <!-- <key name="show-menubar" type="b"> -->
-            <!-- <key name="show-statusbar" type="b"> -->
+            <child>
+              <object class="BrkSwitchRow" id="show_line_numbers_row">
+                <property name="title">Show Line Numbers</property>
+                <property name="subtitle">Show line numbers at the side of the screen</property>
+              </object>
+            </child>
+            <child>
+              <object class="BrkSwitchRow" id="show_right_margin_row">
+                <property name="title">Show Right Margin</property>
+                <property name="subtitle">Draw a vertical line at a fixed column offset</property>
+              </object>
+            </child>
+            <child>
+              <object class="BrkSpinRow" id="right_margin_position_row">
+                <property name="title">Right Margin Position</property>
+                <property name="subtitle">Offset at which to draw the right margin, if enabled</property>
+              </object>
+            </child>
+            <child>
+              <object class="BrkSwitchRow" id="show_overview_map_row">
+                <property name="title">Show Overview Map</property>
+                <property name="subtitle">Show a miniature view of the document beside the editor</property>
+              </object>
+            </child>
+            <child>
+              <object class="BrkSwitchRow" id="show_toolbar_row">
+                <property name="title">Show Toolbar</property>
+                <property name="subtitle">Display the toolbar (containing shortcut buttons) at the top of the screen</property>
+              </object>
+            </child>
+            <child>
+              <object class="BrkSwitchRow" id="show_menubar_row">
+                <property name="title">Show Menubar</property>
+                <property name="subtitle">Display the menubar at the very top of the screen</property>
+              </object>
+            </child>
+            <child>
+              <object class="BrkSwitchRow" id="show_statusbar_row">
+                <property name="title">Show Statusbar</property>
+                <property name="subtitle">Display the statusbar at the bottom of the screen</property>
+              </object>
+            </child>
           </object>
         </child>
         <child>
           <object class="BrkPreferencesGroup">
             <property name="title">Highlighting</property>
-            <!-- <key name="highlight-selection" type="b"> -->
-            <!-- <key name="highlight-current-line" type="b"> -->
-            <!-- <key name="highlight-syntax" type="b"> -->
+            <child>
+              <object class="BrkSwitchRow" id="highlight_selection_row">
+                <property name="title">Highlight Matching Selection</property>
+                <property name="subtitle">Highlight areas that match the current selection</property>
+              </object>
+            </child>
+            <child>
+              <object class="BrkSwitchRow" id="highlight_current_line_row">
+                <property name="title">Highlight Current Line</property>
+                <property name="subtitle">Highlight the whole of the line containing the cursor</property>
+              </object>
+            </child>
+            <child>
+              <object class="BrkSwitchRow" id="highlight_syntax_row">
+                <property name="title">Highlight Syntax</property>
+                <property name="subtitle">Apply syntax highlighting</property>
+              </object>
+            </child>
           </object>
         </child>
         <child>
           <object class="BrkPreferencesGroup">
             <property name="title">Indentation</property>
-            <!-- <key name="insert-spaces-instead-of-tabs" type="b"> -->
-            <!-- <key name="tab-width" type="u"> -->
-            <!-- <key name="auto-indent" type="b"> -->
-            <!-- <key name="trim-trailing-whitespace" type="b"> -->
+            <child>
+              <object class="BrkSwitchRow" id="insert_spaces_instead_of_tabs_row">
+                <property name="title">Insert Spaces Instead of Tabs</property>
+                <property name="subtitle">Insert spaces instead of tabs when the tab key is pressed</property>
+              </object>
+            </child>
+            <child>
+              <object class="BrkSpinRow" id="tab_width_row">
+                <property name="title">Tab Width</property>
+                <property name="subtitle">The width of a tabulation in characters</property>
+              </object>
+            </child>
+            <child>
+              <object class="BrkSwitchRow" id="auto_indent_row">
+                <property name="title">Auto-Indent</property>
+                <property name="subtitle">Match indentation of the previous line</property>
+              </object>
+            </child>
+            <child>
+              <object class="BrkSwitchRow" id="trim_trailing_whitespace_row">
+                <property name="title">Trim Trailing Whitespace</property>
+                <property name="subtitle">Strip whitespace from the end of lines before saving</property>
+              </object>
+            </child>
           </object>
         </child>
         <child>
           <object class="BrkPreferencesGroup">
             <property name="title">Word Wrap</property>
-            <!-- <key name="word-wrap" type="b"> -->
+            <child>
+              <object class="BrkSwitchRow" id="word_wrap_row">
+                <property name="title">Word Wrap</property>
+                <property name="subtitle">Soft-wrap lines that extend beyond the visible area</property>
+              </object>
+            </child>
           </object>
         </child>
         <child>
           <object class="BrkPreferencesGroup">
             <property name="title">Spell Checking</property>
-            <!-- <key name="auto-check-spelling" type="b"> -->
+            <child>
+              <object class="BrkSwitchRow" id="auto_check_spelling_row">
+                <property name="title">Check Spelling Automatically</property>
+                <property name="subtitle">Check files for spelling errors in real time</property>
+              </object>
+            </child>
           </object>
         </child>
       </object>
@@ -58,7 +138,12 @@
         <child>
           <object class="BrkPreferencesGroup">
             <property name="title">Font</property>
-            <!-- <key name="use-default-font" type="b"> -->
+            <child>
+              <object class="BrkSwitchRow" id="use_default_font_row">
+                <property name="title">Use Default Font</property>
+                <property name="subtitle">Use the system monospace font instead of a custom one</property>
+              </object>
+            </child>
             <!-- <key name="editor-font" type="s"> -->
           </object>
         </child>
