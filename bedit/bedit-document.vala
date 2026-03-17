@@ -27,16 +27,143 @@ public sealed class Bedit.Document : Gtk.Widget {
     private unowned GtkSource.View source_view;
     private unowned GtkSource.Buffer source_buffer;
 
-    /* === Loading and Saving ============================================================================= */
+    /* === File State Tracking ============================================================================ */
 
-    private GLib.Cancellable filesystem_cancellable = new GLib.Cancellable();
-
-    private GtkSource.File source_file = new GtkSource.File();
-
-    public unowned GLib.File? file {
-        get { return this.source_file.location; }
-        construct { this.source_file.location = value; }
+    private GLib.File? _file;
+    public GLib.File? file {
+        get { return this._file; }
+        construct { this._file = value; }
     }
+
+    public GLib.Bytes? file_text { get; private set; }
+
+    private GLib.DateTime? file_text_mtime = null;
+    private GLib.Error? file_text_reload_error;
+    private SourceFunc? file_text_reload_active_cb;
+    private SourceFunc? file_text_reload_pending_cb;
+
+    private async void
+    file_text_reload_loop_async() {
+        while (this.file_text_reload_active_cb != null) {
+            var f = this.file;
+            if (f != null) {
+                GLib.DateTime? mtime = null;
+                try {
+                    var info = yield f.query_info_async(
+                        GLib.FileAttribute.TIME_MODIFIED,
+                        GLib.FileQueryInfoFlags.NONE,
+                        GLib.Priority.DEFAULT, null
+                    );
+                    mtime = info.get_modification_date_time();
+                } catch (Error err) {
+                    warning("Error: %s\n", err.message);
+                }
+
+                uint8[] text;
+                try {
+                    yield f.load_contents_async(null, out text, null);
+                    var new_file_text = new GLib.Bytes(text);
+                    var old_file_text = this.file_text;
+                    if (old_file_text == null || old_file_text.compare(new_file_text) != 0) {
+                        this.file_text = new_file_text;
+                    }
+                    this.file_text_mtime = mtime;
+                    this.file_text_reload_error = null;
+                } catch (Error e) {
+                    this.file_text = null;
+                    this.file_text_mtime = null;
+                    this.file_text_reload_error = e;
+                }
+            }
+
+            this.file_text_reload_active_cb();
+            this.file_text_reload_active_cb = (owned) this.file_text_reload_pending_cb;
+            this.file_text_reload_pending_cb = null;
+        }
+    }
+
+    private async void
+    file_text_force_reload_async() throws Error {
+        SourceFunc? prev = null;
+        if (this.file_text_reload_active_cb == null) {
+            this.file_text_reload_active_cb = this.file_text_force_reload_async.callback;
+            file_text_reload_loop_async.begin();
+        } else {
+            prev = this.file_text_reload_pending_cb;
+            this.file_text_reload_pending_cb = this.file_text_force_reload_async.callback;
+        }
+
+        yield;
+
+        if (prev != null) {
+            prev();
+        }
+        if (this.file_text_reload_error != null) {
+            throw this.file_text_reload_error;
+        }
+    }
+
+    private async void
+    file_text_reload_async() throws Error {
+        if (this.file == null) {
+            return;
+        }
+        if (this.file_text_mtime != null) {
+            try {
+                var info = yield this.file.query_info_async(
+                    GLib.FileAttribute.TIME_MODIFIED,
+                    GLib.FileQueryInfoFlags.NONE,
+                    GLib.Priority.DEFAULT, null
+                );
+                var mtime = info.get_modification_date_time();
+                if (mtime != null && this.file_text_mtime.compare(mtime) == 0) {
+                    return;
+                }
+            } catch (Error err) {
+                warning("Error: %s\n", err.message);
+            }
+        }
+
+        yield this.file_text_force_reload_async();
+    }
+
+    private async void
+    file_text_save_async(GLib.File target, uint8[] bytes) throws Error {
+        yield target.replace_contents_async(
+            bytes, null, false,
+            GLib.FileCreateFlags.NONE,
+            null,
+            null
+        );
+
+        if (this._file != target) {
+            this._file = target;
+            this.notify_property("file");
+        }
+
+        var new_file_text = new GLib.Bytes(bytes);
+        var old_file_text = this.file_text;
+        if (old_file_text == null || old_file_text.compare(new_file_text) != 0) {
+            this.file_text = new_file_text;
+        }
+
+        // Queue up a background reload to refresh mtime.
+        file_text_reload_async.begin();
+    }
+
+    private void
+    file_text_init() {
+        var focus_controller = new Gtk.EventControllerFocus();
+        focus_controller.enter.connect(() => {
+            if (this.file != null) {
+                this.file_text_reload_async.begin();
+            }
+        });
+        this.add_controller(focus_controller);
+    }
+
+    /* === Buffer Load / Save ============================================================================= */
+
     public bool modified { get; private set; }
 
     public signal void load();
@@ -52,27 +179,6 @@ public sealed class Bedit.Document : Gtk.Widget {
     private void
     update_busy() {
         this.busy = this.loading || this.saving;
-    }
-
-    public async void
-    save_async(GLib.File file) throws Error {
-        return_val_if_fail(!this.loading, false);
-        return_val_if_fail(!this.saving, false);
-
-        this.reload_bar.revealed = false;
-
-        this.saving = true;
-        this.save();
-
-        var source_saver = new GtkSource.FileSaver.with_target(this.source_buffer, this.source_file, file);
-        source_saver.flags = IGNORE_INVALID_CHARS | IGNORE_MODIFICATION_TIME;
-
-        try {
-            yield source_saver.save_async(Priority.DEFAULT, this.filesystem_cancellable, null);
-            this.saved();
-        } finally {
-            this.saving = false;
-        }
     }
 
     [GtkChild]
@@ -94,13 +200,22 @@ public sealed class Bedit.Document : Gtk.Widget {
         }
 
         this.reload_bar.revealed = false;
-
         this.loading = true;
         this.load();
 
-        var source_loader = new GtkSource.FileLoader(source_buffer, source_file);
         try {
-            yield source_loader.load_async(Priority.LOW, this.filesystem_cancellable, null);
+            yield this.file_text_force_reload_async();
+
+            var bytes = this.file_text;
+            if (bytes == null) {
+                return;
+            }
+
+            var data = bytes.get_data();
+            this.source_buffer.begin_irreversible_action();
+            this.source_buffer.set_text((string) data, data.length);
+            this.source_buffer.end_irreversible_action();
+            this.source_buffer.set_modified(false);
             this.loaded();
         } catch (Error err) {
             this.reload_label.label = GLib.Markup.printf_escaped("<b>%s</b>", err.message);
@@ -114,43 +229,44 @@ public sealed class Bedit.Document : Gtk.Widget {
     public void
     reload() {
         this.reload_async.begin((_, res) => {
-            this.reload_async.end(res);
+            reload_async.end(res);
         });
     }
 
+    public async void
+    save_async(GLib.File file) throws Error {
+        return_val_if_fail(!this.loading, false);
+        return_val_if_fail(!this.saving, false);
+
+        this.reload_bar.revealed = false;
+        this.saving = true;
+        this.save();
+
+        Gtk.TextIter s, e;
+        this.source_buffer.get_bounds(out s, out e);
+        var text  = this.source_buffer.get_text(s, e, true);
+        var bytes = text.data;   // uint8[], shares memory with `text`
+
+        try {
+            yield this.file_text_save_async(file, bytes);
+            this.source_buffer.set_modified(false);
+            this.saved();
+        } finally {
+            this.saving = false;
+        }
+    }
+
     private void
-    filesystem_init() {
+    buffer_init() {
         this.source_buffer.modified_changed.connect((tb) => {
             this.modified = this.source_buffer.get_modified();
         });
-
         this.notify["loading"].connect((_, pspec) => { this.update_busy(); });
         this.notify["saving"].connect((_, pspec) => { this.update_busy(); });
-
-        this.source_file.notify["location"].connect((_, pspec) => { this.notify_property("file"); });
 
         var action = new GLib.SimpleAction("reload", null);
         action.activate.connect(this.reload);
         this.document_actions.add_action(action);
-
-        var focus_controller = new Gtk.EventControllerFocus();
-        focus_controller.enter.connect(() => {
-            if (this.file == null) {
-                return;
-            }
-            if (!this.source_file.is_local()) {
-                return;
-            }
-
-            // TODO this can happily be done asynchronously.
-            this.source_file.check_file_on_disk();
-            if (!this.reload_bar.revealed && this.source_file.is_externally_modified()) {
-                this.reload_label.label = "<b>The file has been changed by another program</b>";
-                this.reload_button.label = "Drop Changes and Reload";
-                this.reload_bar.revealed = true;
-            }
-        });
-        this.add_controller(focus_controller);
 
         this.reload_bar.close.connect(() => {
             this.reload_bar.revealed = false;
@@ -159,6 +275,17 @@ public sealed class Bedit.Document : Gtk.Widget {
         if (this.file != null) {
             this.reload();
         }
+
+        // React to disk-snapshot changes.
+        this.notify["file-text"].connect(() => {
+            if (!this.loading && !this.saving) {
+                if (this.file_text != null) {
+                    this.reload_label.label = "<b>The file has been changed by another program</b>";
+                    this.reload_button.label = "Drop Changes and Reload";
+                    this.reload_bar.revealed = true;
+                }
+            }
+        });
     }
 
     /* === Editing ======================================================================================== */
@@ -317,7 +444,7 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     private void
     title_init() {
-        this.source_file.notify["location"].connect((sf, pspec) => { this.title_update(); });
+        this.notify["file"].connect((_, pspec) => { this.title_update(); });
         this.title_update();
     }
 
@@ -350,7 +477,7 @@ public sealed class Bedit.Document : Gtk.Widget {
     language_init() {
         this.bind_property("language", this.source_buffer, "language", SYNC_CREATE);
 
-        this.source_file.notify["location"].connect((sf, pspec) => { this.language_update(); });
+        this.notify["file"].connect((_, pspec) => { this.language_update(); });
         this.language_update();
     }
 
@@ -1105,7 +1232,8 @@ public sealed class Bedit.Document : Gtk.Widget {
             this.source_view.scroll_mark_onscreen(this.source_buffer.get_insert());
         });
 
-        filesystem_init();
+        file_text_init();
+        buffer_init();
         editing_init();
         title_init();
         language_init();
