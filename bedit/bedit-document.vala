@@ -413,6 +413,7 @@ public sealed class Bedit.Document : Gtk.Widget {
                     this.loading = true;
                     this.load();
                     source_buffer_set_bytes(this.source_buffer, disk);
+                    this.source_buffer.set_modified(false);
                     this.loaded();
                     this.loading = false;
                 } else {
