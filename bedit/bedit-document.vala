@@ -336,6 +336,7 @@ public sealed class Bedit.Document : Gtk.Widget {
                 source_buffer_set_bytes(this.source_buffer, bytes);
             }
             this.source_buffer.set_modified(false);
+            this.scroll_to_cursor();
             this.loaded();
         } catch (Error err) {
             this.reload_label.label = GLib.Markup.printf_escaped("<b>%s</b>", err.message);
@@ -417,6 +418,7 @@ public sealed class Bedit.Document : Gtk.Widget {
                     this.load();
                     source_buffer_set_bytes(this.source_buffer, disk);
                     this.source_buffer.set_modified(false);
+                    this.scroll_to_cursor();
                     this.loaded();
                     this.loading = false;
                 } else {
