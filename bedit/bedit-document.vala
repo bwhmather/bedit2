@@ -108,20 +108,19 @@ public sealed class Bedit.Document : Gtk.Widget {
         if (this.file == null) {
             return;
         }
-        if (this.file_text_mtime != null) {
-            try {
-                var info = yield this.file.query_info_async(
-                    GLib.FileAttribute.TIME_MODIFIED,
-                    GLib.FileQueryInfoFlags.NONE,
-                    GLib.Priority.DEFAULT, null
-                );
-                var mtime = info.get_modification_date_time();
-                if (mtime != null && this.file_text_mtime.compare(mtime) == 0) {
-                    return;
-                }
-            } catch (Error err) {
-                warning("Error: %s\n", err.message);
+        try {
+            var info = yield this.file.query_info_async(
+                GLib.FileAttribute.TIME_MODIFIED,
+                GLib.FileQueryInfoFlags.NONE,
+                GLib.Priority.DEFAULT, null
+            );
+            var old_mtime = this.file_text_mtime;
+            var new_mtime = info.get_modification_date_time();
+            if (new_mtime != null && old_mtime != null && old_mtime.compare(new_mtime) == 0) {
+                return;
             }
+        } catch (Error err) {
+            warning("Error: %s\n", err.message);
         }
 
         yield this.file_text_force_reload_async();
