@@ -151,15 +151,67 @@ public sealed class Bedit.Document : Gtk.Widget {
         file_text_reload_async.begin();
     }
 
+    private GLib.FileMonitor? file_text_monitor = null;
+
+    private void
+    file_text_monitor_on_changed(GLib.File file, GLib.File? other, GLib.FileMonitorEvent event) {
+        switch (event) {
+        case CHANGED:
+        case CREATED:
+        case RENAMED:
+            file_text_reload_async.begin();
+            break;
+        case DELETED:
+            this.file_text = null;
+            this.file_text_mtime = null;
+            break;
+        default:
+            break;
+        }
+    }
+
+    private void
+    file_text_monitor_reset() {
+        if (this.file_text_monitor != null) {
+            this.file_text_monitor.cancel();
+            this.file_text_monitor = null;
+        }
+        if (!this.get_mapped()) {
+            return;
+        }
+        if (this.file == null) {
+            return;
+        }
+
+        try {
+            this.file_text_monitor = this.file.monitor_file(GLib.FileMonitorFlags.NONE, null);
+            this.file_text_monitor.changed.connect(this.file_text_monitor_on_changed);
+        } catch (Error err) {
+            // Monitoring not supported on this backend - silently skip.
+        }
+    }
+
     private void
     file_text_init() {
-        var focus_controller = new Gtk.EventControllerFocus();
-        focus_controller.enter.connect(() => {
-            if (this.file != null) {
-                this.file_text_reload_async.begin();
+        this.map.connect(() => {
+            this.file_text_monitor_reset();
+            this.file_text_reload_async.begin();
+        });
+        this.unmap.connect(() => {
+            if (this.file_text_monitor != null) {
+                this.file_text_monitor.cancel();
+                this.file_text_monitor = null;
             }
         });
+        var focus_controller = new Gtk.EventControllerFocus();
+        focus_controller.enter.connect(() => {
+            this.file_text_reload_async.begin();
+        });
+
         this.add_controller(focus_controller);
+        this.notify["file"].connect(() => {
+            this.file_text_monitor_reset();
+        });
     }
 
     /* === Buffer Load / Save ============================================================================= */
