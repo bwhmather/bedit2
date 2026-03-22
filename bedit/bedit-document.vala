@@ -365,9 +365,23 @@ public sealed class Bedit.Document : Gtk.Widget {
                 this.source_buffer.get_text(s, e, true).data
             );
             if (disk.compare(buffer_bytes) != 0) {
-                this.reload_label.label = "<b>The file has been changed by another program</b>";
-                this.reload_button.label = "Drop Changes and Reload";
-                this.reload_bar.revealed = true;
+                if (!this.source_buffer.get_modified() && !this.source_buffer.can_redo) {
+                    this.loading = true;
+                    this.load();
+                    Gtk.TextIter start, end;
+                    this.source_buffer.get_bounds(out start, out end);
+                    this.source_buffer.begin_user_action();
+                    this.source_buffer.delete(ref start, ref end);
+                    this.source_buffer.get_start_iter(out start);
+                    this.source_buffer.insert(ref start, (string) disk.get_data(), disk.length);
+                    this.source_buffer.end_user_action();
+                    this.loaded();
+                    this.loading = false;
+                } else {
+                    this.reload_label.label = "<b>The file has been changed by another program</b>";
+                    this.reload_button.label = "Drop Changes and Reload";
+                    this.reload_bar.revealed = true;
+                }
             } else {
                 this.reload_bar.revealed = false;
             }
