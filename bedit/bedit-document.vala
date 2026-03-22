@@ -330,12 +330,25 @@ public sealed class Bedit.Document : Gtk.Widget {
 
         // React to disk-snapshot changes.
         this.notify["file-text"].connect(() => {
-            if (!this.loading && !this.saving) {
-                if (this.file_text != null) {
-                    this.reload_label.label = "<b>The file has been changed by another program</b>";
-                    this.reload_button.label = "Drop Changes and Reload";
-                    this.reload_bar.revealed = true;
-                }
+            if (this.loading || this.saving) {
+                return;
+            }
+            var disk = this.file_text;
+            if (disk == null) {
+                this.reload_bar.revealed = false;
+                return;
+            }
+            Gtk.TextIter s, e;
+            this.source_buffer.get_bounds(out s, out e);
+            var buffer_bytes = new GLib.Bytes(
+                this.source_buffer.get_text(s, e, true).data
+            );
+            if (disk.compare(buffer_bytes) != 0) {
+                this.reload_label.label = "<b>The file has been changed by another program</b>";
+                this.reload_button.label = "Drop Changes and Reload";
+                this.reload_bar.revealed = true;
+            } else {
+                this.reload_bar.revealed = false;
             }
         });
     }
