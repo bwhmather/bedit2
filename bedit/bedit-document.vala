@@ -255,6 +255,17 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.loading = true;
         this.load();
 
+        var initial = true;
+        if (this.source_buffer.get_char_count() != 0) {
+            initial = false;
+        }
+        if (this.source_buffer.get_modified()) {
+            initial = false;
+        }
+        if (this.source_buffer.can_undo || this.source_buffer.can_redo) {
+            initial = false;
+        }
+
         try {
             yield this.file_text_force_reload_async();
 
@@ -264,9 +275,19 @@ public sealed class Bedit.Document : Gtk.Widget {
             }
 
             var data = bytes.get_data();
-            this.source_buffer.begin_irreversible_action();
-            this.source_buffer.set_text((string) data, data.length);
-            this.source_buffer.end_irreversible_action();
+            if (initial) {
+                this.source_buffer.begin_irreversible_action();
+                this.source_buffer.set_text((string) data, data.length);
+                this.source_buffer.end_irreversible_action();
+            } else {
+                Gtk.TextIter start, end;
+                this.source_buffer.get_bounds(out start, out end);
+                this.source_buffer.begin_user_action();
+                this.source_buffer.delete(ref start, ref end);
+                this.source_buffer.get_start_iter(out start);
+                this.source_buffer.insert(ref start, (string) data, data.length);
+                this.source_buffer.end_user_action();
+            }
             this.source_buffer.set_modified(false);
             this.loaded();
         } catch (Error err) {
