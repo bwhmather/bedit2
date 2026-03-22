@@ -870,6 +870,16 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.bind_property("show-line-numbers", this.source_view, "show-line-numbers", SYNC_CREATE);
     }
 
+    /* --- File Diff Gutter ------------------------------------------------------------------------------- */
+
+    private void
+    file_text_gutter_init() {
+        var gutter = this.source_view.get_gutter(Gtk.TextWindowType.LEFT);
+        var renderer = new Bedit.DiffGutterRenderer();
+        gutter.insert(renderer, GtkSource.ViewGutterPosition.LINES - 1);
+        this.bind_property("file-text", renderer, "reference", SYNC_CREATE);
+    }
+
     /* --- Overview Map ----------------------------------------------------------------------------------- */
 
     [GtkChild]
@@ -1391,6 +1401,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         highlight_current_line_init();
         highlight_syntax_init();
         highlight_selected_init();
+        file_text_gutter_init();
         line_numbers_init();
         start_mark_init();
         search_init();
