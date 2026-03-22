@@ -15,6 +15,60 @@
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
+private void
+source_buffer_set_bytes(GtkSource.Buffer buffer, GLib.Bytes bytes) {
+    Gtk.TextIter buf_start, buf_end;
+    buffer.get_bounds(out buf_start, out buf_end);
+    var old_text = buffer.get_text(buf_start, buf_end, true);
+    var new_data = bytes.get_data();
+
+    int line_delta = 0;
+    int new_pos = 0;
+    int new_line = 0;
+
+    buffer.begin_user_action();
+    Bedit.line_diff(old_text.data, new_data, (old_start, old_count, new_start, new_count) => {
+        while (new_line < new_start && new_pos < new_data.length) {
+            if (new_data[new_pos++] == '\n') {
+                new_line++;
+            }
+        }
+        int start = new_pos;
+        while (new_line < new_start + new_count && new_pos < new_data.length) {
+            if (new_data[new_pos++] == '\n') {
+                new_line++;
+            }
+        }
+        int end = new_pos;
+
+        int buf_line = old_start + line_delta;
+        Gtk.TextIter start_iter;
+
+        if (old_count > 0) {
+            Gtk.TextIter end_iter;
+            buffer.get_iter_at_line(out start_iter, buf_line);
+            if (buf_line + old_count >= buffer.get_line_count()) {
+                buffer.get_end_iter(out end_iter);
+            } else {
+                buffer.get_iter_at_line(out end_iter, buf_line + old_count);
+            }
+            buffer.delete(ref start_iter, ref end_iter);
+        } else {
+            if (buf_line >= buffer.get_line_count()) {
+                buffer.get_end_iter(out start_iter);
+            } else {
+                buffer.get_iter_at_line(out start_iter, buf_line);
+            }
+        }
+
+        if (new_count > 0) {
+            buffer.insert(ref start_iter, (string) new_data[start:end], end - start);
+        }
+
+        line_delta += new_count - old_count;
+    });
+    buffer.end_user_action();
+}
 
 [GtkTemplate (ui = "/com/bwhmather/Bedit/ui/bedit-document.ui")]
 public sealed class Bedit.Document : Gtk.Widget {
@@ -273,19 +327,10 @@ public sealed class Bedit.Document : Gtk.Widget {
                 return;
             }
 
-            var data = bytes.get_data();
             if (initial) {
-                this.source_buffer.begin_irreversible_action();
-                this.source_buffer.set_text((string) data, data.length);
-                this.source_buffer.end_irreversible_action();
+                this.source_buffer.set_text((string) bytes.get_data(), bytes.length);
             } else {
-                Gtk.TextIter start, end;
-                this.source_buffer.get_bounds(out start, out end);
-                this.source_buffer.begin_user_action();
-                this.source_buffer.delete(ref start, ref end);
-                this.source_buffer.get_start_iter(out start);
-                this.source_buffer.insert(ref start, (string) data, data.length);
-                this.source_buffer.end_user_action();
+                source_buffer_set_bytes(this.source_buffer, bytes);
             }
             this.source_buffer.set_modified(false);
             this.loaded();
@@ -367,13 +412,7 @@ public sealed class Bedit.Document : Gtk.Widget {
                 if (!this.source_buffer.get_modified() && !this.source_buffer.can_redo) {
                     this.loading = true;
                     this.load();
-                    Gtk.TextIter start, end;
-                    this.source_buffer.get_bounds(out start, out end);
-                    this.source_buffer.begin_user_action();
-                    this.source_buffer.delete(ref start, ref end);
-                    this.source_buffer.get_start_iter(out start);
-                    this.source_buffer.insert(ref start, (string) disk.get_data(), disk.length);
-                    this.source_buffer.end_user_action();
+                    source_buffer_set_bytes(this.source_buffer, disk);
                     this.loaded();
                     this.loading = false;
                 } else {

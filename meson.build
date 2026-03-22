@@ -42,11 +42,15 @@ gtksourceview_dep = dependency(
   ],
 )
 
+ggit_dep = dependency('libgit2-glib-1.0', version: '>= 1.0')
+
+
 bedit_deps = [
   m_dep,
   bricks_dep,
   gtk_dep,
   gtksourceview_dep,
+  ggit_dep,
 ]
 
 add_project_arguments(
@@ -65,6 +69,7 @@ add_project_arguments(
   '--pkg', 'config',
   '--pkg', 'gtk4',
   '--pkg', 'gtksourceview-5',
+  '--pkg', 'libgit2-glib-1.0',
   '--enable-deprecated',
   language: 'vala'
 )
@@ -156,6 +161,7 @@ bedit_resources = gnome.compile_resources(
 
 bedit_sources = [
   'bedit/bedit-application.vala',
+  'bedit/bedit-diff.vala',
   'bedit/bedit-close-confirmation-dialog.vala',
   'bedit/bedit-document.vala',
   'bedit/bedit-fonts.vala',
