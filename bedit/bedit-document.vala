@@ -267,6 +267,278 @@ public sealed class Bedit.Document : Gtk.Widget {
         });
     }
 
+    /* === Git State Tracking ============================================================================= */
+
+    public GLib.Bytes? git_text { get; private set; }
+
+    private GLib.Cancellable git_cancellable = new GLib.Cancellable();
+    private bool git_text_reload_pending = false;
+    private bool git_text_running = false;
+    private Ggit.OId? git_loaded_sha = null;
+    private bool git_text_monitor_reset_pending = false;
+    private bool git_text_monitor_running = false;
+    private GLib.File? git_head_file = null;
+    private GLib.File? git_ref_file = null;
+    private GLib.FileMonitor? git_head_monitor = null;
+    private GLib.FileMonitor? git_ref_monitor = null;
+
+    private async void
+    git_text_reload_loop_async() {
+        while (this.git_text_reload_pending) {
+            this.git_text_reload_pending = false;
+
+            var f = this.file;
+            if (f == null) {
+                this.git_text = null;
+                continue;
+            }
+
+            var loaded_sha = this.git_loaded_sha;
+
+            GLib.Bytes? result = null;
+            Ggit.OId? result_sha = null;
+            bool result_unchanged = false;
+
+            SourceFunc resume = git_text_reload_loop_async.callback;
+            new Thread<void>("bedit-git-text", () => {
+                try {
+                    Ggit.init();
+                    var git_dir = Ggit.Repository.discover(f);
+                    var repo = Ggit.Repository.open(git_dir);
+
+                    var head_ref = repo.get_head();
+                    var resolved = head_ref.resolve();
+                    var target = resolved.get_target();
+
+                    if (loaded_sha != null && loaded_sha.equal(target)) {
+                        result_unchanged = true;
+                        return;
+                    }
+
+                    var commit = repo.lookup_commit(target);
+                    var tree = commit.get_tree();
+
+                    var workdir = repo.get_workdir();
+                    if (workdir == null) {
+                        return;
+                    }
+                    var relative = workdir.get_relative_path(f);
+                    if (relative == null) {
+                        return;
+                    }
+                    var entry = tree.get_by_path(relative);
+                    var blob = repo.lookup_blob(entry.get_id());
+                    result = new GLib.Bytes(blob.get_raw_content());
+                    result_sha = target;
+                } catch (Error err) {
+                    // Just null out git text.
+                } finally {
+                    Idle.add((owned) resume);
+                }
+            });
+            yield;
+
+            if (this.git_cancellable.is_cancelled()) {
+                return;
+            }
+
+            if (result_unchanged) {
+                continue;
+            }
+
+            if (this.git_text != result) {
+                this.git_text = result;
+            }
+            this.git_loaded_sha = result_sha;
+        }
+    }
+
+    private void
+    git_text_reload() {
+        this.git_text_reload_pending = true;
+        if (!this.git_text_running) {
+            this.git_text_running = true;
+            this.git_text_reload_loop_async.begin((obj, res) => {
+                this.git_text_reload_loop_async.end(res);
+                this.git_text_running = false;
+            });
+        }
+    }
+
+    /* --- Monitoring ------------------------------------------------------------------------------------- */
+
+    private void
+    git_head_monitor_on_changed(GLib.File file, GLib.File? other, GLib.FileMonitorEvent event) {
+        switch (event) {
+        case CHANGED:
+        case CREATED:
+        case RENAMED:
+        case DELETED:
+            this.git_text_monitor_reset();
+            break;
+        default:
+            break;
+        }
+    }
+
+    private void
+    git_ref_monitor_on_changed(GLib.File file, GLib.File? other, GLib.FileMonitorEvent event) {
+        switch (event) {
+        case CHANGED:
+        case CREATED:
+        case RENAMED:
+        case DELETED:
+            this.git_text_reload();
+            break;
+        default:
+            break;
+        }
+    }
+
+    private async void
+    git_text_monitor_reset_loop_async() {
+        while (this.git_text_monitor_reset_pending) {
+            this.git_text_monitor_reset_pending = false;
+
+            var f = this.file;
+
+            if (!this.get_mapped() || f == null) {
+                if (this.git_head_file != null) {
+                    this.git_head_monitor.cancel();
+                    this.git_head_monitor = null;
+                    this.git_head_file = null;
+                }
+                if (this.git_ref_file != null) {
+                    this.git_ref_monitor.cancel();
+                    this.git_ref_monitor = null;
+                    this.git_ref_file = null;
+                }
+                continue;
+            }
+
+            GLib.File? git_dir = null;
+
+            SourceFunc resume = git_text_monitor_reset_loop_async.callback;
+            new Thread<void>("bedit-git-text-monitor-reset", () => {
+                try {
+                    Ggit.init();
+                    git_dir = Ggit.Repository.discover(f);
+                } catch (Error err) {
+                    // Not in a git repo.
+                } finally {
+                    Idle.add((owned) resume);
+                }
+            });
+            yield;
+
+            if (this.git_cancellable.is_cancelled()) {
+                return;
+            }
+
+            GLib.File? new_head_file = null;
+            GLib.File? new_ref_file = null;
+
+            if (git_dir != null) {
+                new_head_file = git_dir.get_child("HEAD");
+                try {
+                    uint8[] head_contents;
+                    yield new_head_file.load_contents_async(this.git_cancellable, out head_contents, null);
+                    var head_text = ((string) head_contents).strip();
+                    if (head_text.has_prefix("ref: ")) {
+                        new_ref_file = git_dir.get_child(head_text.substring(5));
+                    }
+                } catch (Error err) {
+                    new_head_file = null;
+                }
+            }
+
+            if (this.git_cancellable.is_cancelled()) {
+                return;
+            }
+
+            bool head_changed = (new_head_file == null) != (this.git_head_file == null);
+            if (!head_changed && new_head_file != null && this.git_head_file != null) {
+                head_changed = !new_head_file.equal(this.git_head_file);
+            }
+            if (head_changed) {
+                if (this.git_head_file != null) {
+                    this.git_head_monitor.cancel();
+                    this.git_head_monitor = null;
+                }
+                this.git_head_file = new_head_file;
+                if (new_head_file != null) {
+                    try {
+                        this.git_head_monitor = new_head_file.monitor_file(GLib.FileMonitorFlags.NONE, null);
+                        this.git_head_monitor.changed.connect(this.git_head_monitor_on_changed);
+                    } catch (Error err) {
+                        this.git_head_file = null;
+                    }
+                }
+            }
+
+            bool ref_changed = (new_ref_file == null) != (this.git_ref_file == null);
+            if (!ref_changed && new_ref_file != null && this.git_ref_file != null) {
+                ref_changed = !new_ref_file.equal(this.git_ref_file);
+            }
+            if (ref_changed) {
+                if (this.git_ref_file != null) {
+                    this.git_ref_monitor.cancel();
+                    this.git_ref_monitor = null;
+                }
+                this.git_ref_file = new_ref_file;
+                if (new_ref_file != null) {
+                    try {
+                        this.git_ref_monitor = new_ref_file.monitor_file(GLib.FileMonitorFlags.NONE, null);
+                        this.git_ref_monitor.changed.connect(this.git_ref_monitor_on_changed);
+                    } catch (Error err) {
+                        this.git_ref_file = null;
+                    }
+                }
+            }
+
+            this.git_text_reload();
+        }
+    }
+
+    private void
+    git_text_monitor_reset() {
+        this.git_text_monitor_reset_pending = true;
+        if (!this.git_text_monitor_running) {
+            this.git_text_monitor_running = true;
+            this.git_text_monitor_reset_loop_async.begin((obj, res) => {
+                this.git_text_monitor_reset_loop_async.end(res);
+                this.git_text_monitor_running = false;
+            });
+        }
+    }
+
+    /* --- Setup ------------------------------------------------------------------------------------------ */
+
+    private void
+    git_text_init() {
+        this.map.connect(() => {
+            this.git_text_monitor_reset();
+        });
+        this.unmap.connect(() => {
+            this.git_text_monitor_reset();
+            this.git_text_reload_pending = false;
+        });
+        var focus_controller = new Gtk.EventControllerFocus();
+        focus_controller.enter.connect(() => {
+            this.git_text_reload();
+        });
+        this.add_controller(focus_controller);
+        this.notify["file"].connect(() => {
+            this.git_loaded_sha = null;
+            this.git_text_monitor_reset();
+        });
+    }
+
+    private void
+    git_text_dispose() {
+        this.git_cancellable.cancel();
+    }
+
     /* === Buffer Load / Save ============================================================================= */
 
     public bool modified { get; private set; }
@@ -870,6 +1142,16 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.bind_property("show-line-numbers", this.source_view, "show-line-numbers", SYNC_CREATE);
     }
 
+    /* --- Git Diff Gutter ------------------------------------------------------------------------------- */
+
+    private void
+    git_text_gutter_init() {
+        var gutter = this.source_view.get_gutter(Gtk.TextWindowType.LEFT);
+        var renderer = new Bedit.DiffGutterRenderer();
+        gutter.insert(renderer, GtkSource.ViewGutterPosition.LINES - 2);
+        this.bind_property("git-text", renderer, "reference", SYNC_CREATE);
+    }
+
     /* --- File Diff Gutter ------------------------------------------------------------------------------- */
 
     private void
@@ -1387,6 +1669,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         });
 
         file_text_init();
+        git_text_init();
         buffer_init();
         editing_init();
         title_init();
@@ -1401,6 +1684,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         highlight_current_line_init();
         highlight_syntax_init();
         highlight_selected_init();
+        git_text_gutter_init();
         file_text_gutter_init();
         line_numbers_init();
         start_mark_init();
@@ -1412,6 +1696,7 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     public override void
     dispose() {
+        this.git_text_dispose();
         this.dispose_template(typeof(Bedit.Document));
         while (this.get_last_child() != null) {
             this.get_last_child().unparent();
