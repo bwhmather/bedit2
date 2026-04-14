@@ -119,14 +119,14 @@ public sealed class Bedit.Document : Gtk.Widget {
                     yield f.load_contents_async(this.file_text_cancellable, out text, null);
                     var new_file_text = new GLib.Bytes(text);
                     var old_file_text = this.file_text;
+                    this.file_text_mtime = mtime;
                     if (old_file_text == null || old_file_text.compare(new_file_text) != 0) {
                         this.file_text = new_file_text;
                     }
-                    this.file_text_mtime = mtime;
                     this.file_text_reload_error = null;
                 } catch (Error e) {
-                    this.file_text = null;
                     this.file_text_mtime = null;
+                    this.file_text = null;
                     this.file_text_reload_error = e;
                 }
             }
