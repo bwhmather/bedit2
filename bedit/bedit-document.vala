@@ -91,6 +91,7 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     public GLib.Bytes? file_text { get; private set; }
 
+    private GLib.Cancellable file_text_cancellable = new GLib.Cancellable();
     private GLib.DateTime? file_text_mtime = null;
     private GLib.Error? file_text_reload_error;
     private SourceFunc? file_text_reload_active_cb;
@@ -106,7 +107,7 @@ public sealed class Bedit.Document : Gtk.Widget {
                     var info = yield f.query_info_async(
                         GLib.FileAttribute.TIME_MODIFIED,
                         GLib.FileQueryInfoFlags.NONE,
-                        GLib.Priority.DEFAULT, null
+                        GLib.Priority.DEFAULT, this.file_text_cancellable
                     );
                     mtime = info.get_modification_date_time();
                 } catch (Error err) {
@@ -115,7 +116,7 @@ public sealed class Bedit.Document : Gtk.Widget {
 
                 uint8[] text;
                 try {
-                    yield f.load_contents_async(null, out text, null);
+                    yield f.load_contents_async(this.file_text_cancellable, out text, null);
                     var new_file_text = new GLib.Bytes(text);
                     var old_file_text = this.file_text;
                     if (old_file_text == null || old_file_text.compare(new_file_text) != 0) {
@@ -242,6 +243,11 @@ public sealed class Bedit.Document : Gtk.Widget {
         } catch (Error err) {
             // Monitoring not supported on this backend - silently skip.
         }
+    }
+
+    private void
+    file_text_dispose() {
+        this.file_text_cancellable.cancel();
     }
 
     private void
