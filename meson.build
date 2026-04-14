@@ -108,7 +108,6 @@ test_c_args = [
   '-Werror=pointer-to-int-cast',
   '-Werror=return-type',
   '-Werror=sequence-point',
-  '-Werror=shadow',
   '-Werror=strict-prototypes',
   '-Werror=trigraphs',
   '-Werror=undef',
