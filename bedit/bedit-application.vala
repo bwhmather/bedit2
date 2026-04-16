@@ -198,7 +198,7 @@ class Bedit.Application : Gtk.Application {
         this.set_accels_for_action("app.show-menubar", {"F10"});
         this.set_accels_for_action("app.show-statusbar", {});
         this.set_accels_for_action("app.show-overview-map", {});
-        this.set_accels_for_action("win.fullscreen", {"F11", "<Control>F"});
+        this.set_accels_for_action("win.fullscreen", {"F11"});
         this.set_accels_for_action("app.word-wrap", {});
         this.set_accels_for_action("app.increase-text-size", {"<Control>plus"});
         this.set_accels_for_action("app.decrease-text-size", {"<Control>minus"});
