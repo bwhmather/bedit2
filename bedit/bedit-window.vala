@@ -565,7 +565,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private void
     action_win_close_window() {
-        this.close_request();
+        this.close();
     }
 
     /* --- Window Action State ---------------------------------------------------------------------------- */
