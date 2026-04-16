@@ -73,6 +73,10 @@ public sealed class Bedit.CloseConfirmationDialog : Gtk.Window {
 
     public static async Bedit.CloseAction
     run_async(GLib.Cancellable? cancellable, Gtk.Window window, Bedit.Document document) throws Error {
+        if (cancellable != null && cancellable.is_cancelled()) {
+            throw new GLib.IOError.CANCELLED("cancelled");
+        }
+
         int status = Bedit.CloseAction.CANCEL;
 
         var dialog = new Bedit.CloseConfirmationDialog(window, document);
@@ -87,9 +91,12 @@ public sealed class Bedit.CloseConfirmationDialog : Gtk.Window {
             dialog.close();
         });
 
-        cancellable.connect((_) => {
-            dialog.close();
-        });
+        ulong cancellable_id = 0;
+        if (cancellable != null) {
+            cancellable_id = cancellable.connect((_) => {
+                dialog.close();
+            });
+        }
 
         dialog.unmap.connect((_) => {
             run_async.callback();
@@ -97,6 +104,9 @@ public sealed class Bedit.CloseConfirmationDialog : Gtk.Window {
         dialog.present();
         yield;
 
+        if (cancellable != null) {
+            cancellable.disconnect(cancellable_id);
+        }
 
         return status;
     }

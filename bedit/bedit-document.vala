@@ -1130,12 +1130,14 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.source_buffer.delete_range.connect(() => {
             this.highlight_selected_update();
         });
+    }
 
-        this.destroy.connect(() => {
-            if (this.highlight_selected_timeout_id != 0) {
-                GLib.Source.remove(this.highlight_selected_timeout_id);
-            }
-        });
+    private void
+    highlight_selected_dispose() {
+        if (this.highlight_selected_timeout_id != 0) {
+            GLib.Source.remove(this.highlight_selected_timeout_id);
+            this.highlight_selected_timeout_id = 0;
+        }
     }
 
     /* --- Line Numbers ----------------------------------------------------------------------------------- */
@@ -1696,6 +1698,7 @@ public sealed class Bedit.Document : Gtk.Widget {
     public override void
     dispose() {
         this.file_text_dispose();
+        this.highlight_selected_dispose();
         this.git_text_dispose();
         this.dispose_template(typeof(Bedit.Document));
         while (this.get_last_child() != null) {
