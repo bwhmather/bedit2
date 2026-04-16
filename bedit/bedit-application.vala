@@ -128,9 +128,19 @@ class Bedit.Application : Gtk.Application {
     public override int
     command_line(GLib.ApplicationCommandLine cmdline) {
         var window = new Bedit.Window(this);
-        window.open_new();
-        window.present();
 
+        var options = cmdline.get_options_dict();
+        var remaining = options.lookup_value(GLib.OPTION_REMAINING, GLib.VariantType.STRING_ARRAY);
+        if (remaining != null && remaining.n_children() > 0) {
+            for (size_t i = 0; i < remaining.n_children(); i++) {
+                var path = remaining.get_child_value(i).get_string();
+                window.open_file(cmdline.create_file_for_arg(path));
+            }
+        } else {
+            window.open_new();
+        }
+
+        window.present();
         return 0;
     }
 
