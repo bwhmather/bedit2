@@ -1500,8 +1500,6 @@ public sealed class Bedit.Document : Gtk.Widget {
     [GtkChild]
     private unowned Gtk.Entry go_to_line_entry;
 
-    uint go_to_line_timeout_id;
-
     private void
     go_to_line_update() {
         string text;
@@ -1619,11 +1617,6 @@ public sealed class Bedit.Document : Gtk.Widget {
             return;
         }
         this.go_to_line_revealer.reveal_child = false;
-
-        if (this.go_to_line_timeout_id != 0) {
-            GLib.Source.remove(this.go_to_line_timeout_id);
-            this.go_to_line_timeout_id = 0;
-        }
 
         this.source_buffer.get_iter_at_mark(out start_iter, this.start_mark);
         this.source_buffer.place_cursor(start_iter);
