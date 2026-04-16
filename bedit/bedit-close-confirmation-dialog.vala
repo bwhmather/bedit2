@@ -98,7 +98,7 @@ public sealed class Bedit.CloseConfirmationDialog : Gtk.Window {
             });
         }
 
-        dialog.unmap.connect((_) => {
+        (dialog as Gtk.Widget).unrealize.connect(() => {
             run_async.callback();
         });
         dialog.present();
