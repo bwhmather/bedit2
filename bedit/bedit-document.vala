@@ -81,7 +81,7 @@ public sealed class Bedit.Document : Gtk.Widget {
     private unowned GtkSource.View source_view;
     private unowned GtkSource.Buffer source_buffer;
 
-    /* === File State Tracking ============================================================================ */
+    /* === File State Tracking ============================================== */
 
     private GLib.File? _file;
     public GLib.File? file {
@@ -273,7 +273,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         });
     }
 
-    /* === Git State Tracking ============================================================================= */
+    /* === Git State Tracking =============================================== */
 
     public GLib.Bytes? git_text { get; private set; }
 
@@ -371,7 +371,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         }
     }
 
-    /* --- Monitoring ------------------------------------------------------------------------------------- */
+    /* --- Monitoring ------------------------------------------------------- */
 
     private void
     git_head_monitor_on_changed(GLib.File file, GLib.File? other, GLib.FileMonitorEvent event) {
@@ -518,7 +518,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         }
     }
 
-    /* --- Setup ------------------------------------------------------------------------------------------ */
+    /* --- Setup ------------------------------------------------------------ */
 
     private void
     git_text_init() {
@@ -545,7 +545,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.git_cancellable.cancel();
     }
 
-    /* === Buffer Load / Save ============================================================================= */
+    /* === Buffer Load / Save =============================================== */
 
     public bool modified { get; private set; }
 
@@ -710,7 +710,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         });
     }
 
-    /* === Editing ======================================================================================== */
+    /* === Editing ========================================================== */
 
     public bool can_undo { get; private set; }
 
@@ -815,9 +815,9 @@ public sealed class Bedit.Document : Gtk.Widget {
         });
     }
 
-    /* === Metadata ======================================================================================= */
+    /* === Metadata ========================================================= */
 
-    /* --- Title ------------------------------------------------------------------------------------------ */
+    /* --- Title ------------------------------------------------------------ */
 
     public string title { get; private set; }
 
@@ -875,7 +875,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.title_release_draft_number();
     }
 
-    /* --- Language --------------------------------------------------------------------------------------- */
+    /* --- Language --------------------------------------------------------- */
 
     public GtkSource.Language language { get; set; }
 
@@ -903,7 +903,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.language_update();
     }
 
-    /* --- Source Position -------------------------------------------------------------------------------- */
+    /* --- Source Position -------------------------------------------------- */
 
     public int line { get; private set; }
     public int column { get; private set; }
@@ -935,9 +935,9 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.position_update();
     }
 
-    /* === Whitespace ===================================================================================== */
+    /* === Whitespace ======================================================= */
 
-    /* --- Indentation ------------------------------------------------------------------------------------ */
+    /* --- Indentation ------------------------------------------------------ */
 
     public uint tab_width { get; set; }
     public bool insert_spaces_instead_of_tabs { get; set; }
@@ -955,7 +955,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.bind_property("auto-indent", this.source_view, "auto-indent", SYNC_CREATE);
     }
 
-    /* --- Trim trailing whitespace ----------------------------------------------------------------------- */
+    /* --- Trim trailing whitespace ----------------------------------------- */
 
     public bool trim_trailing_whitespace { get; set; }
 
@@ -999,9 +999,9 @@ public sealed class Bedit.Document : Gtk.Widget {
         });
     }
 
-    /* === Appearance ===================================================================================== */
+    /* === Appearance ======================================================= */
 
-    /* --- Font ------------------------------------------------------------------------------------------- */
+    /* --- Font ------------------------------------------------------------- */
 
     private Gtk.CssProvider font_css_provider;
 
@@ -1034,7 +1034,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.update_font();
     }
 
-    /* --- Word Wrap -------------------------------------------------------------------------------------- */
+    /* --- Word Wrap -------------------------------------------------------- */
 
     public bool word_wrap { get; set; }
 
@@ -1054,7 +1054,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.update_word_wrap();
     }
 
-    /* --- Highlight Current Line ------------------------------------------------------------------------- */
+    /* --- Highlight Current Line ------------------------------------------- */
 
     public bool highlight_current_line { get; set; }
 
@@ -1064,7 +1064,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.bind_property("highlight-current-line", this.source_view, "highlight-current-line", SYNC_CREATE);
     }
 
-    /* --- Highlight Syntax ------------------------------------------------------------------------------- */
+    /* --- Highlight Syntax ------------------------------------------------- */
 
     public bool highlight_syntax { get; set; }
 
@@ -1074,7 +1074,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.bind_property("highlight-syntax", this.source_buffer, "highlight-syntax", SYNC_CREATE);
     }
 
-    /* --- Quick Highlight -------------------------------------------------------------------------------- */
+    /* --- Quick Highlight -------------------------------------------------- */
 
     public bool highlight_selection { get; set; }
 
@@ -1140,7 +1140,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         }
     }
 
-    /* --- Line Numbers ----------------------------------------------------------------------------------- */
+    /* --- Line Numbers ----------------------------------------------------- */
 
     public bool show_line_numbers { get; set; }
 
@@ -1150,7 +1150,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.bind_property("show-line-numbers", this.source_view, "show-line-numbers", SYNC_CREATE);
     }
 
-    /* --- Git Diff Gutter ------------------------------------------------------------------------------- */
+    /* --- Git Diff Gutter -------------------------------------------------- */
 
     private void
     git_text_gutter_init() {
@@ -1160,7 +1160,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.bind_property("git-text", renderer, "reference", SYNC_CREATE);
     }
 
-    /* --- File Diff Gutter ------------------------------------------------------------------------------- */
+    /* --- File Diff Gutter ------------------------------------------------- */
 
     private void
     file_text_gutter_init() {
@@ -1198,7 +1198,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.update_show_overview_map();
     }
 
-    /* --- Right Margin ----------------------------------------------------------------------------------- */
+    /* --- Right Margin ----------------------------------------------------- */
 
     public bool show_right_margin { get; set; }
     public uint right_margin_position { get; set; }
@@ -1212,7 +1212,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.bind_property("show-right-margin", this.source_view, "show-right-margin", SYNC_CREATE);
     }
 
-    /* === Navigation ===================================================================================== */
+    /* === Navigation ======================================================= */
 
     private Gtk.TextMark? start_mark;
     private bool start_mark_reset_blocked;
@@ -1261,7 +1261,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         });
     }
 
-    /* --- Search and Replace ----------------------------------------------------------------------------- */
+    /* --- Search and Replace ----------------------------------------------- */
 
     private GtkSource.SearchContext? search_context;
     private GLib.Cancellable? search_cancellable;
@@ -1494,7 +1494,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         });
     }
 
-    /* --- Go To Line ------------------------------------------------------------------------------------- */
+    /* --- Go To Line ------------------------------------------------------- */
 
     [GtkChild]
     private unowned Gtk.Revealer go_to_line_revealer;
@@ -1657,7 +1657,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         });
     }
 
-    /* === Lifecyle ======================================================================================= */
+    /* === Lifecyle ========================================================= */
 
     class construct {
         set_layout_manager_type(typeof (Gtk.BinLayout));

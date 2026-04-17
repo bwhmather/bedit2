@@ -68,8 +68,8 @@ font_description_to_css(Pango.FontDescription font_desc) {
 
         switch (weight) {
             case Pango.Weight.SEMILIGHT:
-                // 350 is not actually a valid css font-weight, so we will just round
-                // up to 400.
+                // 350 is not actually a valid css font-weight, so we will just
+                // round up to 400.
             case Pango.Weight.NORMAL:
                 builder.append("font-weight: normal;");
                 break;

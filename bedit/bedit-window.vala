@@ -35,7 +35,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private GLib.Cancellable cancellable = new GLib.Cancellable();
 
-    /* === Title ========================================================================================== */
+    /* === Title ============================================================ */
 
     private void
        title_update() {
@@ -52,14 +52,14 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.title_update();
     }
 
-    /* === Menubar ======================================================================================== */
+    /* === Menubar ========================================================== */
 
     private void
     menubar_init() {
         this.settings.bind("show-menubar", this, "show-menubar", GET);
     }
 
-    /* === Toolbar ======================================================================================== */
+    /* === Toolbar ========================================================== */
 
     public bool show_toolbar { get; set; }
 
@@ -68,7 +68,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.settings.bind("show-toolbar", this, "show-toolbar", GET);
     }
 
-    /* === Statusbar ====================================================================================== */
+    /* === Statusbar ======================================================== */
 
     public bool show_statusbar { get; set; }
 
@@ -109,7 +109,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.active_document_notify_connect("column", this.position_label_update);
     }
 
-    /* === Document Operations ============================================================================ */
+    /* === Document Operations ============================================== */
 
     private async bool
     document_save_as_async(Bedit.Document document) throws Error {
@@ -163,11 +163,11 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         return yield this.document_save_async(document);
     }
 
-    /* === Document Actions =============================================================================== */
+    /* === Document Actions ================================================= */
 
     private GLib.SimpleActionGroup document_actions = new GLib.SimpleActionGroup();
 
-    /* --- Saving Documents ------------------------------------------------------------------------------- */
+    /* --- Saving Documents ------------------------------------------------- */
 
     private void
     action_doc_save() {
@@ -203,7 +203,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         return_if_fail(!this.active_document.busy);
     }
 
-    /* --- Printing Documents ----------------------------------------------------------------------------- */
+    /* --- Printing Documents ----------------------------------------------- */
 
     private void
     action_doc_print() {
@@ -213,7 +213,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     action_doc_print_preview() {
     }
 
-    /* --- Closing Tabs ----------------------------------------------------------------------------------- */
+    /* --- Closing Tabs ----------------------------------------------------- */
 
     private void
     action_doc_close() {
@@ -221,7 +221,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     }
 
-    /* --- Edit History ----------------------------------------------------------------------------------- */
+    /* --- Edit History ----------------------------------------------------- */
 
     private void
     action_doc_undo() {
@@ -241,7 +241,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.active_document.redo();
     }
 
-    /* --- Commenting and Uncommenting -------------------------------------------------------------------- */
+    /* --- Commenting and Uncommenting -------------------------------------- */
 
     private void
     action_doc_comment() {
@@ -251,13 +251,13 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     action_doc_uncomment() {
     }
 
-    /* --- Insert Date and Time --------------------------------------------------------------------------- */
+    /* --- Insert Date and Time --------------------------------------------- */
 
     private void
     action_doc_insert_date_and_time() {
     }
 
-    /* --- Line Operations -------------------------------------------------------------------------------- */
+    /* --- Line Operations -------------------------------------------------- */
 
     private void
     action_doc_sort_lines() {
@@ -283,7 +283,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     action_doc_duplicate_line() {
     }
 
-    /* --- Navigate to Line ------------------------------------------------------------------------------- */
+    /* --- Navigate to Line ------------------------------------------------- */
 
     private void
     action_doc_show_go_to_line() {
@@ -302,7 +302,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.active_document.go_to_line_hide();
     }
 
-    /* --- Focus ------------------------------------------------------------------------------------------ */
+    /* --- Focus ------------------------------------------------------------ */
 
     private void
     action_doc_focus() {
@@ -310,7 +310,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.active_document.grab_focus();
     }
 
-    /* --- Document Action State -------------------------------------------------------------------------- */
+    /* --- Document Action State -------------------------------------------- */
 
     const GLib.ActionEntry[] document_action_entries = {
         {"save", action_doc_save},
@@ -383,7 +383,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.document_actions_update();
     }
 
-    /* === Clipboard ====================================================================================== */
+    /* === Clipboard ======================================================== */
 
     private GLib.SimpleActionGroup clipboard_actions = new GLib.SimpleActionGroup();
 
@@ -411,7 +411,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.active_document.paste();
     }
 
-    /* --- Clipboard Action State ------------------------------------------------------------------------- */
+    /* --- Clipboard Action State ------------------------------------------- */
 
     const GLib.ActionEntry[] clipboard_action_entries = {
         {"cut", action_clipboard_cut},
@@ -454,7 +454,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.clipboard_actions_update();
     }
 
-    /* === Selection Actions ============================================================================== */
+    /* === Selection Actions ================================================ */
 
     private GLib.SimpleActionGroup selection_actions = new GLib.SimpleActionGroup();
 
@@ -466,7 +466,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.active_document.select_all();
     }
 
-    /* --- Selection Action State ------------------------------------------------------------------------- */
+    /* --- Selection Action State ------------------------------------------- */
 
     const GLib.ActionEntry[] selection_action_entries = {
         {"select-all", action_selection_select_all},
@@ -498,9 +498,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.selection_actions_update();
     }
 
-    /* === Window Actions ================================================================================= */
+    /* === Window Actions =================================================== */
 
-    /* --- Experimental ----------------------------------------------------------------------------------- */
+    /* --- Experimental ----------------------------------------------------- */
 
     private async void
     do_open_experimental() throws Error {
@@ -522,7 +522,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         });
     }
 
-    /* --- Creating New Documents and Opening Existing Ones ----------------------------------------------- */
+    /* --- Creating New Documents and Opening Existing Ones ----------------- */
 
     public void
     open_new() {
@@ -561,14 +561,14 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         });
     }
 
-    /* --- Closing Windows and Tabs ----------------------------------------------------------------------- */
+    /* --- Closing Windows and Tabs ----------------------------------------- */
 
     private void
     action_win_close_window() {
         this.close();
     }
 
-    /* --- Window Action State ---------------------------------------------------------------------------- */
+    /* --- Window Action State ---------------------------------------------- */
 
     const GLib.ActionEntry[] window_action_entries = {
         {"new", action_win_new},
@@ -582,7 +582,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.add_action_entries(window_action_entries, this);
     }
 
-    /* === Search ========================================================================================= */
+    /* === Search =========================================================== */
 
     [GtkChild]
     unowned Gtk.Revealer search_revealer;
@@ -607,8 +607,8 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     private bool
     search_entry_on_key_press_event(Gtk.EventControllerKey controller, uint keyval, uint keycode, Gdk.ModifierType modifiers) {
         if ((keyval == Gdk.Key.ISO_Enter || keyval == Gdk.Key.KP_Enter || keyval == Gdk.Key.Return) && modifiers == 0){
-            // WARNING: This is shadowed by the search entry activate binding and so will never actually
-            // be triggered.
+            // WARNING: This is shadowed by the search entry activate binding
+            // and so will never actually be triggered.
             if (this.active_document != null) {
                 this.active_document.find_next();
             }
@@ -936,7 +936,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.search_actions_update();
     }
 
-    /* === Tab View ======================================================================================= */
+    /* === Tab View ========================================================= */
 
     [GtkChild]
     private unowned Brk.TabView tab_view;
@@ -1034,7 +1034,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.close_request.connect(on_window_close_request);
     }
 
-    /* === Lifecycle ====================================================================================== */
+    /* === Lifecycle ======================================================== */
 
     class construct {
         typeof (Brk.ButtonGroup).ensure();
