@@ -44,7 +44,6 @@ gtksourceview_dep = dependency(
 
 ggit_dep = dependency('libgit2-glib-1.0', version: '>= 1.0')
 
-
 bedit_deps = [
   m_dep,
   bricks_dep,
@@ -55,9 +54,6 @@ bedit_deps = [
 
 add_project_arguments(
   '-include', 'config.h',
-  '-Wno-overlength-strings',
-  '-Wno-deprecated-declarations',
-  '-Wno-pedantic',
   language: 'c'
 )
 
@@ -83,74 +79,6 @@ config_data.set_quoted('G_LOG_DOMAIN', 'bedit')
 config_data.set_quoted('GETTEXT_PACKAGE', 'bedit')
 config_data.set_quoted('LOCALEDIR', get_option('prefix') / get_option('localedir'))
 configure_file(output: 'config.h', configuration: config_data)
-
-test_c_args = [
-  '-fno-strict-aliasing',
-  '-Wcast-align',
-  '-Wdeclaration-after-statement',
-  '-Werror=address',
-  '-Werror=array-bounds',
-  '-Werror=empty-body',
-  ['-Werror=format-security', '-Werror=format=2'],
-  '-Werror=implicit',
-  '-Werror=implicit-function-declaration',
-  '-Werror=init-self',
-  '-Werror=int-conversion',
-  '-Werror=int-to-pointer-cast',
-  '-Werror=main',
-  '-Werror=misleading-indentation',
-  '-Werror=missing-braces',
-  '-Werror=missing-include-dirs',
-  '-Werror=nonnull',
-  '-Werror=overflow',
-  '-Werror=parenthesis',
-  '-Werror=pointer-arith',
-  '-Werror=pointer-to-int-cast',
-  '-Werror=return-type',
-  '-Werror=sequence-point',
-  '-Werror=strict-prototypes',
-  '-Werror=trigraphs',
-  '-Werror=undef',
-  '-Werror=write-strings',
-  '-Wformat-nonliteral',
-  '-Wignored-qualifiers',
-  '-Wimplicit-function-declaration',
-  '-Wlogical-op',
-  '-Wmissing-declarations',
-  '-Wmissing-format-attribute',
-  '-Wmissing-include-dirs',
-  '-Wmissing-noreturn',
-  '-Wnested-externs',
-  '-Wno-cast-function-type',
-  '-Wno-discarded-qualifiers',
-  '-Wno-incompatible-pointer-types',
-  '-Wno-missing-field-initializers',
-  '-Wno-sign-compare',
-  '-Wno-unused-but-set-variable',
-  '-Wno-unused-function',
-  '-Wno-unused-parameter',
-  '-Wno-unused-variable',
-  '-Wold-style-definition',
-  '-Wpointer-arith',
-  '-Wstrict-prototypes',
-  '-Wswitch-default',
-  '-Wswitch-enum',
-  '-Wundef',
-  '-Wuninitialized',
-  '-Wunused',
-]
-
-if get_option('buildtype') != 'plain'
-  test_c_args += '-fstack-protector-strong'
-endif
-
-global_c_args = []
-foreach arg: test_c_args
-  if cc.has_multi_arguments(arg)
-    global_c_args += arg
-  endif
-endforeach
-add_project_arguments(global_c_args, language: 'c')
 
 bedit_resources = gnome.compile_resources(
   'bedit-resources',
