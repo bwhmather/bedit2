@@ -53,11 +53,6 @@ bedit_deps = [
 ]
 
 add_project_arguments(
-  '-include', 'config.h',
-  language: 'c'
-)
-
-add_project_arguments(
   '--define=GETTEXT_PACKAGE=bedit',
   '--gresourcesdir', 'resources',
   '--gresources', meson.current_source_dir() / 'bedit/resources/bedit.gresources.xml',
@@ -103,6 +98,7 @@ bedit_exe = executable(
   'bedit',
   bedit_sources,
   install: true,
+  c_args: ['-include', 'config.h'],
   dependencies: bedit_deps,
 )
 
