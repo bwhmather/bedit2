@@ -1074,6 +1074,39 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.bind_property("highlight-syntax", this.source_buffer, "highlight-syntax", SYNC_CREATE);
     }
 
+    /* --- Style Scheme ----------------------------------------------------- */
+
+    public string style_scheme { get; set; }
+
+    private void
+    update_style_scheme() {
+        var scheme_manager = GtkSource.StyleSchemeManager.get_default();
+        var scheme = scheme_manager.get_scheme(this.style_scheme);
+        if (scheme != null) {
+            var gtk_settings = Gtk.Settings.get_default();
+            if (gtk_settings.gtk_interface_color_scheme == Gtk.InterfaceColorScheme.DARK) {
+                var dark_id = scheme.get_metadata("dark-variant");
+                if (dark_id != null) {
+                    var dark_scheme = scheme_manager.get_scheme(dark_id);
+                    if (dark_scheme != null) {
+                        scheme = dark_scheme;
+                    }
+                }
+            }
+        }
+        this.source_buffer.style_scheme = scheme;
+    }
+
+    private void
+    style_scheme_init() {
+        this.settings.bind("style-scheme", this, "style-scheme", GET);
+        this.notify["style-scheme"].connect(() => { this.update_style_scheme(); });
+        Gtk.Settings.get_default().notify["gtk-interface-color-scheme"].connect(() => {
+            this.update_style_scheme();
+        });
+        this.update_style_scheme();
+    }
+
     /* --- Quick Highlight -------------------------------------------------- */
 
     public bool highlight_selection { get; set; }
@@ -1686,6 +1719,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         right_margin_init();
         highlight_current_line_init();
         highlight_syntax_init();
+        style_scheme_init();
         highlight_selected_init();
         git_text_gutter_init();
         file_text_gutter_init();

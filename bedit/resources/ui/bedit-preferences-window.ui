@@ -3,7 +3,7 @@
   <template class="BeditPreferencesWindow" parent="BrkPreferencesWindow">
     <property name="title">Bedit Preferences</property>
     <property name="default-width">640</property>
-    <property name="default-height">480</property>
+    <property name="default-height">720</property>
     <child>
       <object class="BrkPreferencesPage">
         <property name="name">editor</property>
@@ -68,12 +68,6 @@
               <object class="BrkSwitchRow" id="highlight_current_line_row">
                 <property name="title">Highlight Current Line</property>
                 <property name="subtitle">Highlight the whole of the line containing the cursor</property>
-              </object>
-            </child>
-            <child>
-              <object class="BrkSwitchRow" id="highlight_syntax_row">
-                <property name="title">Highlight Syntax</property>
-                <property name="subtitle">Apply syntax highlighting</property>
               </object>
             </child>
           </object>
@@ -155,6 +149,17 @@
         <child>
           <object class="BrkPreferencesGroup">
             <property name="title">Syntax Highlighting</property>
+            <child>
+              <object class="BrkSwitchRow" id="highlight_syntax_row">
+                <property name="title">Highlight Syntax</property>
+                <property name="subtitle">Apply syntax highlighting</property>
+              </object>
+            </child>
+            <child>
+              <object class="BeditStyleSchemeChooserRow" id="style_scheme_row">
+                <property name="title">Color Scheme</property>
+              </object>
+            </child>
           </object>
         </child>
       </object>

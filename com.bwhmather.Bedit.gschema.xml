@@ -90,5 +90,10 @@
       <summary>Trim Trailing Whitespace</summary>
       <description>Strip tabs and spaces from the end of lines before saving.</description>
     </key>
+    <key name="style-scheme" type="s">
+      <default>'Adwaita'</default>
+      <summary>Color Scheme</summary>
+      <description>The color scheme used for syntax highlighting in the editing area.</description>
+    </key>
   </schema>
 </schemalist>

@@ -56,6 +56,8 @@ public sealed class Bedit.PreferencesWindow : Brk.PreferencesWindow {
     private unowned Brk.SwitchRow use_default_font_row;
     [GtkChild]
     private unowned Brk.FontRow editor_font_row;
+    [GtkChild]
+    private unowned Bedit.StyleSchemeChooserRow style_scheme_row;
 
     construct {
         settings.bind("show-line-numbers", show_line_numbers_row, "active", DEFAULT);
@@ -80,6 +82,8 @@ public sealed class Bedit.PreferencesWindow : Brk.PreferencesWindow {
         settings.bind("use-default-font", use_default_font_row, "active", DEFAULT);
         settings.bind("editor-font", editor_font_row, "font", DEFAULT);
         settings.bind("use-default-font", editor_font_row, "visible", GET | INVERT_BOOLEAN);
+        settings.bind("style-scheme", style_scheme_row, "scheme-id", DEFAULT);
+        settings.bind("highlight-syntax", style_scheme_row, "visible", GET);
     }
 
     public override void

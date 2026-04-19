@@ -88,6 +88,7 @@ bedit_sources = [
   'bedit/bedit-close-confirmation-dialog.vala',
   'bedit/bedit-document.vala',
   'bedit/bedit-fonts.vala',
+  'bedit/bedit-style-scheme-chooser-row.vala',
   'bedit/bedit-preferences-window.vala',
   'bedit/bedit-window.vala',
   bedit_resources.get(0),
