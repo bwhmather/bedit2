@@ -54,6 +54,8 @@ public sealed class Bedit.PreferencesWindow : Brk.PreferencesWindow {
     private unowned Brk.SwitchRow auto_check_spelling_row;
     [GtkChild]
     private unowned Brk.SwitchRow use_default_font_row;
+    [GtkChild]
+    private unowned Brk.FontRow editor_font_row;
 
     construct {
         settings.bind("show-line-numbers", show_line_numbers_row, "active", DEFAULT);
@@ -76,6 +78,8 @@ public sealed class Bedit.PreferencesWindow : Brk.PreferencesWindow {
         settings.bind("word-wrap", word_wrap_row, "active", DEFAULT);
         settings.bind("auto-check-spelling", auto_check_spelling_row, "active", DEFAULT);
         settings.bind("use-default-font", use_default_font_row, "active", DEFAULT);
+        settings.bind("editor-font", editor_font_row, "font", DEFAULT);
+        settings.bind("use-default-font", editor_font_row, "visible", GET | INVERT_BOOLEAN);
     }
 
     public override void

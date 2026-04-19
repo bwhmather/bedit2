@@ -144,7 +144,12 @@
                 <property name="subtitle">Use the system monospace font instead of a custom one</property>
               </object>
             </child>
-            <!-- <key name="editor-font" type="s"> -->
+            <child>
+              <object class="BrkFontRow" id="editor_font_row">
+                <property name="title">Editor Font</property>
+                <property name="subtitle">Font used in the editing area</property>
+              </object>
+            </child>
           </object>
         </child>
         <child>
