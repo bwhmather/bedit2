@@ -1083,7 +1083,7 @@ public sealed class Bedit.Document : Gtk.Widget {
         var scheme_manager = GtkSource.StyleSchemeManager.get_default();
         var scheme = scheme_manager.get_scheme(this.style_scheme);
         if (scheme != null) {
-            var gtk_settings = Gtk.Settings.get_default();
+            var gtk_settings = Gtk.Settings.get_for_display(this.get_display());
             if (gtk_settings.gtk_interface_color_scheme == Gtk.InterfaceColorScheme.DARK) {
                 var dark_id = scheme.get_metadata("dark-variant");
                 if (dark_id != null) {
@@ -1100,10 +1100,9 @@ public sealed class Bedit.Document : Gtk.Widget {
     private void
     style_scheme_init() {
         this.settings.bind("style-scheme", this, "style-scheme", GET);
-        this.notify["style-scheme"].connect(() => { this.update_style_scheme(); });
-        Gtk.Settings.get_default().notify["gtk-interface-color-scheme"].connect(() => {
-            this.update_style_scheme();
-        });
+        this.notify["style-scheme"].connect(this.update_style_scheme);
+        var gtk_settings = Gtk.Settings.get_for_display(this.get_display());
+        gtk_settings.notify["gtk-interface-color-scheme"].connect(this.update_style_scheme);
         this.update_style_scheme();
     }
 
@@ -1733,6 +1732,7 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     public override void
     dispose() {
+        GLib.SignalHandler.disconnect_by_data(Gtk.Settings.get_for_display(this.get_display()), this);
         this.file_text_dispose();
         this.highlight_selected_dispose();
         this.git_text_dispose();

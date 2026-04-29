@@ -23,6 +23,11 @@ public sealed class Bedit.StyleSchemeChooserRow : Brk.PreferencesRow {
     public string subtitle { get; set; default = ""; }
 
     private void
+    on_color_scheme_changed() {
+        this.list_box.invalidate_filter();
+    }
+
+    private void
     update_selected() {
         this.list_box.unselect_all();
         for (
@@ -46,13 +51,15 @@ public sealed class Bedit.StyleSchemeChooserRow : Brk.PreferencesRow {
     }
 
     construct {
+        var gtk_settings = Gtk.Settings.get_for_display(this.get_display());
+
         this.list_box = new Gtk.ListBox();
         this.list_box.add_css_class("rich-list");
         this.list_box.selection_mode = SINGLE;
         this.list_box.activate_on_single_click = true;
         this.list_box.set_filter_func((row) => {
             var variant = row.get_data<GtkSource.StyleSchemePreview>("preview").scheme.get_metadata("variant");
-            var dark = Gtk.Settings.get_default().gtk_interface_color_scheme == Gtk.InterfaceColorScheme.DARK;
+            var dark = gtk_settings.gtk_interface_color_scheme == Gtk.InterfaceColorScheme.DARK;
             return variant == (dark ? "dark" : "light") || variant == null;
         });
         this.list_box.row_activated.connect((row) => {
@@ -134,11 +141,16 @@ public sealed class Bedit.StyleSchemeChooserRow : Brk.PreferencesRow {
 
         this.set_child(box);
 
-        Gtk.Settings.get_default().notify["gtk-interface-color-scheme"].connect(() => {
-            this.list_box.invalidate_filter();
-        });
+        gtk_settings.notify["gtk-interface-color-scheme"].connect(this.on_color_scheme_changed);
 
         this.notify["scheme-id"].connect(() => { this.update_selected(); });
         this.update_selected();
+    }
+
+    public override void
+    dispose() {
+        var gtk_settings = Gtk.Settings.get_for_display(this.get_display());
+        GLib.SignalHandler.disconnect_by_data(gtk_settings, this);
+        base.dispose();
     }
 }
