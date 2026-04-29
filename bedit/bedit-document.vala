@@ -1569,7 +1569,9 @@ public sealed class Bedit.Document : Gtk.Widget {
             if (!ok) {
                 line = int.MAX;
             }
-            line -= 1;
+            if (line != 0) {
+                line -= 1;
+            }
             break;
         }
 
