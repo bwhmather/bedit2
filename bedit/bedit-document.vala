@@ -1600,7 +1600,7 @@ public sealed class Bedit.Document : Gtk.Widget {
 
         var cursor = this.source_buffer.get_insert();
         this.source_buffer.get_iter_at_mark(out iter, cursor);
-        this.go_to_line_entry.text = iter.get_line().to_string();
+        this.go_to_line_entry.text = (iter.get_line() + 1).to_string();
         this.go_to_line_entry.select_region(0, -1);
 
         this.go_to_line_entry.grab_focus();
