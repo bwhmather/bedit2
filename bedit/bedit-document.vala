@@ -1132,39 +1132,42 @@ public sealed class Bedit.Document : Gtk.Widget {
     private GtkSource.SearchContext? highlight_selected_context;
     private uint highlight_selected_timeout_id;
 
+    private bool
+    highlight_selected_on_timeout() {
+        this.highlight_selected_timeout_id = 0;
+
+        var selection = this.get_selection();
+        if (selection == null || selection.length == 0) {
+            this.highlight_selected_context = null;
+            return GLib.Source.REMOVE;
+        }
+
+        if (!this.highlight_selection) {
+            this.highlight_selected_context = null;
+            return GLib.Source.REMOVE;
+        }
+
+        if (this.highlight_selected_context == null) {
+            this.highlight_selected_context = new GtkSource.SearchContext(this.source_buffer, null);
+        }
+
+        var settings = this.highlight_selected_context.settings;
+        settings.search_text = selection;
+        settings.regex_enabled = false;
+        settings.case_sensitive = true;
+
+        return GLib.Source.REMOVE;
+    }
+
     private void
     highlight_selected_update() {
         if (this.highlight_selected_timeout_id != 0) {
             return;
         }
 
-        this.highlight_selected_timeout_id = GLib.Idle.add_full(GLib.Priority.LOW, () => {
-            this.highlight_selected_timeout_id = 0;
+        this.highlight_selected_timeout_id = GLib.Idle.add_full(GLib.Priority.LOW, this.highlight_selected_on_timeout);
 
-            var selection = this.get_selection();
-            if (selection == null || selection.length == 0) {
-                this.highlight_selected_context = null;
-                return GLib.Source.REMOVE;
-            }
-
-            if (!this.highlight_selection) {
-                this.highlight_selected_context = null;
-                return GLib.Source.REMOVE;
-            }
-
-            if (this.highlight_selected_context == null) {
-                this.highlight_selected_context = new GtkSource.SearchContext(this.source_buffer, null);
-            }
-
-            var settings = this.highlight_selected_context.settings;
-            settings.search_text = selection;
-            settings.regex_enabled = false;
-            settings.case_sensitive = true;
-
-            return GLib.Source.REMOVE;
-        });
     }
-
 
     private void
     highlight_selected_on_mark_set(Gtk.TextIter loc, Gtk.TextMark mark) {
