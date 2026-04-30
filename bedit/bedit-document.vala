@@ -818,11 +818,19 @@ public sealed class Bedit.Document : Gtk.Widget {
     }
 
     private void
+    editing_update_flags() {
+        this.can_undo = this.source_buffer.can_undo;
+        this.can_redo = this.source_buffer.can_redo;
+        this.can_cut = this.source_buffer.has_selection;
+        this.can_copy = this.source_buffer.has_selection;
+    }
+
+    private void
     editing_init() {
-        this.source_buffer.bind_property("can-undo", this, "can-undo", SYNC_CREATE);
-        this.source_buffer.bind_property("can-redo", this, "can-redo", SYNC_CREATE);
-        this.source_buffer.bind_property("has-selection", this, "can-cut", SYNC_CREATE);
-        this.source_buffer.bind_property("has-selection", this, "can-copy", SYNC_CREATE);
+        this.source_buffer.notify["can-undo"].connect(this.editing_update_flags);
+        this.source_buffer.notify["can-redo"].connect(this.editing_update_flags);
+        this.source_buffer.notify["has-selection"].connect(this.editing_update_flags);
+        this.editing_update_flags();
     }
 
     /* === Metadata ========================================================= */
