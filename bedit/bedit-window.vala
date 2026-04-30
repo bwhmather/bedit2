@@ -376,9 +376,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.active_document_notify_connect("loading", this.document_actions_update);
         this.active_document_notify_connect("saving", this.document_actions_update);
 
-        this.notify["active-document"].connect((da, pspec) => {
-            this.document_actions_update();
-        });
+        this.notify["active-document"].connect(this.document_actions_update);
 
         this.document_actions_update();
     }
@@ -447,9 +445,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.active_document_notify_connect("can-copy", this.clipboard_actions_update);
         this.active_document_notify_connect("can-paste", this.clipboard_actions_update);
 
-        this.notify["active-document"].connect((da, pspec) => {
-            this.clipboard_actions_update();
-        });
+        this.notify["active-document"].connect(this.clipboard_actions_update);
 
         this.clipboard_actions_update();
     }
@@ -491,9 +487,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         this.selection_actions.add_action_entries(selection_action_entries,this);
         this.insert_action_group("selection", this.selection_actions);
 
-        this.notify["active-document"].connect((da, pspec) => {
-            this.selection_actions_update();
-        });
+        this.notify["active-document"].connect(this.selection_actions_update);
 
         this.selection_actions_update();
     }
@@ -880,6 +874,32 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     }
 
     private void
+    on_search_entry_changed() {
+        this.update_search();
+        this.focus_first();
+    }
+
+    private void
+    on_search_error_changed() {
+        if (this.search_error != "") {
+            this.search_entry.add_css_class("error");
+        } else {
+            this.search_entry.remove_css_class("error");
+        }
+        this.search_update_status_bar();
+    }
+
+    private void
+    on_replace_error_changed() {
+        if (this.replace_error != "") {
+            this.replace_entry.add_css_class("error");
+        } else {
+            this.replace_entry.remove_css_class("error");
+        }
+        this.search_update_status_bar();
+    }
+
+    private void
     search_init() {
         Gtk.EventControllerKey event_controller;
 
@@ -894,41 +914,24 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
         event_controller.key_pressed.connect(search_entry_on_key_press_event);
         this.search_entry.add_controller(event_controller);
         this.search_entry.activate.connect(this.search_entry_on_activate);
-        this.search_entry.changed.connect((_) => {
-            this.update_search();
-            this.focus_first();
-        });
+        this.search_entry.changed.connect(this.on_search_entry_changed);
 
         this.bind_property("search-visible", this.search_revealer, "reveal-child", SYNC_CREATE);
 
         this.replace_entry.activate.connect(this.replace_entry_on_activate);
 
-        this.notify["case-sensitive"].connect((s, pspec) => { this.update_search(); });
-        this.notify["regex"].connect((s, pspec) => { this.update_search(); });
+        this.notify["case-sensitive"].connect(this.update_search);
+        this.notify["regex"].connect(this.update_search);
 
-        this.notify["active-document"].connect((s, pspec) => { this.update_search(); });
-        this.notify["search-visible"].connect((s, pspec) => {this.update_search();});
-        this.notify["replace-visible"].connect((s, pspec) => {this.update_search();});
+        this.notify["active-document"].connect(this.update_search);
+        this.notify["search-visible"].connect(this.update_search);
+        this.notify["replace-visible"].connect(this.update_search);
 
-        this.notify["search-active"].connect((s, pspec) => { this.search_actions_update(); });
-        this.notify["replace-active"].connect((s, pspec) => { this.search_actions_update(); });
+        this.notify["search-active"].connect(this.search_actions_update);
+        this.notify["replace-active"].connect(this.search_actions_update);
 
-        this.notify["search-error"].connect((s, pspec) => {
-            if (this.search_error != "") {
-                this.search_entry.add_css_class("error");
-             } else {
-                this.search_entry.remove_css_class("error");
-             }
-            this.search_update_status_bar();
-        });
-        this.notify["replace-error"].connect((s, pspec) => {
-            if (this.replace_error != "") {
-                this.replace_entry.add_css_class("error");
-            } else {
-                this.replace_entry.remove_css_class("error");
-            }
-            this.search_update_status_bar();
-        });
+        this.notify["search-error"].connect(this.on_search_error_changed);
+        this.notify["replace-error"].connect(this.on_replace_error_changed);
 
         this.active_document_notify_connect("num-search-occurrences", this.search_update_status_bar);
         this.active_document_notify_connect("selected-search-occurrence", this.search_update_status_bar);

@@ -28,6 +28,12 @@ public sealed class Bedit.StyleSchemeChooserRow : Brk.PreferencesRow {
     }
 
     private void
+    on_list_box_row_activated(Gtk.ListBoxRow row) {
+        var scheme = row.get_data<GtkSource.StyleSchemePreview>("preview").scheme;
+        this.scheme_id = scheme.get_metadata("light-variant") ?? scheme.get_id();
+    }
+
+    private void
     update_selected() {
         this.list_box.unselect_all();
         for (
@@ -62,10 +68,7 @@ public sealed class Bedit.StyleSchemeChooserRow : Brk.PreferencesRow {
             var dark = gtk_settings.gtk_interface_color_scheme == Gtk.InterfaceColorScheme.DARK;
             return variant == (dark ? "dark" : "light") || variant == null;
         });
-        this.list_box.row_activated.connect((row) => {
-            var scheme = row.get_data<GtkSource.StyleSchemePreview>("preview").scheme;
-            this.scheme_id = scheme.get_metadata("light-variant") ?? scheme.get_id();
-        });
+        this.list_box.row_activated.connect(this.on_list_box_row_activated);
 
         var scheme_manager = GtkSource.StyleSchemeManager.get_default();
         foreach (var scheme_id in scheme_manager.get_scheme_ids()) {
@@ -143,7 +146,7 @@ public sealed class Bedit.StyleSchemeChooserRow : Brk.PreferencesRow {
 
         gtk_settings.notify["gtk-interface-color-scheme"].connect(this.on_color_scheme_changed);
 
-        this.notify["scheme-id"].connect(() => { this.update_selected(); });
+        this.notify["scheme-id"].connect(this.update_selected);
         this.update_selected();
     }
 

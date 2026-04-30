@@ -32,14 +32,17 @@ class Bedit.Application : Gtk.Application {
 
     private Bedit.PreferencesWindow? preferences_window;
 
+    private bool
+    preferences_on_close_request() {
+        this.preferences_window = null;
+        return Gdk.EVENT_PROPAGATE;
+    }
+
     private void
     action_preferences() {
         if (this.preferences_window == null) {
             this.preferences_window = new Bedit.PreferencesWindow(this);
-            this.preferences_window.close_request.connect(() => {
-                this.preferences_window = null;
-                return Gdk.EVENT_PROPAGATE;
-            });
+            this.preferences_window.close_request.connect(this.preferences_on_close_request);
         }
         this.preferences_window.present();
     }

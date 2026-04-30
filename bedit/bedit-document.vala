@@ -246,31 +246,37 @@ public sealed class Bedit.Document : Gtk.Widget {
     }
 
     private void
+    file_text_on_map() {
+        this.file_text_monitor_reset();
+        this.file_text_reload_async.begin();
+    }
+
+    private void
+    file_text_on_unmap() {
+        if (this.file_text_monitor != null) {
+            this.file_text_monitor.cancel();
+            this.file_text_monitor = null;
+        }
+    }
+
+    private void
+    file_text_on_enter() {
+        this.file_text_reload_async.begin();
+    }
+
+    private void
     file_text_dispose() {
         this.file_text_cancellable.cancel();
     }
 
     private void
     file_text_init() {
-        this.map.connect(() => {
-            this.file_text_monitor_reset();
-            this.file_text_reload_async.begin();
-        });
-        this.unmap.connect(() => {
-            if (this.file_text_monitor != null) {
-                this.file_text_monitor.cancel();
-                this.file_text_monitor = null;
-            }
-        });
+        this.map.connect(this.file_text_on_map);
+        this.unmap.connect(this.file_text_on_unmap);
         var focus_controller = new Gtk.EventControllerFocus();
-        focus_controller.enter.connect(() => {
-            this.file_text_reload_async.begin();
-        });
-
+        focus_controller.enter.connect(this.file_text_on_enter);
         this.add_controller(focus_controller);
-        this.notify["file"].connect(() => {
-            this.file_text_monitor_reset();
-        });
+        this.notify["file"].connect(this.file_text_monitor_reset);
     }
 
     /* === Git State Tracking =============================================== */
@@ -522,22 +528,24 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     private void
     git_text_init() {
-        this.map.connect(() => {
-            this.git_text_monitor_reset();
-        });
-        this.unmap.connect(() => {
-            this.git_text_monitor_reset();
-            this.git_text_reload_pending = false;
-        });
+        this.map.connect(this.git_text_monitor_reset);
+        this.unmap.connect(this.git_text_on_unmap);
         var focus_controller = new Gtk.EventControllerFocus();
-        focus_controller.enter.connect(() => {
-            this.git_text_reload();
-        });
+        focus_controller.enter.connect(this.git_text_reload);
         this.add_controller(focus_controller);
-        this.notify["file"].connect(() => {
-            this.git_loaded_sha = null;
-            this.git_text_monitor_reset();
-        });
+        this.notify["file"].connect(this.git_text_on_file_changed);
+    }
+
+    private void
+    git_text_on_unmap() {
+        this.git_text_monitor_reset();
+        this.git_text_reload_pending = false;
+    }
+
+    private void
+    git_text_on_file_changed() {
+        this.git_loaded_sha = null;
+        this.git_text_monitor_reset();
     }
 
     private void
@@ -656,58 +664,67 @@ public sealed class Bedit.Document : Gtk.Widget {
     }
 
     private void
+    buffer_on_modified_changed() {
+        this.modified = this.source_buffer.get_modified();
+    }
+
+    private void
+    buffer_on_reload_bar_close() {
+        this.reload_bar.revealed = false;
+    }
+
+    private void
+    buffer_on_file_text_changed() {
+        if (this.loading || this.saving) {
+            return;
+        }
+        var disk = this.file_text;
+        if (disk == null) {
+            this.reload_bar.revealed = false;
+            return;
+        }
+        Gtk.TextIter s, e;
+        this.source_buffer.get_bounds(out s, out e);
+        var buffer_bytes = new GLib.Bytes(
+            this.source_buffer.get_text(s, e, true).data
+        );
+        if (disk.compare(buffer_bytes) != 0) {
+            if (!this.source_buffer.get_modified() && !this.source_buffer.can_redo) {
+                this.loading = true;
+                this.load();
+                source_buffer_set_bytes(this.source_buffer, disk);
+                this.source_buffer.set_modified(false);
+                this.scroll_to_cursor();
+                this.loaded();
+                this.loading = false;
+            } else {
+                this.reload_label.label = "<b>The file has been changed by another program</b>";
+                this.reload_button.label = "Drop Changes and Reload";
+                this.reload_bar.revealed = true;
+            }
+        } else {
+            this.reload_bar.revealed = false;
+        }
+    }
+
+    private void
     buffer_init() {
-        this.source_buffer.modified_changed.connect((tb) => {
-            this.modified = this.source_buffer.get_modified();
-        });
-        this.notify["loading"].connect((_, pspec) => { this.update_busy(); });
-        this.notify["saving"].connect((_, pspec) => { this.update_busy(); });
+        this.source_buffer.modified_changed.connect(this.buffer_on_modified_changed);
+        this.notify["loading"].connect(this.update_busy);
+        this.notify["saving"].connect(this.update_busy);
 
         var action = new GLib.SimpleAction("reload", null);
         action.activate.connect(this.reload);
         this.document_actions.add_action(action);
 
-        this.reload_bar.close.connect(() => {
-            this.reload_bar.revealed = false;
-        });
+        this.reload_bar.close.connect(this.buffer_on_reload_bar_close);
 
         if (this.file != null) {
             this.reload();
         }
 
         // React to disk-snapshot changes.
-        this.notify["file-text"].connect(() => {
-            if (this.loading || this.saving) {
-                return;
-            }
-            var disk = this.file_text;
-            if (disk == null) {
-                this.reload_bar.revealed = false;
-                return;
-            }
-            Gtk.TextIter s, e;
-            this.source_buffer.get_bounds(out s, out e);
-            var buffer_bytes = new GLib.Bytes(
-                this.source_buffer.get_text(s, e, true).data
-            );
-            if (disk.compare(buffer_bytes) != 0) {
-                if (!this.source_buffer.get_modified() && !this.source_buffer.can_redo) {
-                    this.loading = true;
-                    this.load();
-                    source_buffer_set_bytes(this.source_buffer, disk);
-                    this.source_buffer.set_modified(false);
-                    this.scroll_to_cursor();
-                    this.loaded();
-                    this.loading = false;
-                } else {
-                    this.reload_label.label = "<b>The file has been changed by another program</b>";
-                    this.reload_button.label = "Drop Changes and Reload";
-                    this.reload_bar.revealed = true;
-                }
-            } else {
-                this.reload_bar.revealed = false;
-            }
-        });
+        this.notify["file-text"].connect(this.buffer_on_file_text_changed);
     }
 
     /* === Editing ========================================================== */
@@ -802,17 +819,10 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     private void
     editing_init() {
-        this.source_buffer.notify["can-undo"].connect((sb, pspec) => {
-            this.can_undo = source_buffer.can_undo;
-        });
-        this.source_buffer.notify["can-redo"].connect((sb, pspec) => {
-            this.can_redo = source_buffer.can_redo;
-        });
-        this.source_buffer.notify["has-selection"].connect((sb, pspec) => {
-            bool has_selection = this.source_buffer.has_selection;
-            this.can_cut = has_selection;
-            this.can_copy = has_selection;
-        });
+        this.source_buffer.bind_property("can-undo", this, "can-undo", SYNC_CREATE);
+        this.source_buffer.bind_property("can-redo", this, "can-redo", SYNC_CREATE);
+        this.source_buffer.bind_property("has-selection", this, "can-cut", SYNC_CREATE);
+        this.source_buffer.bind_property("has-selection", this, "can-copy", SYNC_CREATE);
     }
 
     /* === Metadata ========================================================= */
@@ -866,7 +876,7 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     private void
     title_init() {
-        this.notify["file"].connect((_, pspec) => { this.title_update(); });
+        this.notify["file"].connect(this.title_update);
         this.title_update();
     }
 
@@ -899,7 +909,7 @@ public sealed class Bedit.Document : Gtk.Widget {
     language_init() {
         this.bind_property("language", this.source_buffer, "language", SYNC_CREATE);
 
-        this.notify["file"].connect((_, pspec) => { this.language_update(); });
+        this.notify["file"].connect(this.language_update);
         this.language_update();
     }
 
@@ -923,15 +933,16 @@ public sealed class Bedit.Document : Gtk.Widget {
     }
 
     private void
-    position_init() {
-        this.source_buffer.end_user_action.connect((tb) => {
+    position_on_mark_set(Gtk.TextIter loc, Gtk.TextMark mark) {
+        if (mark == this.source_buffer.get_insert()) {
             this.position_update();
-        });
-        this.source_buffer.mark_set.connect((loc, mark) => {
-            if (mark == this.source_buffer.get_insert()) {
-                this.position_update();
-            }
-        });
+        }
+    }
+
+    private void
+    position_init() {
+        this.source_buffer.end_user_action.connect(this.position_update);
+        this.source_buffer.mark_set.connect(this.position_on_mark_set);
         this.position_update();
     }
 
@@ -960,7 +971,11 @@ public sealed class Bedit.Document : Gtk.Widget {
     public bool trim_trailing_whitespace { get; set; }
 
     private void
-    trim_trailing() {
+    trim_trailing_on_save() {
+        if (!this.trim_trailing_whitespace) {
+            return;
+        }
+
         this.source_buffer.begin_user_action();
 
         Gtk.TextIter iter;
@@ -992,11 +1007,7 @@ public sealed class Bedit.Document : Gtk.Widget {
     trim_trailing_init() {
         this.settings.bind("trim-trailing-whitespace", this, "trim-trailing-whitespace", GET);
 
-        this.save.connect((d) => {
-            if (this.trim_trailing_whitespace) {
-                this.trim_trailing();
-            }
-        });
+        this.save.connect(this.trim_trailing_on_save);
     }
 
     /* === Appearance ======================================================= */
@@ -1029,8 +1040,8 @@ public sealed class Bedit.Document : Gtk.Widget {
         this.settings.bind("use-default-font", this, "use-default-font", GET);
         this.settings.bind("editor-font", this, "editor-font", GET);
 
-        this.notify["use-default-font"].connect((d, pspec) => { this.update_font(); });
-        this.notify["editor-font"].connect((d, pspec) => { this.update_font(); });
+        this.notify["use-default-font"].connect(this.update_font);
+        this.notify["editor-font"].connect(this.update_font);
         this.update_font();
     }
 
@@ -1050,7 +1061,7 @@ public sealed class Bedit.Document : Gtk.Widget {
     private void
     word_wrap_init() {
         this.settings.bind("word-wrap", this, "word-wrap", GET);
-        this.notify["word-wrap"].connect((d, pspec) => { this.update_word_wrap(); });
+        this.notify["word-wrap"].connect(this.update_word_wrap);
         this.update_word_wrap();
     }
 
@@ -1146,22 +1157,22 @@ public sealed class Bedit.Document : Gtk.Widget {
         });
     }
 
+
+    private void
+    highlight_selected_on_mark_set(Gtk.TextIter loc, Gtk.TextMark mark) {
+        if (mark == this.source_buffer.get_insert()) {
+            this.highlight_selected_update();
+        }
+    }
+
     private void
     highlight_selected_init() {
         this.settings.bind("highlight-selection", this, "highlight-selection", GET);
-        this.notify["highlight-selection"].connect(() => {
-            this.highlight_selected_update();
-        });
+        this.notify["highlight-selection"].connect(this.highlight_selected_update);
 
-        this.source_buffer.mark_set.connect((b, loc, mark) => {
-            if (mark == this.source_buffer.get_insert()) {
-                this.highlight_selected_update();
-            }
-        });
+        this.source_buffer.mark_set.connect(this.highlight_selected_on_mark_set);
 
-        this.source_buffer.delete_range.connect(() => {
-            this.highlight_selected_update();
-        });
+        this.source_buffer.delete_range.connect(this.highlight_selected_update);
     }
 
     private void
@@ -1226,7 +1237,7 @@ public sealed class Bedit.Document : Gtk.Widget {
     private void
     overview_map_init() {
         this.settings.bind("show-overview-map", this, "show-overview-map", GET);
-        this.notify["show-overview-map"].connect((d, pspec) => { this.update_show_overview_map(); });
+        this.notify["show-overview-map"].connect(this.update_show_overview_map);
         this.update_show_overview_map();
     }
 
@@ -1280,17 +1291,18 @@ public sealed class Bedit.Document : Gtk.Widget {
     }
 
     private void
+    start_mark_on_mark_set(Gtk.TextIter loc, Gtk.TextMark mark) {
+        if (mark == this.source_buffer.get_insert()) {
+            this.reset_start_mark();
+        }
+    }
+
+    private void
     start_mark_init() {
         this.set_start_mark();
 
-        this.source_buffer.mark_set.connect((loc, mark) => {
-            if (mark == this.source_buffer.get_insert()) {
-                this.reset_start_mark();
-            }
-        });
-        this.source_buffer.changed.connect(() => {
-            this.reset_start_mark();
-        });
+        this.source_buffer.mark_set.connect(this.start_mark_on_mark_set);
+        this.source_buffer.changed.connect(this.reset_start_mark);
     }
 
     /* --- Search and Replace ----------------------------------------------- */
@@ -1330,9 +1342,7 @@ public sealed class Bedit.Document : Gtk.Widget {
     find(string query, bool regex, bool case_sensitive) {
         if (this.search_context == null) {
             this.search_context = new GtkSource.SearchContext(this.source_buffer, null);
-            this.search_context.notify["occurrences-count"].connect((sc, pspec) => {
-                this.update_search_occurrences();
-            });
+            this.search_context.notify["occurrences-count"].connect(this.update_search_occurrences);
         }
 
         var settings = this.search_context.settings;
@@ -1518,12 +1528,15 @@ public sealed class Bedit.Document : Gtk.Widget {
     }
 
     private void
-    search_init() {
-        this.source_buffer.mark_set.connect((loc, mark) => {
+    search_on_mark_set(Gtk.TextIter loc, Gtk.TextMark mark) {
             if (mark == this.source_buffer.get_insert() || mark == this.source_buffer.get_selection_bound()) {
                 this.update_search_occurrences();
             }
-        });
+    }
+
+    private void
+    search_init() {
+        this.source_buffer.mark_set.connect(this.search_on_mark_set);
     }
 
     /* --- Go To Line ------------------------------------------------------- */
@@ -1669,13 +1682,11 @@ public sealed class Bedit.Document : Gtk.Widget {
         action.activate.connect(this.go_to_line_hide);
         this.document_actions.add_action(action);
 
-        this.go_to_line_entry.changed.connect((e) => { this.go_to_line_update(); });
+        this.go_to_line_entry.changed.connect(this.go_to_line_update);
 
         var focus_controller = new Gtk.EventControllerFocus();
-        focus_controller.leave.connect((ec) => {
-            this.go_to_line_commit();
-            this.go_to_line_hide();
-        });
+        focus_controller.leave.connect(this.go_to_line_commit);
+        focus_controller.leave.connect(this.go_to_line_hide);
         this.go_to_line_entry.add_controller(focus_controller);
 
         var shortcut_controller = new Gtk.ShortcutController();
@@ -1685,13 +1696,16 @@ public sealed class Bedit.Document : Gtk.Widget {
         ));
         this.go_to_line_entry.add_controller(shortcut_controller);
 
-        this.go_to_line_entry.activate.connect((e) => {
-            this.go_to_line_commit();
-            this.go_to_line_hide();
-        });
+        this.go_to_line_entry.activate.connect(this.go_to_line_commit);
+        this.go_to_line_entry.activate.connect(this.go_to_line_hide);
     }
 
     /* === Lifecyle ========================================================= */
+
+    private void
+    source_buffer_on_end_user_action() {
+        this.source_view.scroll_mark_onscreen(this.source_buffer.get_insert());
+    }
 
     class construct {
         set_layout_manager_type(typeof (Gtk.BinLayout));
@@ -1699,9 +1713,7 @@ public sealed class Bedit.Document : Gtk.Widget {
 
     construct {
         this.source_buffer = source_view.get_buffer() as GtkSource.Buffer;
-        this.source_buffer.end_user_action.connect((tb) => {
-            this.source_view.scroll_mark_onscreen(this.source_buffer.get_insert());
-        });
+        this.source_buffer.end_user_action.connect(this.source_buffer_on_end_user_action);
 
         file_text_init();
         git_text_init();
