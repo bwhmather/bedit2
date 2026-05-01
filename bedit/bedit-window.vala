@@ -38,7 +38,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
     /* === Title ============================================================ */
 
     private void
-       title_update() {
+    title_update() {
         if (this.active_document == null) {
             this.title = "Bedit";
         } else {
@@ -1075,7 +1075,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
                 this.active_document.grab_focus();
             }
         });
-
     }
 
     public override void

@@ -142,7 +142,9 @@ public sealed class Bedit.Document : Gtk.Widget {
         SourceFunc? prev = null;
         if (this.file_text_reload_active_cb == null) {
             this.file_text_reload_active_cb = this.file_text_force_reload_async.callback;
-            file_text_reload_loop_async.begin();
+            this.file_text_reload_loop_async.begin((obj, res) => {
+                this.file_text_reload_loop_async.end(res);
+            });
         } else {
             prev = this.file_text_reload_pending_cb;
             this.file_text_reload_pending_cb = this.file_text_force_reload_async.callback;
@@ -202,7 +204,9 @@ public sealed class Bedit.Document : Gtk.Widget {
         }
 
         // Queue up a background reload to refresh mtime.
-        file_text_reload_async.begin();
+        this.file_text_reload_async.begin((obj, res) => {
+            this.file_text_reload_async.end(res);
+        });
     }
 
     private GLib.FileMonitor? file_text_monitor = null;
@@ -213,7 +217,9 @@ public sealed class Bedit.Document : Gtk.Widget {
         case CHANGED:
         case CREATED:
         case RENAMED:
-            file_text_reload_async.begin();
+            this.file_text_reload_async.begin((obj, res) => {
+                this.file_text_reload_async.end(res);
+            });
             break;
         case DELETED:
             this.file_text = null;
@@ -254,7 +260,9 @@ public sealed class Bedit.Document : Gtk.Widget {
     file_text_init() {
         this.map.connect(() => {
             this.file_text_monitor_reset();
-            this.file_text_reload_async.begin();
+            this.file_text_reload_async.begin((obj, res) => {
+                this.file_text_reload_async.end(res);
+            });
         });
         this.unmap.connect(() => {
             if (this.file_text_monitor != null) {
@@ -264,7 +272,9 @@ public sealed class Bedit.Document : Gtk.Widget {
         });
         var focus_controller = new Gtk.EventControllerFocus();
         focus_controller.enter.connect(() => {
-            this.file_text_reload_async.begin();
+            this.file_text_reload_async.begin((obj, res) => {
+                this.file_text_reload_async.end(res);
+            });
         });
 
         this.add_controller(focus_controller);
@@ -628,7 +638,7 @@ public sealed class Bedit.Document : Gtk.Widget {
     public void
     reload() {
         this.reload_async.begin((_, res) => {
-            reload_async.end(res);
+            this.reload_async.end(res);
         });
     }
 
