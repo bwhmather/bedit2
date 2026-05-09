@@ -500,28 +500,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     /* === Window Actions =================================================== */
 
-    /* --- Experimental ----------------------------------------------------- */
-
-    private async void
-    do_open_experimental() throws Error {
-        var file_dialog = new Brk.FileDialog();
-        var file = yield file_dialog.open(this, this.cancellable);
-        if (file != null) {
-            this.open_file(file);
-        }
-    }
-
-    private void
-    action_win_open_experimental() {
-        this.do_open_experimental.begin((_, res) => {
-            try {
-                this.do_open_experimental.end(res);
-            } catch (Error err) {
-                warning("Error: %s\n", err.message);
-            }
-        });
-    }
-
     /* --- Creating New Documents and Opening Existing Ones ----------------- */
 
     public void
@@ -543,7 +521,7 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private async void
     do_open() throws Error {
-        var file_dialog = new Gtk.FileDialog();
+        var file_dialog = new Brk.FileDialog();
         var file = yield file_dialog.open(this, this.cancellable);
         if (file != null) {
             this.open_file(file);
@@ -572,7 +550,6 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     const GLib.ActionEntry[] window_action_entries = {
         {"new", action_win_new},
-        {"open-experimental", action_win_open_experimental},
         {"open", action_win_open},
         {"close", action_win_close_window},
     };
