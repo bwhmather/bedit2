@@ -113,11 +113,9 @@ public sealed class Bedit.Window : Gtk.ApplicationWindow {
 
     private async bool
     document_save_as_async(Bedit.Document document) throws Error {
-        GLib.File file;
-        var file_dialog = new Gtk.FileDialog();
-        try {
-            file = yield file_dialog.save(this, null);
-        } catch (Gtk.DialogError.DISMISSED err) {
+        var file_dialog = new Brk.FileDialog();
+        var file = yield file_dialog.save(this, null);
+        if (file == null) {
             return false;
         }
 
