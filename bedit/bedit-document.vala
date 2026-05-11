@@ -616,7 +616,8 @@ public sealed class Bedit.Document : Gtk.Widget {
             }
 
             if (initial) {
-                this.source_buffer.set_text((string) bytes.get_data(), bytes.length);
+                var text = (string?) bytes.get_data() ?? "";
+                this.source_buffer.set_text(text, (int) bytes.length);
                 Gtk.TextIter start;
                 this.source_buffer.get_start_iter(out start);
                 this.source_buffer.place_cursor(start);
