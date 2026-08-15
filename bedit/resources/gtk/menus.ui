@@ -61,71 +61,71 @@
       <attribute name="label" translatable="yes">_Edit</attribute>
       <section>
         <item>
-          <attribute name="label" translatable="yes">Undo</attribute>
+          <attribute name="label" translatable="yes">_Undo</attribute>
           <attribute name="action">doc.undo</attribute>
         </item>
         <item>
-          <attribute name="label" translatable="yes">Redo</attribute>
+          <attribute name="label" translatable="yes">_Redo</attribute>
           <attribute name="action">doc.redo</attribute>
         </item>
       </section>
       <section>
         <item>
-          <attribute name="label" translatable="yes">Cut</attribute>
+          <attribute name="label" translatable="yes">C_ut</attribute>
           <attribute name="action">clipboard.cut</attribute>
         </item>
         <item>
-          <attribute name="label" translatable="yes">Copy</attribute>
+          <attribute name="label" translatable="yes">_Copy</attribute>
           <attribute name="action">clipboard.copy</attribute>
         </item>
         <item>
-          <attribute name="label" translatable="yes">Paste</attribute>
+          <attribute name="label" translatable="yes">_Paste</attribute>
           <attribute name="action">clipboard.paste</attribute>
         </item>
       </section>
       <section>
         <item>
-          <attribute name="label" translatable="yes">Select All</attribute>
+          <attribute name="label" translatable="yes">Select _All</attribute>
           <attribute name="action">selection.select-all</attribute>
         </item>
       </section>
       <section>
         <item>
-          <attribute name="label" translatable="yes">Comment</attribute>
+          <attribute name="label" translatable="yes">C_omment</attribute>
           <attribute name="action">doc.comment</attribute>
         </item>
         <item>
-          <attribute name="label" translatable="yes">Uncomment</attribute>
+          <attribute name="label" translatable="yes">_Uncomment</attribute>
           <attribute name="action">doc.uncomment</attribute>
         </item>
       </section>
       <section>
         <item>
-          <attribute name="label" translatable="yes">Insert Date and Time…</attribute>
+          <attribute name="label" translatable="yes">_Insert Date and Time…</attribute>
           <attribute name="action">doc.insert-date-and-time</attribute>
         </item>
       </section>
       <section>
         <item>
-          <attribute name="label" translatable="yes">Sort Lines…</attribute>
+          <attribute name="label" translatable="yes">S_ort Lines…</attribute>
           <attribute name="action">doc.sort-lines</attribute>
         </item>
         <item>
-          <attribute name="label" translatable="yes">Delete Line</attribute>
+          <attribute name="label" translatable="yes">_Delete Line</attribute>
           <attribute name="action">doc.delete</attribute>
         </item>
         <item>
-          <attribute name="label" translatable="yes">Duplicate Line</attribute>
+          <attribute name="label" translatable="yes">_Duplicate Line</attribute>
           <attribute name="action">doc.duplicate</attribute>
         </item>
         <item>
-          <attribute name="label" translatable="yes">Join Lines</attribute>
+          <attribute name="label" translatable="yes">_Join Lines</attribute>
           <attribute name="action">doc.join-lines</attribute>
         </item>
       </section>
       <section>
         <item>
-          <attribute name="label" translatable="yes">Preferences…</attribute>
+          <attribute name="label" translatable="yes">_Preferences…</attribute>
           <attribute name="action">app.preferences</attribute>
         </item>
       </section>
