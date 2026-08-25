@@ -1,4 +1,5 @@
 *
 !.gitignore
 !gtk.wrap
+!glib.wrap
 !gtksourceview.wrap
